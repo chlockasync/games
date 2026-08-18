@@ -1,0 +1,1506 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#f4f1ea" />
+<title>Queens — endless logic puzzles</title>
+<style>
+:root{
+  --bg:#f3f2f4;--panel:#fbfbfb;--ink:#384253;--muted:#788190;--line:#7d8495;
+  --soft:#e3e0e6;--accent:#59637a;--danger:#b25c67;--ok:#4b8b68;--regionEdge:#6d677d;
+  --cell:min(11vw,52px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:linear-gradient(135deg,#f3f0f2 0%,#f4f3f2 48%,#edf3f2 100%);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;overscroll-behavior:none}
+body{display:flex;justify-content:center}
+button,select,input{font:inherit}
+.app{width:min(100%,720px);padding:env(safe-area-inset-top) 12px calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:14px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 4px 2px}
+.title{font-size:clamp(28px,7.5vw,42px);font-weight:800;letter-spacing:-.04em;line-height:1;color:#58627a}
+.stats{display:flex;gap:12px;align-items:center;color:var(--muted);font-size:14px;background:rgba(255,255,255,.82);border:1px solid #e4e2e7;padding:8px 12px;border-radius:18px;box-shadow:0 4px 12px rgba(96,102,126,.08)}
+.stat strong{display:block;color:var(--ink);font-size:18px;line-height:1.1;text-align:right}
+.controls{background:linear-gradient(180deg,#ffffff 0%,#fbfbfb 100%);border:1px solid var(--soft);border-radius:22px;padding:14px 16px 13px;display:grid;grid-template-columns:1fr;gap:8px;box-shadow:0 6px 18px rgba(96,102,126,.08)}
+.control{display:flex;flex-direction:column;gap:4px}
+.control label{font-size:12px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:800;padding-left:2px}
+select,input[type=range]{width:100%}
+select{border:1px solid var(--soft);background:#fff;border-radius:12px;padding:10px 12px;color:var(--ink)}
+.difficultyScale{position:relative;height:36px;margin:1px 2px 0}
+.difficultyRail{position:absolute;left:12px;right:12px;top:13px;height:10px;border-radius:999px;overflow:hidden;display:grid;grid-template-columns:repeat(4,1fr);gap:2px;background:#e5e2e8;box-shadow:inset 0 0 0 1px rgba(82,80,96,.10)}
+.difficultyRail span:nth-child(1){background:#b9d9c4}
+.difficultyRail span:nth-child(2){background:#d5d2b2}
+.difficultyRail span:nth-child(3){background:#ddb8a9}
+.difficultyRail span:nth-child(4){background:#c9b5d7}
+.difficultyStops{position:absolute;left:12px;right:12px;top:9px;height:18px;display:flex;justify-content:space-between;align-items:center;pointer-events:none}
+.difficultyStops i{width:8px;height:8px;border-radius:50%;background:#fff;border:2px solid #aaa5b2;box-shadow:0 1px 2px rgba(60,58,72,.12)}
+.difficultyScale input[type=range]{position:absolute;inset:0;width:100%;height:36px;margin:0;appearance:none;-webkit-appearance:none;background:transparent;cursor:pointer;z-index:2}
+.difficultyScale input[type=range]::-webkit-slider-runnable-track{height:10px;background:transparent}
+.difficultyScale input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:27px;height:27px;border-radius:50%;background:#706c80;border:4px solid #fff;box-shadow:0 2px 7px rgba(61,58,78,.28);margin-top:-8.5px}
+.difficultyScale input[type=range]::-moz-range-track{height:10px;background:transparent}
+.difficultyScale input[type=range]::-moz-range-thumb{width:19px;height:19px;border-radius:50%;background:#706c80;border:4px solid #fff;box-shadow:0 2px 7px rgba(61,58,78,.28)}
+.scaleLabels{display:grid;grid-template-columns:repeat(5,1fr);margin:0 0 0;color:var(--muted);font-size:10px;font-weight:750}
+.scaleLabels button{min-height:28px;padding:3px 1px;border:0;background:transparent;color:inherit;box-shadow:none;border-radius:9px;font-size:10px;font-weight:750}
+.scaleLabels button.active{color:#4c495c;background:#efedf2;font-weight:900}
+.recordsBtn{border:0;background:transparent;color:var(--muted);padding:0;min-height:0;border-radius:8px;box-shadow:none;text-align:left;cursor:pointer}
+.recordsBtn strong{text-align:right}
+.recordsTableWrap{overflow-x:auto;margin:12px -4px 4px;padding:0 4px}
+.recordsTable{width:100%;min-width:430px;border-collapse:separate;border-spacing:0;font-size:12px;color:#4e5564}
+.recordsTable th,.recordsTable td{padding:8px 7px;text-align:center;border-bottom:1px solid #ece9ee}
+.recordsTable th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#7b7f8b;font-weight:850;background:#f7f5f8}
+.recordsTable th:first-child,.recordsTable td:first-child{text-align:left;font-weight:850;position:sticky;left:0;background:var(--panel)}
+.recordsTable tr:last-child td{border-bottom:0}
+.sheetHead{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.sheetHead h2{margin:0}
+.iconBtn{width:38px;min-height:38px;padding:0;border-radius:50%;background:#efedf2;color:#5a5968;box-shadow:none;font-size:22px;line-height:1}
+.dangerBtn{background:#b9656c;color:#fff}
+.confirmText{color:#5c5963;line-height:1.45;margin-top:10px}
+.gameShell{padding:2px 0 0;display:flex;flex-direction:column;gap:13px;align-items:center;touch-action:none;user-select:none;-webkit-user-select:none}
+.boardWrap{width:100%;display:flex;justify-content:center;position:relative;overflow:visible;padding:2px 0}
+.boardArt{position:absolute;top:2px;left:50%;transform:translateX(-50%);display:block;pointer-events:none;overflow:visible;transition:filter .15s ease,opacity .15s ease}
+.board{position:relative;z-index:2;display:grid;border:0;border-radius:0;background:transparent;gap:0;touch-action:none;user-select:none;-webkit-user-select:none;max-width:100%;overflow:visible;box-shadow:none}
+.cell{position:relative;width:var(--cell);height:var(--cell);display:grid;place-items:center;background:transparent;font-size:calc(var(--cell)*.52);font-weight:700;line-height:1;touch-action:none;overflow:visible;border:0;border-radius:0;box-shadow:none}
+.cell::before{content:"";position:absolute;inset:4px;border-radius:7px;background:transparent;pointer-events:none}
+.cell.region-right,.cell.region-bottom,.cell.last-col,.cell.last-row{border:0}
+.cell>*{position:relative;z-index:1}
+.cell.x .mark{position:relative;width:52%;height:52%;display:block;transform:none;opacity:.76;filter:none}
+.cell.x .mark::before,.cell.x .mark::after{content:"";position:absolute;left:50%;top:50%;width:100%;height:max(4px,calc(var(--cell)*.115));background:rgba(255,255,255,.91);border-radius:999px;box-shadow:0 1px 1px rgba(73,72,90,.12);transform-origin:center}
+.cell.x .mark::before{transform:translate(-50%,-50%) rotate(45deg)}
+.cell.x .mark::after{transform:translate(-50%,-50%) rotate(-45deg)}
+.cell.queen .mark{width:100%;height:100%;display:grid;place-items:center;transform:none}
+.cell.queen .coolMarker{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;font-size:calc(var(--cell)*.64);line-height:1;filter:none;transform:translateY(7%)}
+.cell.queen{animation:queenPop .15s ease-out}
+@keyframes queenPop{0%{transform:scale(.72)}78%{transform:scale(1.07)}100%{transform:scale(1)}}
+.cell.conflict{outline:3px solid var(--danger);outline-offset:-3px}
+.boardArt.hintMode{filter:none;opacity:1}
+.board.hintMode .cell{opacity:1;transition:opacity .15s ease,box-shadow .15s ease}
+.board.hintMode .cell:not(.hintScope):not(.hint):not(.hintTest)::before{inset:1px;border-radius:6px;background:rgba(244,244,246,.72);box-shadow:none}
+.board.hintMode .cell:not(.hintScope):not(.hint):not(.hintTest).x .mark,.board.hintMode .cell:not(.hintScope):not(.hint):not(.hintTest).queen .mark{opacity:.28}
+.board.hintMode .cell.hintScope::before{background:transparent;box-shadow:inset 0 0 0 2px rgba(255,255,255,.96),0 0 0 2px rgba(79,82,108,.36)}
+.board.hintMode .cell.hintScope.x .mark,.board.hintMode .cell.hintScope.queen .mark{opacity:1}
+.cell.hint{z-index:4!important;opacity:1!important;animation:hintPulse 1s ease-in-out 3}
+.cell.hint::after{content:"?";position:absolute;right:5px;top:4px;z-index:3;font-size:calc(var(--cell)*.27);font-weight:950;color:#4f5270;line-height:1;text-shadow:0 1px 0 rgba(255,255,255,.8)}
+.cell.hint::before{background:var(--region)!important;box-shadow:inset 0 0 0 3px #fff,0 0 0 3px #595b79!important}
+.cell.hintTest{z-index:3!important}
+.cell.hintTest::before{background:var(--region)!important;box-shadow:inset 0 0 0 2px rgba(255,255,255,.96),0 0 0 3px rgba(91,94,132,.78)!important}
+@keyframes hintPulse{0%,100%{transform:scale(1)}50%{transform:scale(.94)}}
+.puzzleMeta{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;margin:-2px 0 0;font-size:14px;color:var(--muted)}
+.puzzleMeta .difficultyNow{font-size:18px;font-weight:850;color:#59627a;background:linear-gradient(180deg,#f3f2f7,#ebe7ef);border:1px solid #ddd8e4;border-radius:999px;padding:6px 12px;box-shadow:0 4px 10px rgba(101,96,117,.08)}
+.puzzleMeta .sizeNow{font-weight:750}
+.recordState{font-size:11px;color:var(--muted);text-align:center;margin-top:-4px}
+.actions{width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+button{border:0;border-radius:13px;padding:11px 10px;background:#6c6878;color:white;font-weight:750;min-height:46px}
+button.secondary{background:#eceaf0;color:#4a5362}
+button.ghost{background:#fff;color:#4d5667;border:1px solid var(--soft)}
+button:disabled{opacity:.45}
+.message{min-height:22px;text-align:center;color:#6f7988;font-size:14px;padding:0 8px}
+.message.error{color:var(--danger)} .message.good{color:var(--ok)}
+.best{font-size:12px;color:var(--muted);text-align:center}
+.legend{display:flex;justify-content:center;gap:16px;font-size:12px;color:var(--muted);padding-bottom:2px}
+.modal{position:fixed;inset:0;background:rgba(20,18,15,.42);display:none;align-items:flex-end;justify-content:center;padding:14px;z-index:20}
+.modal.show{display:flex}.sheet{width:min(100%,560px);background:var(--panel);border-radius:22px;padding:18px;border:1px solid var(--soft);box-shadow:0 10px 28px rgba(70,70,84,.18)}
+.sheet h2{margin:0 0 10px;font-size:22px}.sheet p{margin:7px 0;color:#514d46;line-height:1.45}.sheet .row{display:flex;gap:8px;margin-top:14px}.sheet .row button{flex:1}
+@media (max-width:420px){.app{padding-left:8px;padding-right:8px}.controls{grid-template-columns:1fr}.gameShell{padding:2px 0 0}.stats{gap:8px}.stat strong{font-size:16px}.puzzleMeta .difficultyNow{font-size:16px}.actions button{font-size:13px;padding-left:5px;padding-right:5px}.sheet{padding:16px}.recordsTable{font-size:11px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="title">Queens</div>
+    <div class="stats">
+      <div class="stat">Time<strong id="timer">0:00</strong></div>
+      <button id="recordsBtn" class="stat recordsBtn" type="button" aria-label="View best-time records">Records<strong id="bestTop">—</strong></button>
+    </div>
+  </header>
+
+  <section class="controls">
+    <div class="control">
+      <label>Difficulty mix</label>
+      <div id="difficultyScale" class="difficultyScale">
+        <div class="difficultyRail" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <div class="difficultyStops" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+        <input id="difficulty" type="range" min="0" max="100" step="25" value="75" aria-label="Difficulty mix" />
+      </div>
+      <div id="scaleLabels" class="scaleLabels">
+        <button type="button" data-bias="0">Easy</button>
+        <button type="button" data-bias="25">Medium</button>
+        <button type="button" data-bias="50">Hard</button>
+        <button type="button" data-bias="75">Expert</button>
+        <button type="button" data-bias="100">Brutal</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="gameShell">
+    <div class="puzzleMeta"><span id="difficultyNow" class="difficultyNow" title="Difficulty is rated by a logic-only solver; puzzles that require guessing are rejected.">—</span><span id="sizeNow" class="sizeNow"></span></div>
+    <div class="boardWrap"><svg id="boardArt" class="boardArt" aria-hidden="true"></svg><div id="board" class="board" aria-label="Queens puzzle board"></div></div>
+    <div id="message" class="message"></div>
+    <div id="recordState" class="recordState">Record eligible</div>
+    <div class="actions">
+      <button id="undoBtn" class="ghost" disabled>Undo</button>
+      <button id="hintBtn" class="secondary">Hint</button>
+      <button id="newGameBtn" class="ghost">New game</button>
+    </div>
+    <div class="legend">One queen per row · column · colour · queens may not touch diagonally</div>
+    <div id="best" class="best"></div>
+  </section>
+</div>
+
+<div id="winModal" class="modal">
+  <div class="sheet">
+    <h2>Complete</h2>
+    <p id="winText"></p>
+    <div class="row"><button id="nextBtn">Next puzzle</button></div>
+  </div>
+</div>
+
+<div id="recordsModal" class="modal" aria-hidden="true">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="recordsTitle">
+    <div class="sheetHead">
+      <h2 id="recordsTitle">Best times</h2>
+      <button id="closeRecordsBtn" class="iconBtn" type="button" aria-label="Close records">×</button>
+    </div>
+    <div class="recordsTableWrap">
+      <table id="recordsTable" class="recordsTable"></table>
+    </div>
+    <div class="row">
+      <button id="clearRecordsBtn" class="dangerBtn" type="button">Clear records</button>
+      <button id="doneRecordsBtn" type="button">Done</button>
+    </div>
+  </div>
+</div>
+
+<div id="clearConfirmModal" class="modal" aria-hidden="true">
+  <div class="sheet" role="alertdialog" aria-modal="true" aria-labelledby="clearRecordsTitle">
+    <h2 id="clearRecordsTitle">Clear all records?</h2>
+    <p class="confirmText">This removes every saved best time. Your current game and other local progress are not affected.</p>
+    <div class="row">
+      <button id="cancelClearBtn" class="ghost" type="button">Cancel</button>
+      <button id="confirmClearBtn" class="dangerBtn" type="button">Clear records</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const boardEl=document.getElementById('board'), boardArt=document.getElementById('boardArt'), diffEl=document.getElementById('difficulty'), difficultyScale=document.getElementById('difficultyScale'), scaleLabels=document.getElementById('scaleLabels');
+const timerEl=document.getElementById('timer'), bestTop=document.getElementById('bestTop'), bestEl=document.getElementById('best'), msg=document.getElementById('message');
+const undoBtn=document.getElementById('undoBtn'), hintBtn=document.getElementById('hintBtn'), newGameBtn=document.getElementById('newGameBtn');
+const difficultyNow=document.getElementById('difficultyNow'), sizeNow=document.getElementById('sizeNow'), recordState=document.getElementById('recordState');
+const winModal=document.getElementById('winModal'), winText=document.getElementById('winText'), nextBtn=document.getElementById('nextBtn');
+const recordsBtn=document.getElementById('recordsBtn'), recordsModal=document.getElementById('recordsModal'), recordsTable=document.getElementById('recordsTable'), closeRecordsBtn=document.getElementById('closeRecordsBtn'), doneRecordsBtn=document.getElementById('doneRecordsBtn'), clearRecordsBtn=document.getElementById('clearRecordsBtn');
+const clearConfirmModal=document.getElementById('clearConfirmModal'), cancelClearBtn=document.getElementById('cancelClearBtn'), confirmClearBtn=document.getElementById('confirmClearBtn');
+
+
+const COLOR_POOL=[
+ '#55d2f0', // aqua
+ '#e59abc', // dusty pink
+ '#ff878c', // coral
+ '#9f8fe3', // lavender violet
+ '#59c97f', // fresh green
+ '#74a2ee', // medium blue
+ '#e4c669', // warm yellow
+ '#e99b70', // peach orange
+ '#69c8b6', // teal
+ '#bc87d5', // orchid
+ '#a7c96d', // lime/sage
+ '#d68fa3', // rose
+ '#72b7ce', // blue teal
+ '#caa779', // sand
+ '#8dbd78', // green-sage
+ '#aa9bd4'  // soft lilac
+];
+const COLOR_NAMES={
+ '#55d2f0':'aqua',
+ '#e59abc':'pink',
+ '#ff878c':'coral',
+ '#9f8fe3':'purple',
+ '#59c97f':'green',
+ '#74a2ee':'blue',
+ '#e4c669':'yellow',
+ '#e99b70':'orange',
+ '#69c8b6':'teal',
+ '#bc87d5':'mauve',
+ '#a7c96d':'lime',
+ '#d68fa3':'rose',
+ '#72b7ce':'blue-green',
+ '#caa779':'tan',
+ '#8dbd78':'sage',
+ '#aa9bd4':'lilac'
+};
+let state=null, timerTick=null, hiddenAt=null;
+const LS='queens_logic_v4';
+function loadStore(){try{return JSON.parse(localStorage.getItem(LS)||'{}')}catch{return {}}}
+function saveStore(s){try{localStorage.setItem(LS,JSON.stringify(s))}catch{}}
+function fmt(sec){sec=Math.max(0,Math.floor(sec));return `${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`}
+function keyBest(n,band){return `best_${n}_${band}`}
+const BANDS=['Easy','Medium','Hard','Expert','Brutal'];
+const DIFFICULTY_MIX={
+  0:   [0.72,0.22,0.05,0.01,0.00],
+  25:  [0.15,0.60,0.20,0.05,0.00],
+  50:  [0.05,0.20,0.50,0.20,0.05],
+  75:  [0.01,0.05,0.20,0.59,0.15],
+  100: [0.00,0.01,0.06,0.22,0.71]
+};
+function snapBias(v){return Math.max(0,Math.min(100,Math.round((+v||0)/25)*25))}
+function difficultyMix(v){return DIFFICULTY_MIX[snapBias(v)]||DIFFICULTY_MIX[50]}
+function sampleBand(v){
+  const mix=difficultyMix(v);let x=Math.random();
+  for(let i=0;i<mix.length;i++){x-=mix[i];if(x<=0)return BANDS[i]}
+  return BANDS[mix.length-1];
+}
+function updateDiff(){
+  const v=snapBias(diffEl.value);if(+diffEl.value!==v)diffEl.value=v;
+  const idx=v/25;
+  [...scaleLabels.querySelectorAll('button')].forEach((b,i)=>b.classList.toggle('active',i===idx));
+  diffEl.setAttribute('aria-valuetext',BANDS[idx]);
+}
+function setDifficulty(v){
+  diffEl.value=snapBias(v);updateDiff();
+  const store=loadStore();store.bias=+diffEl.value;store.generatedPool=[];saveStore(store);
+  generatedPool=[];
+  if(generatorWorker)generatorWorker.postMessage({bias:+diffEl.value});
+  requestGeneration(100);
+}
+const savedBias=+loadStore().bias;if(Number.isFinite(savedBias)&&savedBias>=0&&savedBias<=100)diffEl.value=snapBias(savedBias);
+diffEl.addEventListener('input',()=>setDifficulty(+diffEl.value));
+scaleLabels.addEventListener('click',e=>{const b=e.target.closest('button[data-bias]');if(b)setDifficulty(+b.dataset.bias)});
+updateDiff();
+
+const PUZZLE_BANK={"6":[{"solution":[1,4,2,0,3,5],"regions":[0,0,0,0,1,1,0,0,0,1,1,1,0,3,2,1,1,1,3,3,2,2,2,1,3,4,2,4,2,1,3,4,4,4,5,5]},{"solution":[4,0,3,1,5,2],"regions":[1,1,1,0,0,0,1,2,2,2,2,0,3,3,2,2,4,0,3,3,2,5,4,4,5,5,2,5,5,4,5,5,5,5,4,4]},{"solution":[2,5,1,4,0,3],"regions":[0,0,0,2,2,1,0,2,0,2,2,1,0,2,0,2,3,3,2,2,2,2,3,3,4,2,3,3,3,3,5,5,5,5,3,3]},{"solution":[1,3,5,2,0,4],"regions":[0,0,0,1,1,1,3,3,0,1,2,2,4,3,3,3,2,2,4,4,3,3,2,2,4,4,5,3,2,2,4,4,5,5,5,5]},{"solution":[1,5,3,0,2,4],"regions":[0,0,0,0,1,1,0,3,0,0,1,1,0,3,3,2,1,2,3,3,3,2,2,2,3,3,4,2,2,2,4,4,4,5,5,2]}],"7":[{"solution":[1,5,3,6,2,4,0],"regions":[4,0,0,2,2,1,3,4,4,0,2,2,1,3,4,4,2,2,5,1,3,4,4,4,5,5,5,3,6,6,4,4,4,5,5,6,6,6,6,5,5,5,6,6,6,6,6,5,5]},{"solution":[4,1,6,3,5,2,0],"regions":[3,1,1,0,0,0,2,3,1,0,0,2,2,2,3,3,3,2,2,3,2,3,3,3,3,3,3,2,3,6,3,3,4,4,4,3,6,5,3,4,5,4,6,6,5,5,5,5,4]},{"solution":[3,0,4,6,1,5,2],"regions":[1,1,1,0,0,0,2,1,4,1,0,2,2,2,4,4,3,3,2,3,3,4,4,3,3,3,3,3,4,4,3,6,3,3,3,4,4,4,6,6,5,5,6,6,6,6,6,5,5]},{"solution":[5,0,4,1,3,6,2],"regions":[1,1,1,2,2,0,0,1,2,2,2,2,2,0,1,1,2,4,2,2,2,3,3,2,4,2,2,4,3,6,6,4,4,4,4,6,6,6,6,4,4,5,6,6,6,6,4,4,4]},{"solution":[1,5,3,0,4,6,2],"regions":[0,0,0,0,0,1,1,0,2,2,2,1,1,4,0,0,0,2,1,4,4,3,2,2,2,1,4,4,3,3,2,4,4,4,5,3,2,2,2,6,6,5,3,3,6,6,6,5,5]}],"8":[{"solution":[1,3,6,0,2,4,7,5],"regions":[3,0,0,1,1,2,2,2,3,3,0,1,1,1,1,2,3,0,0,1,4,1,2,2,3,0,1,1,4,1,1,2,3,3,4,4,4,6,6,6,3,3,7,7,5,6,6,6,3,7,7,7,7,6,7,6,3,7,7,7,7,7,7,6]},{"solution":[2,4,0,5,7,1,6,3],"regions":[0,0,0,0,0,1,1,3,0,2,0,0,1,1,1,3,2,2,0,0,1,3,3,3,2,5,5,0,1,3,3,4,2,5,5,5,1,1,3,4,2,5,1,1,1,3,3,6,2,5,5,5,7,3,6,6,2,2,5,7,7,6,6,6]},{"solution":[6,1,7,2,5,3,0,4],"regions":[1,1,1,1,1,1,0,2,3,1,3,3,3,1,1,2,3,3,3,5,5,5,5,2,3,3,3,3,5,4,4,2,6,5,5,5,5,4,4,2,6,5,7,5,7,7,4,4,6,5,7,5,7,7,4,4,6,6,7,7,7,7,4,4]},{"solution":[0,4,2,6,1,7,3,5],"regions":[0,0,0,2,2,1,1,3,0,0,0,2,1,1,1,3,0,4,2,2,3,3,3,3,0,4,4,2,2,2,3,3,0,4,4,2,6,3,3,3,4,4,6,6,6,6,3,5,4,4,4,6,6,6,7,7,4,6,6,6,7,7,7,7]},{"solution":[6,0,4,7,2,5,3,1],"regions":[0,0,0,0,0,0,0,0,1,2,2,2,0,3,3,3,1,4,2,2,2,3,5,3,4,4,4,2,3,3,5,3,7,7,4,3,3,5,5,5,7,7,7,5,5,5,7,5,7,7,7,6,7,7,7,5,7,7,7,7,7,5,5,5]}],"9":[{"solution":[8,3,6,4,7,0,2,5,1],"regions":[1,1,2,2,2,0,0,0,0,1,1,1,1,2,2,2,0,0,1,1,3,3,3,2,2,2,0,1,1,1,1,3,2,2,0,0,1,1,1,3,3,3,3,4,0,5,6,1,3,3,3,3,7,0,5,6,6,3,3,3,7,7,0,8,8,8,8,7,7,7,7,0,8,8,7,7,7,7,7,7,7]},{"solution":[5,3,0,4,1,6,8,2,7],"regions":[1,0,0,0,0,0,0,0,5,1,1,0,1,0,0,3,0,5,2,1,1,1,1,0,3,0,5,2,2,2,2,3,0,3,0,5,2,4,2,3,3,3,3,0,5,4,4,7,3,3,8,5,5,5,4,7,7,7,8,8,8,8,6,4,4,7,8,8,7,8,8,8,4,4,7,7,7,7,8,8,8]},{"solution":[0,8,5,7,1,4,2,6,3],"regions":[0,0,0,0,0,0,2,2,2,0,0,0,2,2,2,2,2,1,0,0,0,4,4,2,2,2,3,0,0,4,4,2,2,3,3,3,0,4,4,5,5,5,3,3,3,0,4,4,5,5,5,5,3,3,4,4,6,5,5,5,5,3,7,6,6,6,8,8,8,7,7,7,6,6,8,8,8,7,7,7,7]},{"solution":[6,0,8,2,7,5,3,1,4],"regions":[1,1,1,1,3,4,0,0,0,1,3,3,3,3,4,4,2,2,3,3,3,3,3,4,4,4,2,3,3,3,5,4,4,4,4,2,3,3,6,5,5,5,5,4,4,7,7,6,5,5,5,5,5,4,7,7,6,6,8,5,8,5,4,7,7,6,8,8,8,8,8,4,7,7,6,8,8,8,8,8,4]},{"solution":[0,3,7,4,6,1,8,5,2],"regions":[0,0,0,0,0,0,0,0,0,0,0,0,1,0,4,0,4,4,0,0,0,3,3,4,4,2,4,0,0,0,3,3,4,4,4,4,0,5,5,3,3,3,4,6,4,0,5,3,3,7,3,7,6,4,8,5,5,3,7,3,7,6,6,8,5,5,5,7,7,7,7,6,8,8,8,8,8,8,7,7,7]}],"10":[{"solution":[0,3,8,1,6,9,4,7,5,2],"regions":[0,0,0,0,0,4,4,4,4,5,0,0,0,1,0,4,4,4,5,5,0,0,0,1,0,4,4,4,2,5,0,3,0,1,1,1,1,4,4,5,6,6,6,6,6,4,4,4,4,5,6,6,6,6,4,4,5,5,5,5,6,6,6,6,6,5,5,5,7,5,9,9,6,6,8,5,8,7,7,5,9,6,6,9,8,8,8,8,7,5,9,9,9,9,8,8,8,8,7,5]},{"solution":[0,5,3,9,1,6,8,4,7,2],"regions":[0,0,0,0,1,3,3,3,3,3,0,0,0,0,1,1,3,3,3,3,0,2,2,2,1,1,3,3,3,3,2,2,2,1,1,3,3,3,3,3,2,4,2,1,1,1,1,5,3,3,4,4,4,5,5,5,5,5,3,3,4,4,4,5,5,6,6,6,6,3,4,9,4,4,7,6,6,8,6,6,4,9,7,7,7,7,6,8,6,6,4,9,9,7,7,7,7,8,6,6]},{"solution":[9,1,3,8,6,0,5,2,7,4],"regions":[1,2,2,2,2,2,2,2,3,0,1,1,2,2,2,4,4,4,3,3,1,5,2,2,4,4,4,4,4,3,1,5,5,5,5,7,4,4,3,3,5,5,5,5,7,7,4,6,6,6,5,7,7,7,7,6,6,6,6,6,5,7,7,9,9,6,6,8,8,8,7,7,7,7,9,9,6,6,8,8,7,9,9,7,7,9,8,8,8,8,9,9,9,9,9,9,8,8,8,8]},{"solution":[0,7,2,4,6,1,9,5,8,3],"regions":[0,2,2,2,2,2,3,1,1,1,2,2,2,2,2,2,3,1,4,4,5,2,2,2,2,2,3,4,4,6,5,2,2,2,3,3,3,4,6,6,5,5,2,3,3,7,4,4,6,6,5,5,2,2,2,7,7,4,6,6,5,9,9,7,7,7,7,7,6,6,5,9,9,9,7,7,8,7,6,6,9,9,9,7,7,8,8,8,8,6,9,9,9,9,9,9,9,8,8,8]},{"solution":[4,6,0,3,9,2,8,5,1,7],"regions":[2,2,1,1,0,1,4,4,4,4,2,1,1,1,1,1,1,4,4,4,2,1,1,1,1,1,4,4,4,4,1,1,1,3,3,1,1,1,4,4,5,1,1,5,3,3,6,1,4,4,5,5,5,5,3,3,6,1,4,4,5,5,5,3,3,3,6,6,6,4,5,5,5,5,3,7,6,6,6,6,8,8,5,3,3,7,7,6,6,6,8,8,8,8,8,8,8,9,6,6]}],"11":[{"solution":[6,10,8,2,5,9,1,3,0,4,7],"regions":[6,3,3,3,3,3,0,0,0,2,2,6,3,3,0,0,0,0,0,2,2,1,6,3,3,3,3,4,4,0,2,2,2,6,3,3,6,4,4,4,0,4,5,5,6,3,6,6,6,4,4,4,4,4,5,6,6,6,7,4,4,4,4,5,5,5,8,6,7,7,7,7,10,10,10,10,5,8,8,8,7,9,9,9,10,10,10,5,8,8,7,7,9,9,9,9,10,10,10,8,8,8,9,9,9,10,10,10,10,10,8,8,8,8,8,8,8,10,10,10,10]},{"solution":[0,4,6,2,5,1,8,10,3,9,7],"regions":[0,0,1,1,4,4,2,2,2,2,2,3,0,0,1,1,4,2,6,2,7,7,3,1,1,1,4,4,2,6,2,2,7,3,3,3,1,4,4,2,6,2,7,7,3,5,3,1,4,4,6,6,7,7,7,8,5,3,4,4,6,6,6,6,7,7,8,8,8,8,4,6,10,10,6,7,7,8,8,8,8,8,10,10,10,10,9,7,8,8,8,8,10,10,10,10,9,9,7,8,8,8,8,8,10,10,10,9,9,9,8,8,8,10,10,10,10,10,10,10,9]},{"solution":[3,7,9,4,8,5,10,2,0,6,1],"regions":[7,7,0,0,0,0,0,1,1,1,1,7,3,3,3,3,0,4,1,1,5,5,7,5,5,3,3,3,4,1,4,2,5,7,5,5,5,3,4,4,4,4,4,5,7,5,7,5,5,4,5,5,4,4,5,7,7,7,8,5,5,5,5,5,5,5,8,8,7,8,5,8,5,5,6,6,6,8,8,7,8,5,8,6,6,6,6,10,8,8,8,8,8,8,8,9,6,6,10,10,10,8,8,10,10,9,9,10,6,10,10,10,10,10,10,10,10,10,10,10,10]}],"12":[{"solution":[5,10,1,4,0,6,3,7,11,8,2,9],"regions":[2,2,2,2,0,0,0,0,0,0,1,1,2,2,2,2,2,2,2,0,0,0,1,7,2,2,2,2,3,2,3,0,0,0,7,7,2,2,2,2,3,2,3,0,0,0,7,7,4,6,2,2,3,3,3,3,3,0,7,7,4,6,6,6,6,3,5,3,3,7,7,7,4,4,4,6,3,3,5,5,5,7,8,7,4,6,6,6,3,5,5,7,7,7,8,7,4,6,6,5,5,5,5,7,7,9,8,8,6,6,6,5,5,10,10,7,9,9,9,8,6,6,10,5,10,10,9,9,9,9,9,9,6,10,10,10,10,10,9,9,9,11,11,11]},{"solution":[4,11,3,7,5,0,2,9,1,8,10,6],"regions":[0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,1,1,0,0,0,2,0,0,0,0,0,1,1,1,2,0,2,2,2,2,0,3,0,3,1,1,2,2,2,6,2,4,3,3,3,3,3,1,5,6,2,6,2,4,4,4,3,4,3,3,5,6,6,6,2,6,6,4,4,4,3,3,5,5,5,6,6,6,4,4,4,7,7,3,8,8,5,5,6,4,4,9,10,10,10,3,8,8,8,8,11,11,4,9,9,10,3,3,8,8,11,11,11,11,11,11,9,10,10,11,8,8,8,8,8,8,11,11,11,11,11,11]}]};
+let lastPuzzleSignature="";
+function rngInt(n){return Math.floor(Math.random()*n)}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=rngInt(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
+function queenPermutation(n){
+ const cols=[...Array(n).keys()];
+ function rec(r){if(r===n)return true;for(const c of shuffle(cols.filter(c=>!used.has(c)))){if(r>0&&Math.abs(c,pos[r-1])===1)continue;pos[r]=c;used.add(c);if(rec(r+1))return true;used.delete(c)}return false}
+ const pos=Array(n).fill(-1),used=new Set(); return rec(0)?pos:null;
+}
+function neighbors4(i,n){const r=Math.floor(i/n),c=i%n,a=[];if(r)a.push(i-n);if(r<n-1)a.push(i+n);if(c)a.push(i-1);if(c<n-1)a.push(i+1);return a}
+function growRegions(n,sol){
+ const total=n*n,reg=Array(total).fill(-1),front=Array.from({length:n},()=>[]),counts=Array(n).fill(1);
+ for(let r=0;r<n;r++){const i=r*n+sol[r];reg[i]=r}
+ for(let k=0;k<n;k++){const seed=k*n+sol[k];for(const nb of neighbors4(seed,n))if(reg[nb]<0)front[k].push(nb)}
+ let left=total-n,guard=0;
+ while(left&&guard++<10000){
+   const ids=shuffle([...Array(n).keys()]).sort((a,b)=>counts[a]-counts[b]+(Math.random()-.5)*2);
+   let did=false;
+   for(const k of ids){
+     const choices=[...new Set(front[k])].filter(i=>reg[i]<0);if(!choices.length)continue;
+     const i=choices[rngInt(choices.length)];reg[i]=k;counts[k]++;left--;did=true;
+     front[k]=front[k].filter(x=>x!==i);for(const nb of neighbors4(i,n))if(reg[nb]<0)front[k].push(nb);
+     if(Math.random()<.75)break;
+   }
+   if(!did){
+     const un=reg.map((v,i)=>v<0?i:-1).filter(i=>i>=0);if(!un.length)break;const i=un[0];
+     const adj=neighbors4(i,n).map(j=>reg[j]).filter(x=>x>=0);if(adj.length){reg[i]=adj[0];counts[adj[0]]++;left--}else return null;
+   }
+ }
+ return left?null:reg;
+}
+function countSolutions(n,regions,limit=2){
+ const rowOrder=[...Array(n).keys()].sort((a,b)=>candidateCols(a).length-candidateCols(b).length), usedC=Array(n).fill(false),usedR=Array(n).fill(false),pos=Array(n).fill(-1);let count=0,first=null;
+ function candidateCols(r){return [...Array(n).keys()]}
+ function rec(depth){if(count>=limit)return;if(depth===n){count++;if(!first)first=pos.slice();return}
+   // dynamic choose unassigned row with fewest candidates
+   let bestR=-1,best=[];
+   for(let r=0;r<n;r++)if(pos[r]<0){const opts=[];for(let c=0;c<n;c++){if(usedC[c])continue;const rg=regions[r*n+c];if(usedR[rg])continue;
+       if(r>0&&pos[r-1]>=0&&Math.abs(c-pos[r-1])===1)continue;if(r<n-1&&pos[r+1]>=0&&Math.abs(c-pos[r+1])===1)continue;opts.push(c)}
+     if(!opts.length)return;if(bestR<0||opts.length<best.length){bestR=r;best=opts;if(opts.length===1)break}}
+   for(const c of best){const rg=regions[bestR*n+c];pos[bestR]=c;usedC[c]=true;usedR[rg]=true;rec(depth+1);usedC[c]=false;usedR[rg]=false;pos[bestR]=-1;if(count>=limit)return}
+ }
+ rec(0);return {count,solution:first};
+}
+function logicAnalyse(n,regions,maxForceDepth=1){
+  const total=n*n;
+  function makeState(){return {cand:new Uint8Array(total).fill(1),fixed:new Uint8Array(total),bad:false}}
+  function cloneState(s){return {cand:s.cand.slice(),fixed:s.fixed.slice(),bad:s.bad}}
+  function remove(s,i){if(!s.cand[i])return false;if(s.fixed[i]){s.bad=true;return false}s.cand[i]=0;return true}
+  function place(s,i){
+    if(s.bad)return false;if(!s.cand[i]){s.bad=true;return false}if(s.fixed[i])return false;
+    s.fixed[i]=1;const r=Math.floor(i/n),c=i%n,rg=regions[i];let changed=true;
+    for(let j=0;j<total;j++)if(j!==i&&s.cand[j]){const rr=Math.floor(j/n),cc=j%n;if(rr===r||cc===c||regions[j]===rg||(Math.abs(rr-r)===1&&Math.abs(cc-c)===1))remove(s,j)}
+    return changed;
+  }
+  function unitCells(kind,u){const a=[];if(kind===0){for(let c=0;c<n;c++)a.push(u*n+c)}else if(kind===1){for(let r=0;r<n;r++)a.push(r*n+u)}else{for(let i=0;i<total;i++)if(regions[i]===u)a.push(i)}return a}
+  function checkUnits(s){for(let k=0;k<3;k++)for(let u=0;u<n;u++){let cnt=0;for(const i of unitCells(k,u))cnt+=s.cand[i];if(!cnt){s.bad=true;return false}}return true}
+  function solved(s){for(let r=0;r<n;r++){let cnt=0;for(let c=0;c<n;c++)cnt+=s.cand[r*n+c];if(cnt!==1)return false}return !s.bad}
+  function findSingleton(s){for(let k=0;k<3;k++)for(let u=0;u<n;u++){let cnt=0,last=-1;for(const i of unitCells(k,u))if(s.cand[i]){cnt++;last=i}if(cnt===0){s.bad=true;return -2}if(cnt===1&&!s.fixed[last])return last}return -1}
+  function regionLinePrune(s){
+    let rem=0;
+    for(let rg=0;rg<n&&!s.bad;rg++){
+      const a=unitCells(2,rg).filter(i=>s.cand[i]);
+      if(a.length<2)continue;
+      const rows=[...new Set(a.map(i=>Math.floor(i/n)))],cols=[...new Set(a.map(i=>i%n))];
+      if(rows.length===1){
+        const r=rows[0];for(const i of unitCells(0,r))if(s.cand[i]&&regions[i]!==rg&&!s.fixed[i])if(remove(s,i))rem++;
+      }
+      if(cols.length===1){
+        const c=cols[0];for(const i of unitCells(1,c))if(s.cand[i]&&regions[i]!==rg&&!s.fixed[i])if(remove(s,i))rem++;
+      }
+    }
+    for(let r=0;r<n&&!s.bad;r++){
+      const a=unitCells(0,r).filter(i=>s.cand[i]);if(a.length<2)continue;
+      const rgs=[...new Set(a.map(i=>regions[i]))];
+      if(rgs.length===1){const rg=rgs[0];for(const i of unitCells(2,rg))if(s.cand[i]&&Math.floor(i/n)!==r&&!s.fixed[i])if(remove(s,i))rem++}
+    }
+    for(let c=0;c<n&&!s.bad;c++){
+      const a=unitCells(1,c).filter(i=>s.cand[i]);if(a.length<2)continue;
+      const rgs=[...new Set(a.map(i=>regions[i]))];
+      if(rgs.length===1){const rg=rgs[0];for(const i of unitCells(2,rg))if(s.cand[i]&&i%n!==c&&!s.fixed[i])if(remove(s,i))rem++}
+    }
+    return rem;
+  }
+  function cellsConflict(i,j){
+    const r=Math.floor(i/n),c=i%n,rr=Math.floor(j/n),cc=j%n;
+    return r===rr||c===cc||regions[i]===regions[j]||(Math.abs(r-rr)===1&&Math.abs(c-cc)===1);
+  }
+  function blockingPrune(s){
+    let rem=0;
+    for(let i=0;i<total&&!s.bad;i++)if(s.cand[i]&&!s.fixed[i]){
+      const r=Math.floor(i/n),c=i%n,rg=regions[i];
+      let blocked=false;
+      for(let kind=0;kind<3&&!blocked;kind++)for(let u=0;u<n&&!blocked;u++){
+        if((kind===0&&u===r)||(kind===1&&u===c)||(kind===2&&u===rg))continue;
+        const a=unitCells(kind,u).filter(j=>s.cand[j]);
+        if(a.length&&a.every(j=>cellsConflict(i,j))){
+          if(remove(s,i)){rem++;blocked=true}
+        }
+      }
+    }
+    return rem;
+  }
+  function arcPrune(s){let rem=0;for(let i=0;i<total&&!s.bad;i++)if(s.cand[i]){const r=Math.floor(i/n),c=i%n;for(const rr of [r-1,r+1])if(rr>=0&&rr<n){let ok=false;for(let cc=0;cc<n;cc++){const j=rr*n+cc;if(s.cand[j]&&Math.abs(cc-c)>1){ok=true;break}}if(!ok){if(remove(s,i))rem++;break}}}return rem}
+  function hasPM(adj,fa=-1,fb=-1){const match=Array(n).fill(-1);if(fa>=0){if(!adj[fa].includes(fb))return false;match[fb]=fa}function dfs(a,seen){for(const b of adj[a]){if(b===fb)continue;if(seen[b])continue;seen[b]=1;if(match[b]<0||dfs(match[b],seen)){match[b]=a;return true}}return false}for(let a=0;a<n;a++){if(a===fa)continue;if(!dfs(a,new Uint8Array(n)))return false}return true}
+  function pairOf(i,type){const r=Math.floor(i/n),c=i%n,rg=regions[i];return type===0?[r,c]:type===1?[r,rg]:[c,rg]}
+  function matchingPrune(s){let rem=0;for(let type=0;type<3&&!s.bad;type++){
+      const adj=Array.from({length:n},()=>[]),edgeCells=Array.from({length:n},()=>Array.from({length:n},()=>[]));
+      for(let i=0;i<total;i++)if(s.cand[i]){const [a,b]=pairOf(i,type);edgeCells[a][b].push(i)}
+      for(let a=0;a<n;a++)for(let b=0;b<n;b++)if(edgeCells[a][b].length)adj[a].push(b)
+      if(!hasPM(adj)){s.bad=true;return rem}
+      for(let a=0;a<n&&!s.bad;a++)for(const b of adj[a])if(!hasPM(adj,a,b)){for(const i of edgeCells[a][b])if(remove(s,i))rem++}
+    }return rem}
+  function propagate(s,stats){let guard=0;while(!s.bad&&guard++<500){
+      if(!checkUnits(s))break;
+      let one=findSingleton(s);if(one===-2)break;
+      if(one>=0){place(s,one);stats.singles++;stats.cost+=1;continue}
+      let rl=regionLinePrune(s);if(s.bad)break;
+      if(rl){stats.regionLine+=rl;stats.cost+=1.8+rl*.18;continue}
+      let b=blockingPrune(s);if(s.bad)break;
+      if(b){stats.block+=b;stats.cost+=2.6+b*.25;continue}
+      let a=arcPrune(s);if(s.bad)break;
+      if(a){stats.arc+=a;stats.cost+=3+a*.25;continue}
+      let m=matchingPrune(s);if(s.bad)break;
+      if(m){stats.match+=m;stats.cost+=6+m*.6;continue}
+      break
+    }return s}
+  function candidateOrder(s){const scores=[];for(let i=0;i<total;i++)if(s.cand[i]&&!s.fixed[i]){const r=Math.floor(i/n),c=i%n,rg=regions[i];let rc=0,cc=0,gc=0;for(let x=0;x<n;x++){rc+=s.cand[r*n+x];cc+=s.cand[x*n+c]}for(let j=0;j<total;j++)if(regions[j]===rg)gc+=s.cand[j];scores.push([Math.min(rc,cc,gc),rc+cc+gc,i])}scores.sort((a,b)=>a[0]-b[0]||a[1]-b[1]);return scores.map(x=>x[2])}
+  function run(s,depth,stats,trial=false){propagate(s,stats);if(s.bad)return 'bad';if(solved(s))return 'solved';if(depth<=0)return 'stuck';
+    const order=candidateOrder(s);
+    for(const i of order){
+      let t=cloneState(s),ts={singles:0,regionLine:0,block:0,arc:0,match:0,force:0,maxForce:0,cost:0};place(t,i);let rr=run(t,depth-1,ts,true);if(rr==='bad'){
+        if(remove(s,i)){stats.force++;const level=1+(ts.maxForce||0);stats.maxForce=Math.max(stats.maxForce,level);stats.cost+=(level===1?45:105)+ts.cost*.18;return run(s,depth,stats,trial)}
+      }
+      t=cloneState(s);ts={singles:0,regionLine:0,block:0,arc:0,match:0,force:0,maxForce:0,cost:0};remove(t,i);rr=run(t,depth-1,ts,true);if(rr==='bad'){
+        place(s,i);stats.force++;const level=1+(ts.maxForce||0);stats.maxForce=Math.max(stats.maxForce,level);stats.cost+=(level===1?50:115)+ts.cost*.18;return run(s,depth,stats,trial)
+      }
+    }
+    return 'stuck';
+  }
+  const s=makeState(),stats={singles:0,regionLine:0,block:0,arc:0,match:0,force:0,maxForce:0,cost:0};const status=run(s,maxForceDepth,stats,false);
+  const score=Math.round(stats.cost+n*2+stats.regionLine*.25+stats.block*.5+stats.match*1.2+stats.force*18+stats.maxForce*35);
+  let band='Easy';
+  // Any hypothetical / forcing step puts the puzzle in Brutal.
+  if(stats.force>0||stats.maxForce>0)band='Brutal';
+  else if(score>=300)band='Brutal';
+  else if(stats.match>=28||score>=120)band='Expert';
+  else if(stats.match>0||score>=72)band='Hard';
+  else if(stats.regionLine>0||stats.block>0||stats.arc>0||score>=46)band='Medium';
+  return {solved:status==='solved',status,score,band,...stats};
+}
+function logicalDifficulty(n,regions){const a=logicAnalyse(n,regions,1);return a.solved?a.score:Infinity}
+
+let generatedPool=[];
+let generatorWorker=null,generatorBusy=false,generationTimer=null;
+const POOL_TARGET=8,SEEN_LIMIT=320;
+
+function puzzleHash(p){
+ let h=2166136261>>>0;
+ const arr=[p.n,...p.solution,...p.regions];
+ for(const x of arr){h^=(x+31);h=Math.imul(h,16777619)>>>0}
+ return h.toString(36);
+}
+function challengeOf(p){
+ const sizePart=(p.n-6)/6;
+ const scorePart=Math.max(0,Math.min(1,((p.score||0)-40)/460));
+ const forcePart=Math.min(1,(p.maxForce||0)*.48+(p.force||0)*.09);
+ const bandPart=p.band==='Brutal'?1:p.band==='Expert'?.72:p.band==='Hard'?.48:p.band==='Medium'?.25:.08;
+ return Math.max(0,Math.min(1,sizePart*.22+scorePart*.38+forcePart*.25+bandPart*.15));
+}
+function sizeWeightForBand(p,band){
+ const centre={Easy:7,Medium:8,Hard:9,Expert:10,Brutal:11}[band]||9;
+ const d=(p.n-centre)/2.2;
+ return .18+Math.exp(-(d*d)/2);
+}
+const EASY_FALLBACKS=[
+ {"n":6,"solution":[3,5,2,0,4,1],"regions":[0,0,0,0,0,0,2,2,2,0,0,1,3,3,2,0,0,4,3,5,4,4,4,4,5,5,5,4,4,4,5,5,5,5,5,4],"score":20,"band":"Medium","force":0,"maxForce":0,"match":0,"arc":2},
+ {"n":7,"solution":[6,3,1,5,2,0,4],"regions":[5,1,1,1,1,1,0,5,2,2,1,3,1,1,5,2,2,4,3,3,3,5,5,4,4,6,3,3,5,6,4,6,6,6,3,5,6,6,6,6,6,3,6,6,6,6,6,6,3],"score":21,"band":"Easy","force":0,"maxForce":0,"match":0,"arc":0},
+ {"n":7,"solution":[4,1,5,2,6,3,0],"regions":[1,0,0,0,0,0,0,1,1,0,3,0,0,2,1,1,1,3,0,2,2,1,1,3,3,2,2,4,1,6,6,2,2,2,4,6,6,6,5,4,4,4,6,4,4,4,4,4,4],"score":21,"band":"Easy","force":0,"maxForce":0,"match":0,"arc":0},
+ {"n":7,"solution":[4,0,2,6,3,5,1],"regions":[2,2,2,2,0,3,3,1,4,2,2,2,2,3,4,4,2,4,2,3,3,6,4,4,4,3,3,3,6,6,4,4,3,5,3,6,5,5,5,5,5,3,6,6,6,6,6,5,5],"score":21,"band":"Easy","force":0,"maxForce":0,"match":0,"arc":0},
+ {"n":8,"solution":[6,2,0,4,7,1,3,5],"regions":[1,0,0,0,0,0,0,0,1,1,1,0,3,3,0,4,2,3,3,3,3,3,0,4,3,3,6,6,3,0,0,4,5,6,6,6,6,0,0,4,5,5,6,6,7,0,0,4,5,6,6,6,7,0,0,4,5,5,5,5,7,7,0,4],"score":24,"band":"Easy","force":0,"maxForce":0,"match":0,"arc":0},
+ {"n":6,"solution":[1,3,5,2,4,0],"regions":[5,0,1,1,1,1,5,1,1,1,4,4,5,5,3,1,4,2,5,5,3,3,4,4,5,5,5,3,4,4,5,5,5,3,3,4],"score":18,"band":"Easy","force":0,"maxForce":0,"match":0,"arc":0},
+ {"n":8,"solution":[7,3,1,4,6,2,5,0],"regions":[3,3,3,1,1,1,4,0,3,3,3,1,3,4,4,4,3,2,3,3,3,3,3,4,2,2,5,5,3,3,3,4,7,7,5,5,5,5,4,4,7,7,5,7,7,5,4,4,7,7,7,7,7,6,7,4,7,7,7,7,7,7,7,4],"score":24,"band":"Easy","force":0,"maxForce":0,"match":0,"arc":0},
+ {"n":6,"solution":[3,0,2,5,1,4],"regions":[1,1,0,0,3,3,1,1,0,3,3,3,5,5,2,3,5,3,5,5,4,4,5,3,5,4,4,5,5,5,5,5,5,5,5,5],"score":18,"band":"Easy","force":0,"maxForce":0,"match":0,"arc":0},
+ {"n":6,"solution":[3,1,5,2,4,0],"regions":[1,1,0,0,2,2,5,1,5,5,4,2,5,5,5,4,4,2,5,5,3,4,2,2,5,5,4,4,4,4,5,5,5,5,5,4],"score":18,"band":"Easy","force":0,"maxForce":0,"match":0,"arc":0},
+ {"n":7,"solution":[3,1,5,0,2,4,6],"regions":[3,3,4,0,0,0,2,3,1,4,0,2,2,2,3,4,4,0,2,2,2,3,4,0,0,2,2,2,3,4,4,0,6,6,2,3,3,4,4,5,6,6,3,4,4,4,4,6,6],"score":21,"band":"Easy","force":0,"maxForce":0,"match":0,"arc":0}
+];
+function bankCandidates(){
+ const out=[];
+ for(let index=0;index<EASY_FALLBACKS.length;index++){
+   const p=EASY_FALLBACKS[index],a=logicAnalyse(p.n,p.regions,1);
+   if(!a.solved)continue;
+   out.push({n:p.n,regions:p.regions.slice(),solution:p.solution.slice(),score:a.score,band:a.band,force:a.force,maxForce:a.maxForce,regionLine:a.regionLine,block:a.block,match:a.match,arc:a.arc,logicVersion:5,source:'starter',baseId:`easy:${index}`});
+ }
+ for(let n=6;n<=12;n++)for(let index=0;index<(PUZZLE_BANK[n]||[]).length;index++){
+   const p=PUZZLE_BANK[n][index],a=logicAnalyse(n,p.regions,1);
+   if(!a.solved)continue;
+   out.push({n,regions:p.regions.slice(),solution:p.solution.slice(),score:a.score,band:a.band,force:a.force,maxForce:a.maxForce,regionLine:a.regionLine,block:a.block,match:a.match,arc:a.arc,logicVersion:5,source:'starter',baseId:`bank:${n}:${index}`});
+ }
+ return out;
+}
+const STARTER_CANDIDATES=bankCandidates();
+
+function choosePuzzle(bias){
+ const store=loadStore(),seen=new Set(store.seen||[]);
+ const all=[...generatedPool,...STARTER_CANDIDATES];
+ if(!all.length)throw new Error('No puzzles available');
+ const targetBand=sampleBand(bias);
+
+ let candidates=all.filter(p=>p.band===targetBand&&!seen.has(p.source==='starter'?p.baseId:puzzleHash(p)));
+ if(!candidates.length)candidates=all.filter(p=>p.band===targetBand);
+
+ if(!candidates.length){
+   const targetIndex=BANDS.indexOf(targetBand);
+   for(let distance=1;distance<BANDS.length&&!candidates.length;distance++){
+     const near=[targetIndex-distance,targetIndex+distance].filter(i=>i>=0&&i<BANDS.length);
+     for(const i of near){
+       const band=BANDS[i];
+       candidates=all.filter(p=>p.band===band&&!seen.has(p.source==='starter'?p.baseId:puzzleHash(p)));
+       if(!candidates.length)candidates=all.filter(p=>p.band===band);
+       if(candidates.length)break;
+     }
+   }
+ }
+ if(!candidates.length)candidates=all.slice();
+
+ let total=0,weighted=[];
+ for(const p of candidates){
+   let w=sizeWeightForBand(p,targetBand);
+   if(targetBand==='Brutal'&&p.n>=11)w*=1.35;
+   if(targetBand==='Easy'&&p.n<=8)w*=1.25;
+   total+=w;weighted.push([p,w]);
+ }
+ let pick=Math.random()*total,chosen=weighted[0][0];
+ for(const [p,w] of weighted){pick-=w;if(pick<=0){chosen=p;break}}
+
+ if(chosen.source==='generated')generatedPool=generatedPool.filter(p=>p!==chosen);
+ const id=chosen.source==='starter'?chosen.baseId:puzzleHash(chosen);
+ const seenArr=(store.seen||[]).filter(x=>x!==id);seenArr.push(id);
+ store.seen=seenArr.slice(-SEEN_LIMIT);store.generatedPool=generatedPool.slice(0,POOL_TARGET);saveStore(store);
+ requestGeneration(250);
+ return transformed({...chosen,regions:chosen.regions.slice(),solution:chosen.solution.slice()},rngInt(8));
+}
+
+function makeWorker(){
+ if(!('Worker' in window)||!('Blob' in window))return null;
+ const workerSource=String.raw`
+ 'use strict';
+ let bias=75;
+ function rngInt(n){return Math.floor(Math.random()*n)}
+ function shuffle(a){for(let i=a.length-1;i>0;i--){const j=rngInt(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
+ const WBANDS=['Easy','Medium','Hard','Expert','Brutal'];
+ function wsnap(v){return Math.max(0,Math.min(100,Math.round((+v||0)/25)*25))}
+ function wmix(v){const m={0:[.72,.22,.05,.01,0],25:[.15,.60,.20,.05,0],50:[.05,.20,.50,.20,.05],75:[.01,.05,.20,.59,.15],100:[0,.01,.06,.22,.71]};return m[wsnap(v)]}
+ function sampleTargetBand(){const m=wmix(bias);let x=Math.random();for(let i=0;i<m.length;i++){x-=m[i];if(x<=0)return WBANDS[i]}return 'Hard'}
+ function chooseSize(targetBand){const centre={Easy:7,Medium:8,Hard:9,Expert:10,Brutal:11}[targetBand]||9,vals=[];let total=0;for(let n=6;n<=12;n++){const d=(n-centre)/2.0,w=.08+Math.exp(-(d*d)/2);vals.push([n,w]);total+=w}let p=Math.random()*total;for(const [n,w] of vals){p-=w;if(p<=0)return n}return centre}
+ function queenPermutation(n){const cols=[...Array(n).keys()];function rec(r){if(r===n)return true;for(const c of shuffle(cols.filter(c=>!used.has(c)))){if(r>0&&Math.abs(c-pos[r-1])===1)continue;pos[r]=c;used.add(c);if(rec(r+1))return true;used.delete(c)}return false}const pos=Array(n).fill(-1),used=new Set();return rec(0)?pos:null}
+ function neighbors4(i,n){const r=Math.floor(i/n),c=i%n,a=[];if(r)a.push(i-n);if(r<n-1)a.push(i+n);if(c)a.push(i-1);if(c<n-1)a.push(i+1);return a}
+ function growRegions(n,sol){const total=n*n,reg=Array(total).fill(-1),front=Array.from({length:n},()=>[]),counts=Array(n).fill(1);for(let r=0;r<n;r++){const i=r*n+sol[r];reg[i]=r}for(let k=0;k<n;k++){const seed=k*n+sol[k];for(const nb of neighbors4(seed,n))if(reg[nb]<0)front[k].push(nb)}let left=total-n,guard=0;while(left&&guard++<12000){const ids=shuffle([...Array(n).keys()]).sort((a,b)=>counts[a]-counts[b]+(Math.random()-.5)*2);let did=false;for(const k of ids){const choices=[...new Set(front[k])].filter(i=>reg[i]<0);if(!choices.length)continue;const i=choices[rngInt(choices.length)];reg[i]=k;counts[k]++;left--;did=true;front[k]=front[k].filter(x=>x!==i);for(const nb of neighbors4(i,n))if(reg[nb]<0)front[k].push(nb);if(Math.random()<.75)break}if(!did){const un=reg.map((v,i)=>v<0?i:-1).filter(i=>i>=0);if(!un.length)break;const i=un[0],adj=neighbors4(i,n).map(j=>reg[j]).filter(x=>x>=0);if(adj.length){reg[i]=adj[rngInt(adj.length)];counts[reg[i]]++;left--}else return null}}return left?null:reg}
+ function findSolutions(n,regions,limit=60){const usedC=Array(n).fill(false),usedR=Array(n).fill(false),pos=Array(n).fill(-1),sols=[];function rec(depth){if(sols.length>=limit)return;if(depth===n){sols.push(pos.slice());return}let bestR=-1,best=[];for(let r=0;r<n;r++)if(pos[r]<0){const opts=[];for(let c=0;c<n;c++){if(usedC[c])continue;const rg=regions[r*n+c];if(usedR[rg])continue;if(r>0&&pos[r-1]>=0&&Math.abs(c-pos[r-1])===1)continue;if(r<n-1&&pos[r+1]>=0&&Math.abs(c-pos[r+1])===1)continue;opts.push(c)}if(!opts.length)return;if(bestR<0||opts.length<best.length){bestR=r;best=opts;if(opts.length===1)break}}for(const c of best){const rg=regions[bestR*n+c];pos[bestR]=c;usedC[c]=true;usedR[rg]=true;rec(depth+1);usedC[c]=false;usedR[rg]=false;pos[bestR]=-1;if(sols.length>=limit)return}}rec(0);return sols}
+ function same(a,b){return a.every((v,i)=>v===b[i])}
+ function connectedAfterRemove(reg,n,src,rem){let start=-1,count=0;for(let i=0;i<reg.length;i++)if(reg[i]===src&&i!==rem){count++;if(start<0)start=i}if(start<0)return false;const seen=new Set([start]),q=[start];while(q.length){const x=q.pop();for(const nb of neighbors4(x,n))if(nb!==rem&&reg[nb]===src&&!seen.has(nb)){seen.add(nb);q.push(nb)}}return seen.size===count}
+ function allMoves(n,sol,reg){const seeds=new Set(sol.map((c,r)=>r*n+c)),out=[];for(let i=0;i<reg.length;i++){if(seeds.has(i))continue;const src=reg[i],dsts=[...new Set(neighbors4(i,n).map(j=>reg[j]).filter(x=>x!==src))];if(!dsts.length||!connectedAfterRemove(reg,n,src,i))continue;for(const dst of dsts)out.push([i,src,dst])}return out}
+ function repair(n,sol,reg,maxSteps=420){const history=new Set([reg.join(',')]);for(let step=0;step<maxSteps;step++){const sols=findSolutions(n,reg,12),alts=sols.filter(s=>!same(s,sol));if(!alts.length)return {ok:true,reg};const moves=allMoves(n,sol,reg);if(!moves.length)return {ok:false};let best=[],bestScore=-1;for(const mv of moves){const i=mv[0],r=Math.floor(i/n),c=i%n;let score=0;for(const a of alts)if(a[r]===c)score++;if(score>bestScore){bestScore=score;best=[mv]}else if(score===bestScore)best.push(mv)}shuffle(best);let chosen=null;for(const mv of best){reg[mv[0]]=mv[2];const sig=reg.join(',');reg[mv[0]]=mv[1];if(!history.has(sig)){chosen=mv;history.add(sig);break}}if(!chosen)chosen=moves[rngInt(moves.length)];reg[chosen[0]]=chosen[2]}return {ok:false}}
+ function logicAnalyse(n,regions,maxForceDepth=1){
+   const total=n*n;
+   function makeState(){return {cand:new Uint8Array(total).fill(1),fixed:new Uint8Array(total),bad:false}}
+   function cloneState(s){return {cand:s.cand.slice(),fixed:s.fixed.slice(),bad:s.bad}}
+   function remove(s,i){if(!s.cand[i])return false;if(s.fixed[i]){s.bad=true;return false}s.cand[i]=0;return true}
+   function place(s,i){
+     if(s.bad)return false;if(!s.cand[i]){s.bad=true;return false}if(s.fixed[i])return false;
+     s.fixed[i]=1;const r=Math.floor(i/n),c=i%n,rg=regions[i];let changed=true;
+     for(let j=0;j<total;j++)if(j!==i&&s.cand[j]){const rr=Math.floor(j/n),cc=j%n;if(rr===r||cc===c||regions[j]===rg||(Math.abs(rr-r)===1&&Math.abs(cc-c)===1))remove(s,j)}
+     return changed;
+   }
+   function unitCells(kind,u){const a=[];if(kind===0){for(let c=0;c<n;c++)a.push(u*n+c)}else if(kind===1){for(let r=0;r<n;r++)a.push(r*n+u)}else{for(let i=0;i<total;i++)if(regions[i]===u)a.push(i)}return a}
+   function checkUnits(s){for(let k=0;k<3;k++)for(let u=0;u<n;u++){let cnt=0;for(const i of unitCells(k,u))cnt+=s.cand[i];if(!cnt){s.bad=true;return false}}return true}
+   function solved(s){for(let r=0;r<n;r++){let cnt=0;for(let c=0;c<n;c++)cnt+=s.cand[r*n+c];if(cnt!==1)return false}return !s.bad}
+   function findSingleton(s){for(let k=0;k<3;k++)for(let u=0;u<n;u++){let cnt=0,last=-1;for(const i of unitCells(k,u))if(s.cand[i]){cnt++;last=i}if(cnt===0){s.bad=true;return -2}if(cnt===1&&!s.fixed[last])return last}return -1}
+   function regionLinePrune(s){
+    let rem=0;
+    for(let rg=0;rg<n&&!s.bad;rg++){
+      const a=unitCells(2,rg).filter(i=>s.cand[i]);
+      if(a.length<2)continue;
+      const rows=[...new Set(a.map(i=>Math.floor(i/n)))],cols=[...new Set(a.map(i=>i%n))];
+      if(rows.length===1){
+        const r=rows[0];for(const i of unitCells(0,r))if(s.cand[i]&&regions[i]!==rg&&!s.fixed[i])if(remove(s,i))rem++;
+      }
+      if(cols.length===1){
+        const c=cols[0];for(const i of unitCells(1,c))if(s.cand[i]&&regions[i]!==rg&&!s.fixed[i])if(remove(s,i))rem++;
+      }
+    }
+    for(let r=0;r<n&&!s.bad;r++){
+      const a=unitCells(0,r).filter(i=>s.cand[i]);if(a.length<2)continue;
+      const rgs=[...new Set(a.map(i=>regions[i]))];
+      if(rgs.length===1){const rg=rgs[0];for(const i of unitCells(2,rg))if(s.cand[i]&&Math.floor(i/n)!==r&&!s.fixed[i])if(remove(s,i))rem++}
+    }
+    for(let c=0;c<n&&!s.bad;c++){
+      const a=unitCells(1,c).filter(i=>s.cand[i]);if(a.length<2)continue;
+      const rgs=[...new Set(a.map(i=>regions[i]))];
+      if(rgs.length===1){const rg=rgs[0];for(const i of unitCells(2,rg))if(s.cand[i]&&i%n!==c&&!s.fixed[i])if(remove(s,i))rem++}
+    }
+    return rem;
+  }
+  function cellsConflict(i,j){
+    const r=Math.floor(i/n),c=i%n,rr=Math.floor(j/n),cc=j%n;
+    return r===rr||c===cc||regions[i]===regions[j]||(Math.abs(r-rr)===1&&Math.abs(c-cc)===1);
+  }
+  function blockingPrune(s){
+    let rem=0;
+    for(let i=0;i<total&&!s.bad;i++)if(s.cand[i]&&!s.fixed[i]){
+      const r=Math.floor(i/n),c=i%n,rg=regions[i];
+      let blocked=false;
+      for(let kind=0;kind<3&&!blocked;kind++)for(let u=0;u<n&&!blocked;u++){
+        if((kind===0&&u===r)||(kind===1&&u===c)||(kind===2&&u===rg))continue;
+        const a=unitCells(kind,u).filter(j=>s.cand[j]);
+        if(a.length&&a.every(j=>cellsConflict(i,j))){
+          if(remove(s,i)){rem++;blocked=true}
+        }
+      }
+    }
+    return rem;
+  }
+  function arcPrune(s){let rem=0;for(let i=0;i<total&&!s.bad;i++)if(s.cand[i]){const r=Math.floor(i/n),c=i%n;for(const rr of [r-1,r+1])if(rr>=0&&rr<n){let ok=false;for(let cc=0;cc<n;cc++){const j=rr*n+cc;if(s.cand[j]&&Math.abs(cc-c)>1){ok=true;break}}if(!ok){if(remove(s,i))rem++;break}}}return rem}
+   function hasPM(adj,fa=-1,fb=-1){const match=Array(n).fill(-1);if(fa>=0){if(!adj[fa].includes(fb))return false;match[fb]=fa}function dfs(a,seen){for(const b of adj[a]){if(b===fb)continue;if(seen[b])continue;seen[b]=1;if(match[b]<0||dfs(match[b],seen)){match[b]=a;return true}}return false}for(let a=0;a<n;a++){if(a===fa)continue;if(!dfs(a,new Uint8Array(n)))return false}return true}
+   function pairOf(i,type){const r=Math.floor(i/n),c=i%n,rg=regions[i];return type===0?[r,c]:type===1?[r,rg]:[c,rg]}
+   function matchingPrune(s){let rem=0;for(let type=0;type<3&&!s.bad;type++){
+       const adj=Array.from({length:n},()=>[]),edgeCells=Array.from({length:n},()=>Array.from({length:n},()=>[]));
+       for(let i=0;i<total;i++)if(s.cand[i]){const [a,b]=pairOf(i,type);edgeCells[a][b].push(i)}
+       for(let a=0;a<n;a++)for(let b=0;b<n;b++)if(edgeCells[a][b].length)adj[a].push(b)
+       if(!hasPM(adj)){s.bad=true;return rem}
+       for(let a=0;a<n&&!s.bad;a++)for(const b of adj[a])if(!hasPM(adj,a,b)){for(const i of edgeCells[a][b])if(remove(s,i))rem++}
+     }return rem}
+   function propagate(s,stats){let guard=0;while(!s.bad&&guard++<500){
+      if(!checkUnits(s))break;
+      let one=findSingleton(s);if(one===-2)break;
+      if(one>=0){place(s,one);stats.singles++;stats.cost+=1;continue}
+      let rl=regionLinePrune(s);if(s.bad)break;
+      if(rl){stats.regionLine+=rl;stats.cost+=1.8+rl*.18;continue}
+      let b=blockingPrune(s);if(s.bad)break;
+      if(b){stats.block+=b;stats.cost+=2.6+b*.25;continue}
+      let a=arcPrune(s);if(s.bad)break;
+      if(a){stats.arc+=a;stats.cost+=3+a*.25;continue}
+      let m=matchingPrune(s);if(s.bad)break;
+      if(m){stats.match+=m;stats.cost+=6+m*.6;continue}
+      break
+    }return s}
+   function candidateOrder(s){const scores=[];for(let i=0;i<total;i++)if(s.cand[i]&&!s.fixed[i]){const r=Math.floor(i/n),c=i%n,rg=regions[i];let rc=0,cc=0,gc=0;for(let x=0;x<n;x++){rc+=s.cand[r*n+x];cc+=s.cand[x*n+c]}for(let j=0;j<total;j++)if(regions[j]===rg)gc+=s.cand[j];scores.push([Math.min(rc,cc,gc),rc+cc+gc,i])}scores.sort((a,b)=>a[0]-b[0]||a[1]-b[1]);return scores.map(x=>x[2])}
+   function run(s,depth,stats,trial=false){propagate(s,stats);if(s.bad)return 'bad';if(solved(s))return 'solved';if(depth<=0)return 'stuck';
+     const order=candidateOrder(s);
+     for(const i of order){
+       let t=cloneState(s),ts={singles:0,regionLine:0,block:0,arc:0,match:0,force:0,maxForce:0,cost:0};place(t,i);let rr=run(t,depth-1,ts,true);if(rr==='bad'){
+         if(remove(s,i)){stats.force++;const level=1+(ts.maxForce||0);stats.maxForce=Math.max(stats.maxForce,level);stats.cost+=(level===1?45:105)+ts.cost*.18;return run(s,depth,stats,trial)}
+       }
+       t=cloneState(s);ts={singles:0,regionLine:0,block:0,arc:0,match:0,force:0,maxForce:0,cost:0};remove(t,i);rr=run(t,depth-1,ts,true);if(rr==='bad'){
+         place(s,i);stats.force++;const level=1+(ts.maxForce||0);stats.maxForce=Math.max(stats.maxForce,level);stats.cost+=(level===1?50:115)+ts.cost*.18;return run(s,depth,stats,trial)
+       }
+     }
+     return 'stuck';
+   }
+   const s=makeState(),stats={singles:0,regionLine:0,block:0,arc:0,match:0,force:0,maxForce:0,cost:0};const status=run(s,maxForceDepth,stats,false);
+   const score=Math.round(stats.cost+n*2+stats.regionLine*.25+stats.block*.5+stats.match*1.2+stats.force*18+stats.maxForce*35);
+   let band='Easy';
+   // Any hypothetical / forcing step puts the puzzle in Brutal.
+   if(stats.force>0||stats.maxForce>0)band='Brutal';
+   else if(score>=300)band='Brutal';
+   else if(stats.match>=28||score>=120)band='Expert';
+   else if(stats.match>0||score>=72)band='Hard';
+   else if(stats.regionLine>0||stats.block>0||stats.arc>0||score>=46)band='Medium';
+   return {solved:status==='solved',status,score,band,...stats};
+ }
+ function workerChallenge(n,a){
+   const size=(n-6)/6,score=Math.max(0,Math.min(1,(a.score-40)/460)),force=Math.min(1,a.maxForce*.48+a.force*.09),band=a.band==='Brutal'?1:a.band==='Expert'?.72:a.band==='Hard'?.48:a.band==='Medium'?.25:.08;
+   return Math.max(0,Math.min(1,size*.22+score*.38+force*.25+band*.15));
+ }
+ function generate(){
+   let best=null,bestDistance=Infinity;
+   const targetBand=sampleTargetBand(),targetIndex=WBANDS.indexOf(targetBand);
+   for(let restart=0;restart<34;restart++){
+     const n=chooseSize(targetBand),solution=queenPermutation(n),regions=growRegions(n,solution);if(!regions)continue;
+     const fixed=repair(n,solution,regions);if(!fixed.ok)continue;
+     const verify=findSolutions(n,fixed.reg,2);if(verify.length!==1||!same(verify[0],solution))continue;
+     const a=logicAnalyse(n,fixed.reg,1);if(!a.solved)continue;
+     const p={n,solution,regions:fixed.reg,score:a.score,band:a.band,force:a.force,maxForce:a.maxForce,regionLine:a.regionLine,block:a.block,match:a.match,arc:a.arc,logicVersion:5,source:'generated'};
+     const bandDistance=Math.abs(WBANDS.indexOf(p.band)-targetIndex);
+     const sizeCentre={Easy:7,Medium:8,Hard:9,Expert:10,Brutal:11}[targetBand]||9;
+     const d=bandDistance*3+Math.abs(n-sizeCentre)*.18;
+     if(d<bestDistance){best=p;bestDistance=d}
+     if(p.band===targetBand)return p;
+   }
+   return best;
+ }
+ onmessage=e=>{if(e.data&&typeof e.data.bias==='number')bias=e.data.bias;if(e.data&&e.data.type==='generate'){try{const p=generate();postMessage({ok:!!p,puzzle:p})}catch(err){postMessage({ok:false,error:String(err&&err.message||err)})}}};
+ `;
+ const blob=new Blob([workerSource],{type:'application/javascript'}),url=URL.createObjectURL(blob),w=new Worker(url);URL.revokeObjectURL(url);return w;
+}
+function ensureWorker(){
+ if(generatorWorker)return;
+ generatorWorker=makeWorker();if(!generatorWorker)return;
+ generatorWorker.onmessage=e=>{
+   generatorBusy=false;
+   const p=e.data&&e.data.puzzle;
+   if(e.data&&e.data.ok&&p&&p.logicVersion===5&&p.n>=6&&p.n<=12&&p.regions?.length===p.n*p.n&&p.solution?.length===p.n){
+     p.source='generated';
+     const h=puzzleHash(p),store=loadStore(),seen=new Set(store.seen||[]);
+     if(!seen.has(h)&&!generatedPool.some(x=>puzzleHash(x)===h))generatedPool.push(p);
+     generatedPool=generatedPool.slice(-POOL_TARGET);store.generatedPool=generatedPool;saveStore(store);
+   }
+   requestGeneration(2200);
+ };
+ generatorWorker.onerror=()=>{generatorBusy=false;generatorWorker.terminate();generatorWorker=null};
+ generatorWorker.postMessage({bias:+diffEl.value});
+}
+function requestGeneration(delay=0){
+ if(delay>0){clearTimeout(generationTimer);generationTimer=setTimeout(()=>requestGeneration(),delay);return}
+ ensureWorker();if(!generatorWorker||generatorBusy||generatedPool.length>=POOL_TARGET)return;
+ generatorBusy=true;generatorWorker.postMessage({type:'generate',bias:+diffEl.value});
+}
+function loadGeneratedPool(){
+ const pool=loadStore().generatedPool;
+ if(Array.isArray(pool))generatedPool=pool.filter(p=>p&&p.logicVersion===5&&p.n>=6&&p.n<=12&&p.regions?.length===p.n*p.n&&p.solution?.length===p.n).slice(-POOL_TARGET);
+ requestGeneration(2500);
+}
+function transformed(p,t){
+ const n=p.n;function map(r,c){switch(t){case 0:return[r,c];case 1:return[c,n-1-r];case 2:return[n-1-r,n-1-c];case 3:return[n-1-c,r];case 4:return[r,n-1-c];case 5:return[n-1-r,c];case 6:return[c,r];default:return[n-1-c,n-1-r]}}
+ const reg=Array(n*n),sol=Array(n).fill(-1);for(let r=0;r<n;r++)for(let c=0;c<n;c++){const [rr,cc]=map(r,c);reg[rr*n+cc]=p.regions[r*n+c]}
+ for(let r=0;r<n;r++){const [rr,cc]=map(r,p.solution[r]);sol[rr]=cc}
+ return {...p,regions:reg,solution:sol};
+}
+function hexRgb(hex){const x=parseInt(hex.slice(1),16);return[(x>>16)&255,(x>>8)&255,x&255]}
+function shadeHex(hex,m){const x=parseInt(hex.slice(1),16),r=(x>>16)&255,g=(x>>8)&255,b=x&255;const adj=v=>Math.max(0,Math.min(255,Math.round(v*m)));return '#'+[adj(r),adj(g),adj(b)].map(v=>v.toString(16).padStart(2,'0')).join('')}
+function colorDistance(a,b){
+ const A=hexRgb(a),B=hexRgb(b);
+ // Weighted RGB distance: good enough for this curated mid-lightness palette.
+ const rmean=(A[0]+B[0])/2,dr=A[0]-B[0],dg=A[1]-B[1],db=A[2]-B[2];
+ return Math.sqrt((2+rmean/256)*dr*dr+4*dg*dg+(2+(255-rmean)/256)*db*db);
+}
+function selectedPalette(n){
+ const pool=COLOR_POOL.slice(),chosen=[];
+ // Start from a random colour so consecutive games do not always look alike,
+ // then greedily maximise the minimum distance from colours already chosen.
+ chosen.push(pool.splice(rngInt(pool.length),1)[0]);
+ while(chosen.length<n){
+   let bestI=0,best=-1;
+   for(let i=0;i<pool.length;i++){
+     const d=Math.min(...chosen.map(c=>colorDistance(pool[i],c)));
+     if(d>best){best=d;bestI=i}
+   }
+   chosen.push(pool.splice(bestI,1)[0]);
+ }
+ return chosen;
+}
+function paletteFor(n,regions){
+ const colours=selectedPalette(n);
+ const neighbours=Array.from({length:n},()=>new Set());
+ for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+   const i=r*n+c,a=regions[i];
+   if(c<n-1){const b=regions[i+1];if(a!==b){neighbours[a].add(b);neighbours[b].add(a)}}
+   if(r<n-1){const b=regions[i+n];if(a!==b){neighbours[a].add(b);neighbours[b].add(a)}}
+ }
+ const order=[...Array(n).keys()].sort((a,b)=>neighbours[b].size-neighbours[a].size);
+ const assigned=Array(n).fill(null),available=colours.slice();
+ for(const rg of order){
+   let bestI=0,bestScore=-1;
+   const adjacent=[...neighbours[rg]].map(x=>assigned[x]).filter(Boolean);
+   for(let i=0;i<available.length;i++){
+     const score=adjacent.length?Math.min(...adjacent.map(c=>colorDistance(available[i],c))):
+       Math.min(...assigned.filter(Boolean).map(c=>colorDistance(available[i],c)),9999);
+     if(score>bestScore){bestScore=score;bestI=i}
+   }
+   assigned[rg]=available.splice(bestI,1)[0];
+ }
+ return assigned;
+}
+function fitCells(n){const w=Math.min(window.innerWidth-20,680),s=Math.max(25,Math.min(56,Math.floor(w/n)));document.documentElement.style.setProperty('--cell',`${s}px`);return s}
+function drawBoardArt(cellPx){
+ const n=state.n;
+ const slate='#696678';
+ const seamW=.040;       // same-region seam
+ const boundaryW=.054;   // true colour-region boundary
+ const outerW=.060;      // outer frame
+ const radius=.060;
+ const parts=[];
+
+ boardArt.setAttribute('viewBox',`0 0 ${n} ${n}`);
+ boardArt.setAttribute('width',n*cellPx);
+ boardArt.setAttribute('height',n*cellPx);
+ boardArt.style.width=`${n*cellPx}px`;
+ boardArt.style.height=`${n*cellPx}px`;
+
+ // Start with flat colour cells. They deliberately overlap the eventual seam area;
+ // the seam/boundary network is drawn over them afterwards.
+ for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+   const fill=state.colors[state.regions[r*n+c]];
+   parts.push(
+     `<rect x="${c}" y="${r}" width="1" height="1" fill="${fill}"/>`
+   );
+ }
+
+ // Same-region seams first. They are square-ended and run right into grid junctions.
+ // If a true region boundary also reaches that junction it is drawn later and masks
+ // this seam cleanly, exactly as in the reference.
+ for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+   const i=r*n+c,rg=state.regions[i],seam=shadeHex(state.colors[rg],.78);
+   if(c<n-1 && state.regions[i+1]===rg){
+     parts.push(
+       `<rect x="${c+1-seamW/2}" y="${r}" width="${seamW}" height="1" fill="${seam}"/>`
+     );
+   }
+   if(r<n-1 && state.regions[i+n]===rg){
+     parts.push(
+       `<rect x="${c}" y="${r+1-seamW/2}" width="1" height="${seamW}" fill="${seam}"/>`
+     );
+   }
+ }
+
+ // True region boundaries second. Because they sit above the coloured seams they
+ // remain continuous and authoritative at T-junctions and crossings.
+ for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+   const i=r*n+c,rg=state.regions[i];
+   if(c<n-1 && state.regions[i+1]!==rg){
+     parts.push(
+       `<rect x="${c+1-boundaryW/2}" y="${r}" width="${boundaryW}" height="1" fill="${slate}"/>`
+     );
+   }
+   if(r<n-1 && state.regions[i+n]!==rg){
+     parts.push(
+       `<rect x="${c}" y="${r+1-boundaryW/2}" width="1" height="${boundaryW}" fill="${slate}"/>`
+     );
+   }
+ }
+
+ // Rounded colour faces last. Every cell is inset according to the seam on each
+ // edge; this creates the soft corner treatment visible in the reference without
+ // allowing the internal seam to punch through a region boundary.
+ for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+   const i=r*n+c,rg=state.regions[i],fill=state.colors[rg];
+
+   function edgeInset(kind,outer){
+     if(outer)return outerW;
+     return kind ? seamW/2 : boundaryW/2;
+   }
+
+   const sameL=c>0   && state.regions[i-1]===rg;
+   const sameR=c<n-1 && state.regions[i+1]===rg;
+   const sameT=r>0   && state.regions[i-n]===rg;
+   const sameB=r<n-1 && state.regions[i+n]===rg;
+
+   const left   = c===0   ? outerW : (sameL ? seamW/2 : boundaryW/2);
+   const right  = c===n-1 ? outerW : (sameR ? seamW/2 : boundaryW/2);
+   const top    = r===0   ? outerW : (sameT ? seamW/2 : boundaryW/2);
+   const bottom = r===n-1 ? outerW : (sameB ? seamW/2 : boundaryW/2);
+
+   parts.push(
+     `<rect x="${c+left}" y="${r+top}" width="${1-left-right}" height="${1-top-bottom}" `+
+     `rx="${radius}" ry="${radius}" fill="${fill}"/>`
+   );
+ }
+
+ // Outer frame last so it is equally clean at every edge.
+ parts.push(
+   `<rect x="${outerW/2}" y="${outerW/2}" width="${n-outerW}" height="${n-outerW}" `+
+   `rx=".095" ry=".095" fill="none" stroke="${slate}" stroke-width="${outerW}"/>`
+ );
+
+ boardArt.innerHTML=parts.join('');
+}
+function paintCell(i){
+ const c=boardEl.children[i];if(!c)return;const m=c.querySelector('.mark'),v=state.marks[i];c.classList.remove('x','queen','conflict');m.textContent='';
+ if(v===1){c.classList.add('x')}else if(v===2){c.classList.add('queen');m.innerHTML='<span class="coolMarker" aria-hidden="true">😎</span>'}
+}
+function updatePuzzleMeta(){
+ difficultyNow.textContent=state.band;sizeNow.textContent=`${state.n}×${state.n}`;
+ recordState.textContent=state.hintUsed?'Hints used · time not eligible for a record':'Record eligible';
+}
+function render(){
+ const cellPx=fitCells(state.n);boardEl.innerHTML='';boardEl.style.gridTemplateColumns=`repeat(${state.n}, var(--cell))`;boardEl.style.gridTemplateRows=`repeat(${state.n}, var(--cell))`;
+ drawBoardArt(cellPx);
+ for(let i=0;i<state.n*state.n;i++){
+   const rg=state.regions[i],c=document.createElement('div');c.className='cell';c.dataset.i=i;c.style.setProperty('--region',state.colors[rg]);
+   const m=document.createElement('span');m.className='mark';c.appendChild(m);boardEl.appendChild(c);paintCell(i)
+ }
+ updatePuzzleMeta();updateBest();updateUndo();scheduleSave();
+}
+function setMessage(t,cls=''){msg.textContent=t;msg.className='message'+(cls?' '+cls:'')}
+function elapsed(){return state.elapsed+Math.max(0,Math.floor((Date.now()-state.startedAt)/1000))}
+function updateTimer(){if(!state||state.complete||hiddenAt)return;timerEl.textContent=fmt(elapsed())}
+function startTimer(){clearInterval(timerTick);timerTick=setInterval(updateTimer,500);updateTimer()}
+function pauseTimer(){if(!state||state.complete)return;state.elapsed=elapsed();state.startedAt=Date.now()}
+document.addEventListener('visibilitychange',()=>{if(document.hidden){pauseTimer();hiddenAt=Date.now();saveProgress()}else{hiddenAt=null;if(state){state.startedAt=Date.now();updateTimer()}}})
+function checkComplete(){
+ if(state.complete)return;const n=state.n;for(let r=0;r<n;r++)if(state.marks[r*n+state.solution[r]]!==2)return;const q=state.marks.filter(v=>v===2).length;if(q!==n)return;
+ state.complete=true;state.elapsed=elapsed();clearInterval(timerTick);timerEl.textContent=fmt(state.elapsed);const store=loadStore(),k=keyBest(n,state.band),old=store[k];let isBest=false;
+ if(!state.hintUsed&&(!old||state.elapsed<old)){store[k]=state.elapsed;isBest=true}delete store.progress;saveStore(store);updateBest();
+ const hintNote=state.hintUsed?' · hints used — time not recorded':(isBest?' — new best time.':'');
+ winText.textContent=`${n}×${n} · ${state.band} · ${fmt(state.elapsed)}${hintNote}`;winModal.classList.add('show');setMessage('Solved.','good')
+}
+function updateBest(){const store=loadStore(),v=store[keyBest(state.n,state.band)];bestTop.textContent=v?fmt(v):'—';bestEl.textContent=`${state.n}×${state.n} · ${state.band}${v?` · best ${fmt(v)}`:''}`}
+
+function renderRecords(){
+ const store=loadStore();
+ let html='<thead><tr><th>Size</th>'+BANDS.map(b=>`<th>${b==='Medium'?'Med':b}</th>`).join('')+'</tr></thead><tbody>';
+ for(let n=6;n<=12;n++){
+   html+=`<tr><td>${n}×${n}</td>`;
+   for(const band of BANDS){const v=store[keyBest(n,band)];html+=`<td>${v?fmt(v):'—'}</td>`}
+   html+='</tr>';
+ }
+ recordsTable.innerHTML=html+'</tbody>';
+}
+function showModal(el){el.classList.add('show');el.setAttribute('aria-hidden','false')}
+function hideModal(el){el.classList.remove('show');el.setAttribute('aria-hidden','true')}
+function openRecords(){renderRecords();showModal(recordsModal)}
+function clearAllRecords(){
+ const store=loadStore();
+ for(const k of Object.keys(store))if(/^best_\d+_(Easy|Medium|Hard|Expert|Brutal)$/.test(k))delete store[k];
+ saveStore(store);renderRecords();if(state)updateBest();hideModal(clearConfirmModal);
+}
+let saveTimer=null;
+function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(saveProgress,120)}
+function saveProgress(){if(!state||state.complete)return;const store=loadStore();const clean={...state,elapsed:elapsed(),startedAt:Date.now()};delete clean.history;store.progress=clean;saveStore(store)}
+function loadProgress(){
+ const s=loadStore().progress;if(!s)return false;
+ state={...s,history:[],hintUsed:!!s.hintUsed,hintCount:s.hintCount||0,activeHint:null};
+ try{
+   const a=logicAnalyse(state.n,state.regions,1);
+   if(a.solved){
+     state.score=a.score;state.band=a.band;state.force=a.force;state.maxForce=a.maxForce;state.regionLine=a.regionLine;state.block=a.block;state.match=a.match;state.arc=a.arc;state.logicVersion=5;
+   }
+ }catch{}
+ state.startedAt=Date.now();state.complete=false;render();startTimer();return true
+}
+
+function updateUndo(){if(undoBtn)undoBtn.disabled=!state||!state.history||!state.history.length||state.complete}
+function pushHistory(changes,kind='action',meta={}){
+ if(!changes.length)return null;const action={changes:changes.map(x=>({...x})),kind,...meta};state.history.push(action);if(state.history.length>200)state.history.shift();updateUndo();return action;
+}
+
+function clearHint(){boardEl.classList.remove('hintMode');boardArt.classList.remove('hintMode');for(const c of boardEl.querySelectorAll('.cell.hint,.cell.hintScope,.cell.hintTest'))c.classList.remove('hint','hintScope','hintTest')}
+function resetHintFlow(){if(state)state.activeHint=null}
+function highlightCells(cells,cls){if(cls==='hintScope'){boardEl.classList.add('hintMode');boardArt.classList.add('hintMode')}for(const i of cells||[]){const c=boardEl.children[i];if(c)c.classList.add(cls)}}
+function applyChange(i,to){clearHint();resetHintFlow();const from=state.marks[i];if(from===to)return null;state.marks[i]=to;paintCell(i);return {i,from,to}}
+function undo(){
+ if(!state||state.complete||!state.history.length)return;clearHint();resetHintFlow();const action=state.history.pop();for(let j=action.changes.length-1;j>=0;j--){const ch=action.changes[j];state.marks[ch.i]=ch.from;paintCell(ch.i)}
+ lastTap={i:-1,t:0,action:null};updateUndo();scheduleSave();setMessage('Undone.');
+}
+function conflictReason(){
+ const n=state.n,queens=[];for(let i=0;i<n*n;i++)if(state.marks[i]===2)queens.push(i);
+ for(let a=0;a<queens.length;a++)for(let b=a+1;b<queens.length;b++){const i=queens[a],j=queens[b],r1=Math.floor(i/n),c1=i%n,r2=Math.floor(j/n),c2=j%n;
+   if(Math.abs(r1-r2)===1&&Math.abs(c1-c2)===1)return 'Queens may not touch diagonally.';
+   if(r1===r2)return 'Only one queen is allowed in each row.';
+   if(c1===c2)return 'Only one queen is allowed in each column.';
+   if(state.regions[i]===state.regions[j])return 'Only one queen is allowed in each colour.';
+ }
+ return '';
+}
+function failAndRestart(reason){
+ pauseTimer();const t=1+rngInt(7),p=transformed(state,t);state={...p,colors:state.colors.slice(),marks:Array(state.n*state.n).fill(0),elapsed:0,startedAt:Date.now(),complete:false,transform:t,history:[],hintUsed:false,hintCount:0,activeHint:null};
+ render();startTimer();setMessage(`Failed — ${reason} Same puzzle restarted in a new orientation.`,'error');
+}
+function afterQueen(){const reason=conflictReason();if(reason){failAndRestart(reason);return false}checkComplete();scheduleSave();return true}
+
+let lastTap={i:-1,t:0,action:null},swipe=false,swipeMode=false,swipeSeen=new Set(),swipeChanges=[];
+const DOUBLE_TAP_MS=300;
+function singleImmediateTap(i,now){
+ if(lastTap.i===i&&now-lastTap.t<DOUBLE_TAP_MS){
+   const oldAction=lastTap.action;
+   const from=oldAction&&oldAction.changes&&oldAction.changes.length===1?oldAction.changes[0].from:state.marks[i];
+   const ch=applyChange(i,2);
+   if(oldAction&&state.history[state.history.length-1]===oldAction){
+     oldAction.changes=[{i,from,to:2}];
+   }else if(ch){
+     pushHistory([ch],'marker');
+   }
+   lastTap={i:-1,t:0,action:null};
+   updateUndo();
+   if(afterQueen())setMessage('');
+   return;
+ }
+ const to=state.marks[i]===1?0:1;
+ const ch=applyChange(i,to);
+ const action=ch?pushHistory([ch],'tap',{i}):null;
+ lastTap={i,t:now,action};
+ scheduleSave();
+}
+function pointerCell(e){
+ const el=document.elementFromPoint(e.clientX,e.clientY)?.closest('.cell');
+ return el?+el.dataset.i:null;
+}
+boardEl.addEventListener('pointerdown',e=>{
+ if(!state||state.complete)return;
+ const cell=e.target.closest('.cell');if(!cell)return;
+ e.preventDefault();
+ swipe=true;swipeMode=false;swipeSeen=new Set([+cell.dataset.i]);swipeChanges=[];
+ boardEl.setPointerCapture?.(e.pointerId);
+});
+boardEl.addEventListener('pointermove',e=>{
+ if(!swipe||!state||state.complete)return;
+ e.preventDefault();
+ const i=pointerCell(e);if(i===null||swipeSeen.has(i))return;
+ swipeMode=true;swipeSeen.add(i);
+ if(swipeSeen.size===2){
+   const first=[...swipeSeen][0];
+   if(state.marks[first]!==2){const ch=applyChange(first,1);if(ch)swipeChanges.push(ch)}
+ }
+ if(state.marks[i]!==2){const ch=applyChange(i,1);if(ch)swipeChanges.push(ch)}
+});
+boardEl.addEventListener('pointerup',e=>{
+ if(!swipe)return;
+ e.preventDefault();swipe=false;
+ if(swipeMode){
+   if(swipeChanges.length)pushHistory(swipeChanges,'swipe');
+   swipeChanges=[];swipeSeen.clear();lastTap={i:-1,t:0,action:null};scheduleSave();return;
+ }
+ const i=[...swipeSeen][0];swipeSeen.clear();
+ if(i==null)return;
+ singleImmediateTap(i,performance.now());
+});
+boardEl.addEventListener('pointercancel',()=>{
+ if(swipeChanges.length)pushHistory(swipeChanges,'swipe');
+ swipe=false;swipeMode=false;swipeSeen.clear();swipeChanges=[];scheduleSave();
+});
+
+function makeNew(){
+ pauseTimer();hintBtn.disabled=true;
+ try{
+   const p=choosePuzzle(+diffEl.value);
+   state={...p,colors:paletteFor(p.n,p.regions),marks:Array(p.n*p.n).fill(0),elapsed:0,startedAt:Date.now(),complete:false,transform:0,history:[],hintUsed:false,hintCount:0,activeHint:null};
+   render();startTimer();setMessage('');
+ }catch(e){
+   console.error(e);
+   setMessage('Could not start a puzzle. Try New game.','error');
+ }finally{
+   hintBtn.disabled=false;
+ }
+}
+
+function cellsInRow(r,n){const out=[];for(let c=0;c<n;c++)out.push(r*n+c);return out}
+function cellsInCol(c,n){const out=[];for(let r=0;r<n;r++)out.push(r*n+c);return out}
+function cellsInRegion(rg,n){const out=[];for(let i=0;i<n*n;i++)if(state.regions[i]===rg)out.push(i);return out}
+function uniqueCells(arr){return [...new Set(arr)]}
+function regionColourName(rg){return COLOR_NAMES[(state.colors?.[rg]||'').toLowerCase()]||`colour ${rg+1}`}
+function cellRef(i){return `row ${Math.floor(i/state.n)+1}, column ${i%state.n+1}`}
+function cellRefs(cells){
+ const a=uniqueCells(cells||[]);
+ if(!a.length)return '';
+ if(a.length===1)return cellRef(a[0]);
+ if(a.length===2)return `${cellRef(a[0])} and ${cellRef(a[1])}`;
+ return `${a.slice(0,-1).map(cellRef).join('; ')}; and ${cellRef(a[a.length-1])}`;
+}
+function colourNames(rgs){
+ const a=[...new Set(rgs||[])].map(regionColourName);
+ if(!a.length)return '';
+ if(a.length===1)return a[0];
+ if(a.length===2)return `${a[0]} and ${a[1]}`;
+ return `${a.slice(0,-1).join(', ')}, and ${a[a.length-1]}`;
+}
+function unitName(kind,u){return kind===0?`row ${u+1}`:kind===1?`column ${u+1}`:`the ${regionColourName(u)} region`}
+
+function logicHintClue(){
+ const n=state.n,total=n*n,regions=state.regions;
+ function makeState(){return {cand:new Uint8Array(total).fill(1),fixed:new Uint8Array(total),bad:false,reason:''}}
+ function cloneState(s){return {cand:s.cand.slice(),fixed:s.fixed.slice(),bad:s.bad,reason:s.reason}}
+ function setBad(s,reason){s.bad=true;if(!s.reason)s.reason=reason}
+ function remove(s,i){if(!s.cand[i])return false;if(s.fixed[i]){setBad(s,'a placed marker would have to be removed');return false}s.cand[i]=0;return true}
+ function place(s,i){
+   if(s.bad)return false;if(!s.cand[i]){setBad(s,'that square is already impossible');return false}if(s.fixed[i])return false;
+   s.fixed[i]=1;const r=Math.floor(i/n),c=i%n,rg=regions[i];
+   for(let j=0;j<total;j++)if(j!==i&&s.cand[j]){const rr=Math.floor(j/n),cc=j%n;if(rr===r||cc===c||regions[j]===rg||(Math.abs(rr-r)===1&&Math.abs(cc-c)===1))remove(s,j)}
+   return true;
+ }
+ function unitCells(kind,u){const a=[];if(kind===0){for(let c=0;c<n;c++)a.push(u*n+c)}else if(kind===1){for(let r=0;r<n;r++)a.push(r*n+u)}else{for(let i=0;i<total;i++)if(regions[i]===u)a.push(i)}return a}
+ function checkUnits(s){
+   for(let kind=0;kind<3;kind++)for(let u=0;u<n;u++){
+     let cnt=0;for(const i of unitCells(kind,u))cnt+=s.cand[i];
+     if(!cnt){setBad(s,`${kind===0?'row':kind===1?'column':'a colour region'} ${kind<2?u+1:''}`.trim()+` would have no legal square`);return false}
+   }
+   return true;
+ }
+ function currentAdjacentRowConflict(s){
+   for(let r=0;r<n-1;r++){
+     const a=cellsInRow(r,n).filter(i=>s.cand[i]);
+     const b=cellsInRow(r+1,n).filter(i=>s.cand[i]);
+     if(!a.length||!b.length)continue;
+
+     let compatible=false;
+     outer:
+     for(const i of a){
+       const c1=i%n;
+       for(const j of b){
+         const c2=j%n;
+         // Adjacent rows need different columns and must not touch diagonally.
+         if(c1!==c2 && Math.abs(c1-c2)>1){
+           compatible=true;
+           break outer;
+         }
+       }
+     }
+
+     if(!compatible){
+       const scope=uniqueCells([...a,...b]);
+       return {
+         key:`adjacent-row-conflict-${r}`,
+         type:'contradiction',
+         targetCells:[],
+         stage1Cells:scope,
+         stage2Cells:scope,
+         scopeCells:scope,
+         intro:`Rows ${r+1} and ${r+2} have no legal way to fit together.`,
+         detail:`Each row needs one 😎, but with the squares left, every choice in one row either uses the same column as a choice in the other row or touches it diagonally.`,
+         reveal:`At least one of your X marks in rows ${r+1} or ${r+2} must be wrong. Undo or reconsider one of those marks.`
+       };
+     }
+   }
+   return null;
+ }
+ function findSingletonClue(s){
+   // Prefer colour singleton, then row, then column.
+   for(const kind of [2,0,1])for(let u=0;u<n;u++){
+     const a=[];for(const i of unitCells(kind,u))if(s.cand[i])a.push(i);
+     if(a.length===1&&!s.fixed[a[0]]){
+       const target=a[0],r=Math.floor(target/n),c=target%n;
+       if(kind===2){
+         const colour=regionColourName(u);
+         return {
+           key:`single-${kind}-${u}-${target}`,type:'single',targetCells:[target],
+           intro:`There is only one ${colour} square left: row ${r+1}, column ${c+1}.`,
+           detail:`Every other square in the ${colour} region is ruled out, so its 😎 must go at row ${r+1}, column ${c+1}.`,
+           reveal:`Put 😎 at row ${r+1}, column ${c+1}.`
+         };
+       }
+       if(kind===0){
+         return {
+           key:`single-${kind}-${u}-${target}`,type:'single',targetCells:[target],
+           intro:`Row ${u+1} has only one possible square left: column ${c+1}.`,
+           detail:`Every other square in row ${u+1} is ruled out, so its 😎 must go in column ${c+1}.`,
+           reveal:`Put 😎 at row ${u+1}, column ${c+1}.`
+         };
+       }
+       return {
+         key:`single-${kind}-${u}-${target}`,type:'single',targetCells:[target],
+         intro:`Column ${u+1} has only one possible square left: row ${r+1}.`,
+         detail:`Every other square in column ${u+1} is ruled out, so its 😎 must go in row ${r+1}.`,
+         reveal:`Put 😎 at row ${r+1}, column ${u+1}.`
+       };
+     }
+   }
+   return null;
+ }
+ function regionLineClue(s){
+   // A colour confined to one row/column reserves that line for the colour.
+   for(let rg=0;rg<n;rg++){
+     const colour=regionColourName(rg);
+     const candidates=unitCells(2,rg).filter(i=>s.cand[i]);
+     if(candidates.length<2)continue;
+     const rows=[...new Set(candidates.map(i=>Math.floor(i/n)))];
+     const cols=[...new Set(candidates.map(i=>i%n))];
+
+     if(rows.length===1){
+       const r=rows[0],candidateCols=candidates.map(i=>i%n+1);
+       const targets=cellsInRow(r,n).filter(i=>s.cand[i]&&regions[i]!==rg&&!s.fixed[i]);
+       if(targets.length)return {
+         key:`region-row-${rg}-${r}`,type:'region-line',targetCells:targets,
+         intro:`Every remaining ${colour} square is in row ${r+1}, at column${candidateCols.length===1?'':'s'} ${candidateCols.join(', ')}.`,
+         detail:`The ${colour} 😎 must therefore be somewhere in row ${r+1}. That means no other colour can use row ${r+1}.`,
+         reveal:`Cross ${cellRefs(targets)}.`
+       };
+     }
+
+     if(cols.length===1){
+       const c=cols[0],candidateRows=candidates.map(i=>Math.floor(i/n)+1);
+       const targets=cellsInCol(c,n).filter(i=>s.cand[i]&&regions[i]!==rg&&!s.fixed[i]);
+       if(targets.length)return {
+         key:`region-col-${rg}-${c}`,type:'region-line',targetCells:targets,
+         intro:`Every remaining ${colour} square is in column ${c+1}, at row${candidateRows.length===1?'':'s'} ${candidateRows.join(', ')}.`,
+         detail:`The ${colour} 😎 must therefore be somewhere in column ${c+1}. That means no other colour can use column ${c+1}.`,
+         reveal:`Cross ${cellRefs(targets)}.`
+       };
+     }
+   }
+
+   // Reverse: a row/column confined to one colour reserves that colour for the line.
+   for(let r=0;r<n;r++){
+     const candidates=cellsInRow(r,n).filter(i=>s.cand[i]);
+     if(candidates.length<2)continue;
+     const rgs=[...new Set(candidates.map(i=>regions[i]))];
+     if(rgs.length===1){
+       const rg=rgs[0],colour=regionColourName(rg);
+       const targets=unitCells(2,rg).filter(i=>s.cand[i]&&Math.floor(i/n)!==r&&!s.fixed[i]);
+       if(targets.length)return {
+         key:`row-region-${r}-${rg}`,type:'region-line',targetCells:targets,
+         intro:`Every remaining option in row ${r+1} is ${colour}.`,
+         detail:`Row ${r+1} must use the ${colour} region, so the ${colour} 😎 cannot be anywhere outside row ${r+1}.`,
+         reveal:`Cross ${cellRefs(targets)}.`
+       };
+     }
+   }
+
+   for(let c=0;c<n;c++){
+     const candidates=cellsInCol(c,n).filter(i=>s.cand[i]);
+     if(candidates.length<2)continue;
+     const rgs=[...new Set(candidates.map(i=>regions[i]))];
+     if(rgs.length===1){
+       const rg=rgs[0],colour=regionColourName(rg);
+       const targets=unitCells(2,rg).filter(i=>s.cand[i]&&i%n!==c&&!s.fixed[i]);
+       if(targets.length)return {
+         key:`col-region-${c}-${rg}`,type:'region-line',targetCells:targets,
+         intro:`Every remaining option in column ${c+1} is ${colour}.`,
+         detail:`Column ${c+1} must use the ${colour} region, so the ${colour} 😎 cannot be anywhere outside column ${c+1}.`,
+         reveal:`Cross ${cellRefs(targets)}.`
+       };
+     }
+   }
+   return null;
+ }
+ function blockingClue(s){
+   function conflicts(i,j){
+     const r=Math.floor(i/n),c=i%n,rr=Math.floor(j/n),cc=j%n;
+     return r===rr||c===cc||regions[i]===regions[j]||(Math.abs(r-rr)===1&&Math.abs(c-cc)===1);
+   }
+   const options=[];
+   for(let i=0;i<total;i++)if(s.cand[i]&&!s.fixed[i]){
+     const r=Math.floor(i/n),c=i%n,rg=regions[i];
+     for(let kind=0;kind<3;kind++)for(let u=0;u<n;u++){
+       if((kind===0&&u===r)||(kind===1&&u===c)||(kind===2&&u===rg))continue;
+       const a=unitCells(kind,u).filter(j=>s.cand[j]);
+       if(!a.length||!a.every(j=>conflicts(i,j)))continue;
+
+       let subject,detail;
+       if(kind===0){
+         subject=`row ${u+1}`;
+         detail=`Every remaining square in row ${u+1} conflicts with row ${r+1}, column ${c+1}.`;
+       }else if(kind===1){
+         subject=`column ${u+1}`;
+         detail=`Every remaining square in column ${u+1} conflicts with row ${r+1}, column ${c+1}.`;
+       }else{
+         const colour=regionColourName(u);
+         subject=`the ${colour} region`;
+         detail=`Every remaining ${colour} square conflicts with row ${r+1}, column ${c+1}.`;
+       }
+
+       options.push({
+         key:`block-${i}-${kind}-${u}`,
+         type:'blocking',
+         targetCells:[i],
+         optionCount:a.length,
+         kindRank:kind===2?0:kind===0?1:2,
+         intro:`Compare row ${r+1}, column ${c+1} with ${subject}.`,
+         detail,
+         reveal:`Row ${r+1}, column ${c+1} cannot contain 😎 because it would leave ${subject} with nowhere for its 😎. Cross that square.`
+       });
+     }
+   }
+   if(!options.length)return null;
+   options.sort((a,b)=>a.optionCount-b.optionCount||a.kindRank-b.kindRank||a.targetCells[0]-b.targetCells[0]);
+   return options[0];
+ }
+ function arcClue(s){
+   for(let i=0;i<total;i++)if(s.cand[i]&&!s.fixed[i]){
+     const r=Math.floor(i/n),c=i%n;
+     for(const rr of [r-1,r+1])if(rr>=0&&rr<n){
+       const compatible=[];for(let cc=0;cc<n;cc++){const j=rr*n+cc;if(s.cand[j]&&Math.abs(cc-c)>1)compatible.push(j)}
+       if(!compatible.length){
+         const neighbourCandidates=cellsInRow(rr,n).filter(j=>s.cand[j]);
+         const cols=neighbourCandidates.map(j=>j%n+1);
+         return {
+           key:`arc-${i}-${rr}`,type:'arc',targetCells:[i],
+           intro:`Compare rows ${Math.min(r,rr)+1} and ${Math.max(r,rr)+1}. In row ${r+1}, consider column ${c+1}.`,
+           detail:`Row ${r+1}, column ${c+1} conflicts with every remaining option in row ${rr+1}: column${cols.length===1?'':'s'} ${cols.join(', ')}.`,
+           reveal:`So row ${r+1}, column ${c+1} cannot contain 😎. Cross it.`
+         };
+       }
+     }
+   }
+   return null;
+ }
+ function hasPM(adj,fa=-1,fb=-1){
+   const match=Array(n).fill(-1);if(fa>=0){if(!adj[fa].includes(fb))return false;match[fb]=fa}
+   function dfs(a,seen){for(const b of adj[a]){if(b===fb)continue;if(seen[b])continue;seen[b]=1;if(match[b]<0||dfs(match[b],seen)){match[b]=a;return true}}return false}
+   for(let a=0;a<n;a++){if(a===fa)continue;if(!dfs(a,new Uint8Array(n)))return false}return true;
+ }
+ function pairOf(i,type){const r=Math.floor(i/n),c=i%n,rg=regions[i];return type===0?[r,c]:type===1?[r,rg]:[c,rg]}
+ function matchingName(type,a,b){
+   if(type===0)return {a:`row ${a+1}`,b:`column ${b+1}`,pair:`row ${a+1} used column ${b+1}`,rest:'the remaining rows could not all take different columns'};
+   const colour=regionColourName(b);
+   if(type===1)return {a:`row ${a+1}`,b:`the ${colour} region`,pair:`row ${a+1} used the ${colour} region`,rest:'the remaining rows and colour regions could not be paired one-to-one'};
+   return {a:`column ${a+1}`,b:`the ${colour} region`,pair:`column ${a+1} used the ${colour} region`,rest:'the remaining columns and colour regions could not be paired one-to-one'};
+ }
+ function hallFailure(adj,forcedA=-1,forcedB=-1){
+   const left=[];for(let a=0;a<n;a++)if(a!==forcedA)left.push(a);
+   const lim=1<<left.length;
+   for(let mask=1;mask<lim;mask++){
+     const subset=[],rights=new Set();
+     for(let k=0;k<left.length;k++)if(mask&(1<<k)){
+       const a=left[k];subset.push(a);for(const b of adj[a])if(b!==forcedB)rights.add(b);
+     }
+     if(rights.size<subset.length)return {left:subset,rights:[...rights]};
+   }
+   return null;
+ }
+ function nums(a){return a.map(x=>x+1).join(', ')}
+ function hallText(type,h){
+   if(!h)return 'the remaining one-to-one assignments cannot all be satisfied';
+   const L=h.left.length,R=h.rights.length;
+   if(type===0)return `${L===1?'Row':'Rows'} ${nums(h.left)} ${L===1?'is':'are'} limited to ${R===1?'column':'columns'} ${nums(h.rights)}. ${L} ${L===1?'row needs':'rows need'} ${L} different ${L===1?'column':'columns'}, but only ${R} ${R===1?'is':'are'} available`;
+   const colours=colourNames(h.rights);
+   if(type===1)return `${L===1?'Row':'Rows'} ${nums(h.left)} can only use ${colours}. ${L} ${L===1?'row needs':'rows need'} ${L} different colour regions, but only ${R} ${R===1?'is':'are'} available`;
+   return `${L===1?'Column':'Columns'} ${nums(h.left)} can only use ${colours}. ${L} ${L===1?'column needs':'columns need'} ${L} different colour regions, but only ${R} ${R===1?'is':'are'} available`;
+ }
+ function hallScope(type,h){
+   if(!h)return [];
+   let scope=[];
+   if(type===0){for(const r of h.left)scope.push(...cellsInRow(r,n));for(const c of h.rights)scope.push(...cellsInCol(c,n))}
+   else if(type===1){for(const r of h.left)scope.push(...cellsInRow(r,n));for(const rg of h.rights)scope.push(...cellsInRegion(rg,n))}
+   else {for(const c of h.left)scope.push(...cellsInCol(c,n));for(const rg of h.rights)scope.push(...cellsInRegion(rg,n))}
+   return uniqueCells(scope);
+ }
+ function hallCandidateScope(type,h,s){
+   if(!h)return [];
+   const left=new Set(h.left),rights=new Set(h.rights),scope=[];
+   for(let i=0;i<total;i++)if(s.cand[i]){
+     const [a,b]=pairOf(i,type);
+     if(left.has(a)&&rights.has(b))scope.push(i);
+   }
+   return uniqueCells(scope);
+ }
+ function matchingClue(s){
+   const options=[];
+
+   function reservedText(type,left,rights){
+     const L=left.length,R=rights.length;
+     if(type===0){
+       return {
+         intro:`Rows ${nums(left)} can only use columns ${nums(rights)}.`,
+         detail:`Those ${L} rows need ${L} different columns, and they have exactly ${R}. So columns ${nums(rights)} are reserved for those rows.`
+       };
+     }
+     const colours=colourNames(rights);
+     if(type===1){
+       return {
+         intro:`Rows ${nums(left)} can only use the ${colours} colour regions.`,
+         detail:`Those ${L} rows need ${L} different colours, and they have exactly ${R}: ${colours}. So those colours are reserved for those rows.`
+       };
+     }
+     return {
+       intro:`Columns ${nums(left)} can only use the ${colours} colour regions.`,
+       detail:`Those ${L} columns need ${L} different colours, and they have exactly ${R}: ${colours}. So those colours are reserved for those columns.`
+     };
+   }
+
+   function groupCells(type,left,rights){
+     const L=new Set(left),R=new Set(rights),out=[];
+     for(let i=0;i<total;i++)if(s.cand[i]){
+       const [a,b]=pairOf(i,type);
+       if(L.has(a)&&R.has(b))out.push(i);
+     }
+     return uniqueCells(out);
+   }
+
+   for(let type=0;type<3;type++){
+     const adj=Array.from({length:n},()=>[]),edgeCells=Array.from({length:n},()=>Array.from({length:n},()=>[]));
+     for(let i=0;i<total;i++)if(s.cand[i]){
+       const [a,b]=pairOf(i,type);
+       edgeCells[a][b].push(i);
+     }
+     for(let a=0;a<n;a++)for(let b=0;b<n;b++)if(edgeCells[a][b].length)adj[a].push(b);
+
+     // If the player's current marks have already made a one-to-one assignment
+     // impossible, report that before offering a new move.
+     if(!hasPM(adj)){
+       const h=hallFailure(adj);
+       return {contradiction:true,reason:hallText(type,h),scopeCells:hallCandidateScope(type,h,s)};
+     }
+
+     for(let a=0;a<n;a++)for(const b of adj[a]){
+       if(hasPM(adj,a,b))continue;
+
+       const targets=edgeCells[a][b].filter(i=>!s.fixed[i]);
+       if(!targets.length)continue;
+
+       // Forcing a->b exposes a deficient set among the *other* units. In the
+       // original puzzle that set has exactly one extra option: b. Therefore
+       // that set + b is a directly visible reserved group; no trial language
+       // is required in the hint.
+       const h=hallFailure(adj,a,b);
+       if(!h||!h.left.length)continue;
+       const rights=[...new Set([...h.rights,b])].sort((x,y)=>x-y);
+       if(rights.length!==h.left.length)continue;
+
+       // Size-one reservations are simpler region/line or singleton deductions
+       // and are handled by earlier tiers.
+       if(h.left.length<2)continue;
+
+       const copy=reservedText(type,h.left,rights);
+       const reserved=groupCells(type,h.left,rights);
+       const stage2=uniqueCells([...reserved,...targets]);
+
+       let consequence;
+       if(type===0)consequence=`Row ${a+1} is outside that group, so it cannot use column ${b+1}.`;
+       else if(type===1)consequence=`Row ${a+1} is outside that group, so it cannot use the ${regionColourName(b)} region.`;
+       else consequence=`Column ${a+1} is outside that group, so it cannot use the ${regionColourName(b)} region.`;
+
+       options.push({
+         complexity:h.left.length,
+         typeRank:type,
+         key:`match-${type}-${a}-${b}`,
+         type:'matching',
+         targetCells:targets,
+         intro:copy.intro,
+         detail:`${copy.detail} ${consequence}`,
+         reveal:`Cross ${cellRefs(targets)}.`
+       });
+     }
+   }
+
+   if(!options.length)return null;
+   options.sort((x,y)=>x.complexity-y.complexity||x.typeRank-y.typeRank||x.targetCells.length-y.targetCells.length);
+   return options[0];
+ }
+ function deterministicPropagate(s,trace=[]){
+   const add=(text,cells=[])=>{if(trace.length<6)trace.push({text,cells:uniqueCells(cells)})};
+   let guard=0;
+   while(!s.bad&&guard++<500){
+     if(!checkUnits(s))break;
+     let single=null;
+     for(let kind=0;kind<3&&!single;kind++)for(let u=0;u<n&&!single;u++){
+       let cnt=0,last=-1;for(const i of unitCells(kind,u))if(s.cand[i]){cnt++;last=i}
+       if(cnt===0){setBad(s,`${kind===0?'row':kind===1?'column':'a colour region'} ${kind<2?u+1:''}`.trim()+` would have no legal square`);break}
+       if(cnt===1&&!s.fixed[last])single={i:last,kind,u};
+     }
+     if(s.bad)break;
+     if(single){
+       const r=Math.floor(single.i/n),c=single.i%n,label=unitName(single.kind,single.u);
+       add(`${label[0].toUpperCase()+label.slice(1)} has only one candidate, forcing row ${r+1}, column ${c+1} to contain 😎.`,[single.i,...unitCells(single.kind,single.u)]);
+       place(s,single.i);continue;
+     }
+     let changed=false;
+     for(let i=0;i<total&&!s.bad;i++)if(s.cand[i]){
+       const r=Math.floor(i/n),c=i%n;
+       for(const rr of [r-1,r+1])if(rr>=0&&rr<n){
+         let ok=false;for(let cc=0;cc<n;cc++){const j=rr*n+cc;if(s.cand[j]&&Math.abs(cc-c)>1){ok=true;break}}
+         if(!ok&&remove(s,i)){
+           changed=true;add(`Row ${r+1}, column ${c+1} cannot contain 😎 because every remaining option in adjacent row ${rr+1} would touch it diagonally.`,[i,...cellsInRow(rr,n)]);break;
+         }
+       }
+     }
+     if(s.bad)break;if(changed)continue;
+     for(let type=0;type<3&&!s.bad;type++){
+       const adj=Array.from({length:n},()=>[]),edgeCells=Array.from({length:n},()=>Array.from({length:n},()=>[]));
+       for(let i=0;i<total;i++)if(s.cand[i]){const [a,b]=pairOf(i,type);edgeCells[a][b].push(i)}
+       for(let a=0;a<n;a++)for(let b=0;b<n;b++)if(edgeCells[a][b].length)adj[a].push(b);
+       if(!hasPM(adj)){
+         const h=hallFailure(adj);setBad(s,hallText(type,h));add(`This is impossible because ${hallText(type,h)}.`,hallScope(type,h));break;
+       }
+       for(let a=0;a<n&&!s.bad;a++)for(const b of adj[a])if(!hasPM(adj,a,b)){
+         const h=hallFailure(adj,a,b),names=matchingName(type,a,b),cells=[];
+         for(const i of edgeCells[a][b])if(remove(s,i)){changed=true;cells.push(i)}
+         if(cells.length)add(`${names.a[0].toUpperCase()+names.a.slice(1)} cannot use ${names.b}: if it did, ${hallText(type,h)}.`,[...cells,...hallScope(type,h)]);
+       }
+     }
+     if(!changed)break;
+   }
+   checkUnits(s);return s;
+ }
+ function candidateOrder(s){
+   const scores=[];for(let i=0;i<total;i++)if(s.cand[i]&&!s.fixed[i]){const r=Math.floor(i/n),c=i%n,rg=regions[i];let rc=0,cc=0,gc=0;for(let x=0;x<n;x++){rc+=s.cand[r*n+x];cc+=s.cand[x*n+c]}for(let j=0;j<total;j++)if(regions[j]===rg)gc+=s.cand[j];scores.push([Math.min(rc,cc,gc),rc+cc+gc,i])}scores.sort((a,b)=>a[0]-b[0]||a[1]-b[1]);return scores.map(x=>x[2]);
+ }
+
+
+ const s=makeState();
+ // Apply the player's explicit X marks first, then their placed markers.
+ for(let i=0;i<total;i++)if(state.marks[i]===1)s.cand[i]=0;
+ for(let i=0;i<total;i++)if(state.marks[i]===2)place(s,i);
+ if(!checkUnits(s)||s.bad){return {key:'current-contradiction',type:'contradiction',targetCells:[],scopeCells:[],intro:'Your current marks have made the puzzle impossible.',detail:`As marked, ${s.reason || 'at least one row, column or colour has no legal completion'}.`,reveal:'Undo or reconsider one of your X marks.'}}
+
+ let conflict=currentAdjacentRowConflict(s);
+ if(conflict)return conflict;
+
+ // Same ordering as the difficulty engine's deterministic propagation.
+ // Strict human-complexity order. A later tier is never considered while
+ // any move from an earlier tier exists.
+ let clue=findSingletonClue(s);if(clue)return clue;
+ clue=regionLineClue(s);if(clue)return clue;
+ clue=blockingClue(s);if(clue)return clue;
+ clue=arcClue(s);if(clue)return clue;
+ clue=matchingClue(s);if(clue){if(clue.contradiction)return {key:'matching-contradiction',type:'contradiction',targetCells:[],intro:'Your current X marks have made the remaining choices impossible.',detail:`Specifically, ${clue.reason}.`,reveal:'At least one of your existing X marks must be wrong. Undo or reconsider a recent mark.'};return clue}
+ // No non-trial deduction remains. Do not pick or demonstrate a branch.
+ return {
+   key:'trial-required',
+   type:'trial',
+   targetCells:[],
+   scopeCells:[],
+   intro:'No simpler deduction is available — you’re going to have to move forward with trial and error.',
+   detail:'No simpler deduction is available — you’re going to have to move forward with trial and error.',
+   reveal:'No simpler deduction is available — you’re going to have to move forward with trial and error.'
+ };
+}
+function hint(){
+ if(!state||state.complete)return;
+ state.hintUsed=true;state.hintCount=(state.hintCount||0)+1;updatePuzzleMeta();scheduleSave();clearHint();
+ const clue=logicHintClue();
+ if(!clue){setMessage('No further deduction was found from the current marks.');state.activeHint=null;return}
+ if(clue.type==='trial'){
+   state.activeHint=null;
+   setMessage('No simpler deduction is available — you’re going to have to move forward with trial and error.');
+   return;
+ }
+ let stage=1;
+ if(state.activeHint&&state.activeHint.key===clue.key)stage=Math.min((state.activeHint.stage||1)+1,3);
+ state.activeHint={key:clue.key,stage};
+ if(stage===1){
+   setMessage(clue.intro);
+ }else if(stage===2){
+   setMessage(clue.detail);
+ }else{
+   setMessage(clue.reveal);
+ }
+}
+undoBtn.addEventListener('click',undo);
+hintBtn.addEventListener('click',hint);
+newGameBtn.addEventListener('click',()=>{winModal.classList.remove('show');makeNew()});
+nextBtn.addEventListener('click',()=>{winModal.classList.remove('show');makeNew()});
+recordsBtn.addEventListener('click',openRecords);
+closeRecordsBtn.addEventListener('click',()=>hideModal(recordsModal));
+doneRecordsBtn.addEventListener('click',()=>hideModal(recordsModal));
+clearRecordsBtn.addEventListener('click',()=>showModal(clearConfirmModal));
+cancelClearBtn.addEventListener('click',()=>hideModal(clearConfirmModal));
+confirmClearBtn.addEventListener('click',clearAllRecords);
+recordsModal.addEventListener('click',e=>{if(e.target===recordsModal)hideModal(recordsModal)});
+clearConfirmModal.addEventListener('click',e=>{if(e.target===clearConfirmModal)hideModal(clearConfirmModal)});
+window.addEventListener('resize',()=>{if(state){const s=fitCells(state.n);boardArt.style.width=`${state.n*s}px`;boardArt.style.height=`${state.n*s}px`;boardArt.setAttribute('width',state.n*s);boardArt.setAttribute('height',state.n*s)}});
+
+loadGeneratedPool();
+if(!loadProgress())makeNew();
+})();
+</script>
+</body>
+</html>
