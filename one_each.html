@@ -91,7 +91,6 @@ select{border:1px solid var(--soft);background:#fff;border-radius:12px;padding:1
 .puzzleMeta{width:100%;display:flex;align-items:center;justify-content:center;gap:7px;margin:0;font-size:13px;color:var(--muted);flex:0 0 auto}
 .puzzleMeta .difficultyNow{font-size:16px;font-weight:850;color:#59627a;background:linear-gradient(180deg,#f3f2f7,#ebe7ef);border:1px solid #ddd8e4;border-radius:999px;padding:6px 12px;box-shadow:0 4px 10px rgba(101,96,117,.08)}
 .puzzleMeta .sizeNow{font-weight:750}
-.recordState{font-size:10px;color:var(--muted);text-align:center;margin-top:-2px;line-height:1.1;flex:0 0 auto}
 .actions{width:100%;display:grid;gap:8px;flex:0 0 auto}.actionsTwo{grid-template-columns:repeat(2,1fr)}
 button{border:0;border-radius:14px;padding:12px 10px;background:#6c6878;color:white;font-weight:750;min-height:50px}
 button.secondary{background:#eceaf0;color:#4a5362}
@@ -99,7 +98,6 @@ button.ghost{background:#fff;color:#4d5667;border:1px solid var(--soft)}
 button:disabled{opacity:.45}
 .message{min-height:18px;max-height:44px;overflow:hidden;text-align:center;color:#6f7988;font-size:13px;line-height:1.25;padding:0 6px;flex:0 0 auto}
 .message.error{color:var(--danger)} .message.good{color:var(--ok)}
-.best{font-size:11px;color:var(--muted);text-align:center;line-height:1.1;flex:0 0 auto}
 .legend{display:flex;justify-content:center;gap:10px;font-size:10px;color:var(--muted);padding:0;line-height:1.1;flex:0 0 auto}
 .modal{position:fixed;inset:0;background:rgba(20,18,15,.42);display:none;align-items:flex-end;justify-content:center;padding:14px;z-index:20}
 .modal.show{display:flex}.sheet{width:min(100%,560px);background:var(--panel);border-radius:22px;padding:18px;border:1px solid var(--soft);box-shadow:0 10px 28px rgba(70,70,84,.18)}
@@ -128,7 +126,7 @@ button:disabled{opacity:.45}
  .difficultyScale{height:24px}
  .difficultyScale input[type=range]{height:24px}
  .scaleLabels button{min-height:20px}
- .legend,.best,.recordState{font-size:9px}
+ .legend{font-size:9px}
 }
 </style>
 </head>
@@ -147,8 +145,6 @@ button:disabled{opacity:.45}
       <div class="puzzleMeta"><span id="difficultyNow" class="difficultyNow" title="Difficulty is rated by the deduction system.">—</span></div>
       <div class="legend">One 😎 per row · column · colour · 😎 may not touch diagonally</div>
       <div id="message" class="message"></div>
-      <div id="recordState" class="recordState">Record eligible</div>
-      <div id="best" class="best"></div>
     </div>
 
     <div id="boardStage" class="boardStage">
@@ -158,7 +154,7 @@ button:disabled{opacity:.45}
     <div class="bottomControls">
       <div class="actions actionsTwo">
         <button id="undoBtn" class="ghost" disabled>Undo</button>
-        <button id="hintBtn" class="secondary">Hint</button>
+        <button id="hintBtn" class="ghost">Hint</button>
       </div>
 
       <section class="controls">
@@ -226,9 +222,9 @@ button:disabled{opacity:.45}
 (() => {
 'use strict';
 const boardEl=document.getElementById('board'), boardArt=document.getElementById('boardArt'), boardWrap=document.querySelector('.boardWrap'), boardStage=document.getElementById('boardStage'), diffEl=document.getElementById('difficulty'), difficultyScale=document.getElementById('difficultyScale'), scaleLabels=document.getElementById('scaleLabels');
-const timerEl=document.getElementById('timer'), bestTop=document.getElementById('bestTop'), bestEl=document.getElementById('best'), msg=document.getElementById('message');
+const timerEl=document.getElementById('timer'), bestTop=document.getElementById('bestTop'), msg=document.getElementById('message');
 const undoBtn=document.getElementById('undoBtn'), hintBtn=document.getElementById('hintBtn'), restartBtn=document.getElementById('restartBtn'), newGameBtn=document.getElementById('newGameBtn');
-const difficultyNow=document.getElementById('difficultyNow'), recordState=document.getElementById('recordState');
+const difficultyNow=document.getElementById('difficultyNow');
 const winModal=document.getElementById('winModal'), winText=document.getElementById('winText'), nextBtn=document.getElementById('nextBtn');
 const recordsBtn=document.getElementById('recordsBtn'), recordsModal=document.getElementById('recordsModal'), recordsTable=document.getElementById('recordsTable'), closeRecordsBtn=document.getElementById('closeRecordsBtn'), doneRecordsBtn=document.getElementById('doneRecordsBtn'), clearRecordsBtn=document.getElementById('clearRecordsBtn');
 const clearConfirmModal=document.getElementById('clearConfirmModal'), cancelClearBtn=document.getElementById('cancelClearBtn'), confirmClearBtn=document.getElementById('confirmClearBtn');
@@ -897,7 +893,6 @@ function paintCell(i){
 }
 function updatePuzzleMeta(){
  difficultyNow.textContent=`${state.band} · ${state.n}×${state.n}`;
- recordState.textContent=state.hintUsed?'Hints used · time not eligible for a record':'Record eligible';
 }
 function render(){
  const cellPx=fitCells(state.n);boardEl.innerHTML='';boardEl.style.gridTemplateColumns=`repeat(${state.n}, var(--cell))`;boardEl.style.gridTemplateRows=`repeat(${state.n}, var(--cell))`;
@@ -926,7 +921,7 @@ function checkComplete(){
  winModal.classList.add('show');
  setMessage(isBest?'Brilliant — new best time! 🏆':'Nice work — puzzle solved! 🎉','good')
 }
-function updateBest(){const store=loadStore(),v=store[keyBest(state.n,state.band)];bestTop.textContent=v?fmt(v):'—';bestEl.textContent=`${state.n}×${state.n} · ${state.band}${v?` · best ${fmt(v)}`:''}`}
+function updateBest(){const store=loadStore(),v=store[keyBest(state.n,state.band)];bestTop.textContent=v?fmt(v):'—'}
 
 function renderRecords(){
  const store=loadStore();
