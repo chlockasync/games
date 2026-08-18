@@ -144,6 +144,7 @@ button:disabled{opacity:.45}
 
   <section class="gameShell">
     <div class="puzzleMeta"><span id="difficultyNow" class="difficultyNow" title="Difficulty is rated by a logic-only solver; puzzles that require guessing are rejected.">—</span><span id="sizeNow" class="sizeNow"></span></div>
+    <div class="legend">One 😎 per row · column · colour · 😎 may not touch diagonally</div>
     <div class="boardWrap"><svg id="boardArt" class="boardArt" aria-hidden="true"></svg><div id="board" class="board" aria-label="One Each puzzle board"></div></div>
     <div id="message" class="message"></div>
     <div id="recordState" class="recordState">Record eligible</div>
@@ -174,7 +175,7 @@ button:disabled{opacity:.45}
       <button id="restartBtn" class="ghost">Restart</button>
       <button id="newGameBtn" class="ghost">New game</button>
     </div>
-    <div class="legend">One 😎 per row · column · colour · 😎 may not touch diagonally</div>
+    
     <div id="best" class="best"></div>
   </section>
 </div>
@@ -217,7 +218,7 @@ button:disabled{opacity:.45}
 <script>
 (() => {
 'use strict';
-const boardEl=document.getElementById('board'), boardArt=document.getElementById('boardArt'), diffEl=document.getElementById('difficulty'), difficultyScale=document.getElementById('difficultyScale'), scaleLabels=document.getElementById('scaleLabels');
+const boardEl=document.getElementById('board'), boardArt=document.getElementById('boardArt'), boardWrap=document.querySelector('.boardWrap'), diffEl=document.getElementById('difficulty'), difficultyScale=document.getElementById('difficultyScale'), scaleLabels=document.getElementById('scaleLabels');
 const timerEl=document.getElementById('timer'), bestTop=document.getElementById('bestTop'), bestEl=document.getElementById('best'), msg=document.getElementById('message');
 const undoBtn=document.getElementById('undoBtn'), hintBtn=document.getElementById('hintBtn'), restartBtn=document.getElementById('restartBtn'), newGameBtn=document.getElementById('newGameBtn');
 const difficultyNow=document.getElementById('difficultyNow'), sizeNow=document.getElementById('sizeNow'), recordState=document.getElementById('recordState');
@@ -497,15 +498,15 @@ const EASY_FALLBACKS=[
 ];
 function bankCandidates(){
  const out=[];
+ const easyRatings=[["Medium", 23], ["Easy", 21], ["Easy", 21], ["Easy", 21], ["Easy", 24], ["Easy", 18], ["Easy", 24], ["Easy", 18], ["Easy", 18], ["Easy", 21]];
  for(let index=0;index<EASY_FALLBACKS.length;index++){
-   const p=EASY_FALLBACKS[index],a=logicAnalyse(p.n,p.regions,1);
-   if(!a.solved)continue;
-   out.push({n:p.n,regions:p.regions.slice(),solution:p.solution.slice(),score:a.score,band:a.band,force:a.force,maxForce:a.maxForce,regionLine:a.regionLine,block:a.block,match:a.match,arc:a.arc,logicVersion:5,source:'starter',baseId:`easy:${index}`});
+   const p=EASY_FALLBACKS[index],r=easyRatings[index]||['Easy',20];
+   out.push({n:p.n,regions:p.regions.slice(),solution:p.solution.slice(),score:r[1],band:r[0],force:0,maxForce:0,regionLine:0,block:0,match:0,arc:0,logicVersion:5,source:'starter',baseId:`easy:${index}`});
  }
+ const ratings={"6": [["Medium", 32, 0], ["Hard", 53, 0], ["Medium", 32, 0], ["Brutal", 134, 1], ["Medium", 24, 0]], "7": [["Medium", 28, 0], ["Medium", 50, 0], ["Brutal", 174, 1], ["Medium", 33, 0], ["Hard", 68, 0]], "8": [["Medium", 41, 0], ["Medium", 45, 0], ["Medium", 38, 0], ["Hard", 64, 0], ["Brutal", 181, 1]], "9": [["Medium", 60, 0], ["Expert", 92, 0], ["Hard", 88, 0], ["Hard", 82, 0], ["Brutal", 141, 1]], "10": [["Medium", 34, 0], ["Expert", 150, 0], ["Expert", 97, 0], ["Brutal", 144, 1], ["Medium", 44, 0]], "11": [["Expert", 113, 0], ["Expert", 145, 0], ["Expert", 116, 0]], "12": [["Expert", 225, 0], ["Expert", 202, 0]]};
  for(let n=6;n<=12;n++)for(let index=0;index<(PUZZLE_BANK[n]||[]).length;index++){
-   const p=PUZZLE_BANK[n][index],a=logicAnalyse(n,p.regions,1);
-   if(!a.solved)continue;
-   out.push({n,regions:p.regions.slice(),solution:p.solution.slice(),score:a.score,band:a.band,force:a.force,maxForce:a.maxForce,regionLine:a.regionLine,block:a.block,match:a.match,arc:a.arc,logicVersion:5,source:'starter',baseId:`bank:${n}:${index}`});
+   const p=PUZZLE_BANK[n][index],r=(ratings[n]||[])[index]||['Hard',70,0];
+   out.push({n,regions:p.regions.slice(),solution:p.solution.slice(),score:r[1],band:r[0],force:r[2]||0,maxForce:r[2]||0,regionLine:0,block:0,match:0,arc:0,logicVersion:5,source:'starter',baseId:`bank:${n}:${index}`});
  }
  return out;
 }
@@ -1077,7 +1078,15 @@ function makeNew(){
    render();startTimer();setMessage('');
  }catch(e){
    console.error(e);
-   setMessage('Could not start a puzzle. Try New game.','error');
+   try{
+     const sizes=Object.keys(PUZZLE_BANK),n=+sizes[rngInt(sizes.length)],raw=PUZZLE_BANK[n][rngInt(PUZZLE_BANK[n].length)];
+     const p=transformed({n,regions:raw.regions.slice(),solution:raw.solution.slice(),score:70,band:'Hard',force:0,maxForce:0,logicVersion:5,source:'starter'},rngInt(8));
+     state={...p,colors:paletteFor(p.n,p.regions),marks:Array(p.n*p.n).fill(0),elapsed:0,startedAt:Date.now(),complete:false,failed:false,transform:0,history:[],hintUsed:false,hintCount:0,activeHint:null};
+     render();startTimer();setMessage('');
+   }catch(fallbackError){
+     console.error(fallbackError);
+     setMessage('Could not start a puzzle.','error');
+   }
  }finally{
    hintBtn.disabled=false;
  }
@@ -1583,21 +1592,6 @@ window.visualViewport?.addEventListener('resize',refitBoard);
 loadGeneratedPool();
 if(!loadProgress())makeNew();
 
-if('serviceWorker' in navigator){
- window.addEventListener('load',async()=>{
-   try{
-     const reg=await navigator.serviceWorker.register('./service-worker.js',{updateViaCache:'none'});
-     reg.update().catch(()=>{});
-     document.addEventListener('visibilitychange',()=>{if(!document.hidden)reg.update().catch(()=>{})});
-     let refreshing=false;
-     navigator.serviceWorker.addEventListener('controllerchange',()=>{
-       if(refreshing)return;
-       refreshing=true;
-       location.reload();
-     });
-   }catch(e){console.warn('Service worker registration failed',e)}
- });
-}
 
 })();
 </script>
