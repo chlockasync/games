@@ -59,9 +59,9 @@ select{border:1px solid var(--soft);background:#fff;border-radius:12px;padding:1
 .iconBtn{width:38px;min-height:38px;padding:0;border-radius:50%;background:#efedf2;color:#5a5968;box-shadow:none;font-size:22px;line-height:1}
 .dangerBtn{background:#b9656c;color:#fff}
 .confirmText{color:#5c5963;line-height:1.45;margin-top:10px}
-.gameShell{padding:0;display:flex;flex:1 1 auto;min-height:0;flex-direction:column;gap:6px;align-items:center;touch-action:none;user-select:none;-webkit-user-select:none;overflow:hidden}
-.boardWrap{width:100%;display:flex;justify-content:center;position:relative;overflow:visible;padding:1px 0;flex:0 0 auto}
-.boardArt{position:absolute;top:2px;left:50%;transform:translateX(-50%);display:block;pointer-events:none;overflow:visible;transition:filter .15s ease,opacity .15s ease}
+.gameShell{padding:0;display:flex;flex:1 1 auto;min-height:0;flex-direction:column;gap:0;align-items:stretch;touch-action:none;user-select:none;-webkit-user-select:none;overflow:hidden}
+.gameTop{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:1px}.boardStage{flex:1 1 auto;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:4px 0}.boardWrap{width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;overflow:visible;padding:0;flex:1 1 auto}.bottomControls{flex:0 0 auto;width:100%;display:flex;flex-direction:column;gap:8px;padding-top:4px}
+.boardArt{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:block;pointer-events:none;overflow:visible;transition:filter .15s ease,opacity .15s ease}
 .board{position:relative;z-index:2;display:grid;border:0;border-radius:0;background:transparent;gap:0;touch-action:none;user-select:none;-webkit-user-select:none;max-width:100%;overflow:visible;box-shadow:none}
 .cell{position:relative;width:var(--cell);height:var(--cell);display:grid;place-items:center;background:transparent;font-size:calc(var(--cell)*.52);font-weight:700;line-height:1;touch-action:none;overflow:visible;border:0;border-radius:0;box-shadow:none}
 .cell::before{content:"";position:absolute;inset:4px;border-radius:7px;background:transparent;pointer-events:none}
@@ -93,7 +93,7 @@ select{border:1px solid var(--soft);background:#fff;border-radius:12px;padding:1
 .puzzleMeta .sizeNow{font-weight:750}
 .recordState{font-size:10px;color:var(--muted);text-align:center;margin-top:-2px;line-height:1.1;flex:0 0 auto}
 .actions{width:100%;display:grid;gap:8px;flex:0 0 auto}.actionsTwo{grid-template-columns:repeat(2,1fr)}
-button{border:0;border-radius:13px;padding:8px 10px;background:#6c6878;color:white;font-weight:750;min-height:40px}
+button{border:0;border-radius:14px;padding:12px 10px;background:#6c6878;color:white;font-weight:750;min-height:50px}
 button.secondary{background:#eceaf0;color:#4a5362}
 button.ghost{background:#fff;color:#4d5667;border:1px solid var(--soft)}
 button:disabled{opacity:.45}
@@ -104,16 +104,16 @@ button:disabled{opacity:.45}
 .modal{position:fixed;inset:0;background:rgba(20,18,15,.42);display:none;align-items:flex-end;justify-content:center;padding:14px;z-index:20}
 .modal.show{display:flex}.sheet{width:min(100%,560px);background:var(--panel);border-radius:22px;padding:18px;border:1px solid var(--soft);box-shadow:0 10px 28px rgba(70,70,84,.18)}
 .sheet h2{margin:0 0 10px;font-size:22px}.sheet p{margin:7px 0;color:#514d46;line-height:1.45}.sheet .row{display:flex;gap:8px;margin-top:14px}.sheet .row button{flex:1}
-@media (max-width:420px){.app{padding-left:8px;padding-right:8px}.controls{grid-template-columns:1fr}.gameShell{padding:2px 0 0}.stats{gap:8px}.stat strong{font-size:16px}.puzzleMeta .difficultyNow{font-size:16px}.actions button{font-size:13px;padding-left:5px;padding-right:5px}.sheet{padding:16px}.recordsTable{font-size:11px}}
+@media (max-width:420px){.app{padding-left:8px;padding-right:8px}.controls{grid-template-columns:1fr}.gameShell{padding:2px 0 0}.stats{gap:8px}.stat strong{font-size:16px}.puzzleMeta .difficultyNow{font-size:16px}.actions button{font-size:14px;padding-left:6px;padding-right:6px;min-height:50px}.sheet{padding:16px}.recordsTable{font-size:11px}}
 @media (max-width:420px){
  .app{padding-left:6px;padding-right:6px;gap:5px}
  header{padding-top:3px}
  .title{font-size:25px}
  .stats{gap:7px;padding:6px 9px;font-size:11px;border-radius:14px}
  .stat strong{font-size:14px}
- .gameShell{gap:5px}
+ .gameShell{gap:0}.gameTop{gap:3px}.bottomControls{gap:6px}
  .puzzleMeta .difficultyNow{font-size:14px;padding:4px 9px}
- .actions button{font-size:13px;padding:6px 5px;min-height:37px}
+ .actions button{font-size:14px;padding:11px 6px;min-height:50px}
  .controls{padding:5px 9px 4px;border-radius:14px}
  .control label{font-size:9px}
  .scaleLabels,.scaleLabels button{font-size:9px}
@@ -122,8 +122,8 @@ button:disabled{opacity:.45}
 }
 @media (max-height:700px){
  .title{font-size:23px}.stats{padding:5px 8px}
- .gameShell{gap:4px}
- .actions button{min-height:34px;padding:5px 6px}
+ .gameShell{gap:0}.gameTop{gap:2px}.bottomControls{gap:5px}
+ .actions button{min-height:44px;padding:8px 6px}
  .controls{padding-top:4px;padding-bottom:3px}
  .difficultyScale{height:24px}
  .difficultyScale input[type=range]{height:24px}
@@ -143,40 +143,47 @@ button:disabled{opacity:.45}
   </header>
 
   <section class="gameShell">
-    <div class="puzzleMeta"><span id="difficultyNow" class="difficultyNow" title="Difficulty is rated by a logic-only solver; puzzles that require guessing are rejected.">—</span><span id="sizeNow" class="sizeNow"></span></div>
-    <div class="legend">One 😎 per row · column · colour · 😎 may not touch diagonally</div>
-    <div class="boardWrap"><svg id="boardArt" class="boardArt" aria-hidden="true"></svg><div id="board" class="board" aria-label="One Each puzzle board"></div></div>
-    <div id="message" class="message"></div>
-    <div id="recordState" class="recordState">Record eligible</div>
-    <div class="actions actionsTwo">
-      <button id="undoBtn" class="ghost" disabled>Undo</button>
-      <button id="hintBtn" class="secondary">Hint</button>
+    <div class="gameTop">
+      <div class="puzzleMeta"><span id="difficultyNow" class="difficultyNow" title="Difficulty is rated by the deduction system.">—</span></div>
+      <div class="legend">One 😎 per row · column · colour · 😎 may not touch diagonally</div>
+      <div id="message" class="message"></div>
+      <div id="recordState" class="recordState">Record eligible</div>
+      <div id="best" class="best"></div>
     </div>
 
-    <section class="controls">
-      <div class="control">
-        <label>Difficulty mix</label>
-        <div id="difficultyScale" class="difficultyScale">
-          <div class="difficultyRail" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-          <div class="difficultyStops" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
-          <input id="difficulty" type="range" min="0" max="100" step="25" value="75" aria-label="Difficulty mix" />
-        </div>
-        <div id="scaleLabels" class="scaleLabels">
-          <button type="button" data-bias="0">Easy</button>
-          <button type="button" data-bias="25">Medium</button>
-          <button type="button" data-bias="50">Hard</button>
-          <button type="button" data-bias="75">Expert</button>
-          <button type="button" data-bias="100">Brutal</button>
-        </div>
+    <div id="boardStage" class="boardStage">
+      <div class="boardWrap"><svg id="boardArt" class="boardArt" aria-hidden="true"></svg><div id="board" class="board" aria-label="One Each puzzle board"></div></div>
+    </div>
+
+    <div class="bottomControls">
+      <div class="actions actionsTwo">
+        <button id="undoBtn" class="ghost" disabled>Undo</button>
+        <button id="hintBtn" class="secondary">Hint</button>
       </div>
-    </section>
 
-    <div class="actions actionsTwo">
-      <button id="restartBtn" class="ghost">Restart</button>
-      <button id="newGameBtn" class="ghost">New game</button>
+      <section class="controls">
+        <div class="control">
+          <label>Difficulty mix</label>
+          <div id="difficultyScale" class="difficultyScale">
+            <div class="difficultyRail" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+            <div class="difficultyStops" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+            <input id="difficulty" type="range" min="0" max="100" step="25" value="75" aria-label="Difficulty mix" />
+          </div>
+          <div id="scaleLabels" class="scaleLabels">
+            <button type="button" data-bias="0">Easy</button>
+            <button type="button" data-bias="25">Medium</button>
+            <button type="button" data-bias="50">Hard</button>
+            <button type="button" data-bias="75">Expert</button>
+            <button type="button" data-bias="100">Brutal</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="actions actionsTwo">
+        <button id="restartBtn" class="ghost">Restart</button>
+        <button id="newGameBtn" class="ghost">New game</button>
+      </div>
     </div>
-    
-    <div id="best" class="best"></div>
   </section>
 </div>
 
@@ -218,10 +225,10 @@ button:disabled{opacity:.45}
 <script>
 (() => {
 'use strict';
-const boardEl=document.getElementById('board'), boardArt=document.getElementById('boardArt'), boardWrap=document.querySelector('.boardWrap'), diffEl=document.getElementById('difficulty'), difficultyScale=document.getElementById('difficultyScale'), scaleLabels=document.getElementById('scaleLabels');
+const boardEl=document.getElementById('board'), boardArt=document.getElementById('boardArt'), boardWrap=document.querySelector('.boardWrap'), boardStage=document.getElementById('boardStage'), diffEl=document.getElementById('difficulty'), difficultyScale=document.getElementById('difficultyScale'), scaleLabels=document.getElementById('scaleLabels');
 const timerEl=document.getElementById('timer'), bestTop=document.getElementById('bestTop'), bestEl=document.getElementById('best'), msg=document.getElementById('message');
 const undoBtn=document.getElementById('undoBtn'), hintBtn=document.getElementById('hintBtn'), restartBtn=document.getElementById('restartBtn'), newGameBtn=document.getElementById('newGameBtn');
-const difficultyNow=document.getElementById('difficultyNow'), sizeNow=document.getElementById('sizeNow'), recordState=document.getElementById('recordState');
+const difficultyNow=document.getElementById('difficultyNow'), recordState=document.getElementById('recordState');
 const winModal=document.getElementById('winModal'), winText=document.getElementById('winText'), nextBtn=document.getElementById('nextBtn');
 const recordsBtn=document.getElementById('recordsBtn'), recordsModal=document.getElementById('recordsModal'), recordsTable=document.getElementById('recordsTable'), closeRecordsBtn=document.getElementById('closeRecordsBtn'), doneRecordsBtn=document.getElementById('doneRecordsBtn'), clearRecordsBtn=document.getElementById('clearRecordsBtn');
 const clearConfirmModal=document.getElementById('clearConfirmModal'), cancelClearBtn=document.getElementById('cancelClearBtn'), confirmClearBtn=document.getElementById('confirmClearBtn');
@@ -784,14 +791,11 @@ function paletteFor(n,regions){
  return assigned;
 }
 function fitCells(n){
- const maxW=Math.min(window.innerWidth-12,680);
- const app=document.querySelector('.app');
- const currentBoard=Math.max(0,boardWrap?.offsetHeight||0);
- const contentHeight=Math.max(app?.scrollHeight||0,0);
- const nonBoard=Math.max(250,contentHeight-currentBoard);
- const viewport=window.visualViewport?.height||window.innerHeight;
- const availableH=Math.max(210,viewport-nonBoard-4);
- const s=Math.max(18,Math.min(56,Math.floor(Math.min(maxW/n,availableH/n))));
+ const stageW=Math.max(180,boardStage?.clientWidth||window.innerWidth-12);
+ const stageH=Math.max(180,boardStage?.clientHeight||window.innerHeight*.5);
+ const maxBoardW=Math.min(stageW-4,680);
+ const maxBoardH=Math.max(180,stageH-4);
+ const s=Math.max(18,Math.min(64,Math.floor(Math.min(maxBoardW/n,maxBoardH/n))));
  document.documentElement.style.setProperty('--cell',`${s}px`);
  return s;
 }
@@ -892,7 +896,7 @@ function paintCell(i){
  if(v===1){c.classList.add('x')}else if(v===2){c.classList.add('marker');m.innerHTML='<span class="coolMarker" aria-hidden="true">😎</span>'}
 }
 function updatePuzzleMeta(){
- difficultyNow.textContent=state.band;sizeNow.textContent=`${state.n}×${state.n}`;
+ difficultyNow.textContent=`${state.band} · ${state.n}×${state.n}`;
  recordState.textContent=state.hintUsed?'Hints used · time not eligible for a record':'Record eligible';
 }
 function render(){
@@ -902,7 +906,7 @@ function render(){
    const rg=state.regions[i],c=document.createElement('div');c.className='cell';c.dataset.i=i;c.style.setProperty('--region',state.colors[rg]);
    const m=document.createElement('span');m.className='mark';c.appendChild(m);boardEl.appendChild(c);paintCell(i)
  }
- updatePuzzleMeta();updateBest();updateUndo();scheduleSave();
+ updatePuzzleMeta();updateBest();updateUndo();scheduleSave();requestAnimationFrame(refitBoard);
 }
 function setMessage(t,cls=''){msg.textContent=t;msg.className='message'+(cls?' '+cls:'')}
 function elapsed(){return state.elapsed+Math.max(0,Math.floor((Date.now()-state.startedAt)/1000))}
