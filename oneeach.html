@@ -4,7 +4,12 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
 <meta name="theme-color" content="#f4f1ea" />
-<title>Queens — endless logic puzzles</title>
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="One Each" />
+<link rel="manifest" href="manifest.webmanifest" />
+<title>One Each — endless logic puzzles</title>
 <style>
 :root{
   --bg:#f3f2f4;--panel:#fbfbfb;--ink:#384253;--muted:#788190;--line:#7d8495;
@@ -12,34 +17,34 @@
   --cell:min(11vw,52px);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;min-height:100%;background:linear-gradient(135deg,#f3f0f2 0%,#f4f3f2 48%,#edf3f2 100%);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;overscroll-behavior:none}
-body{display:flex;justify-content:center}
+html,body{margin:0;width:100%;height:100%;min-height:100%;overflow:hidden;background:linear-gradient(135deg,#f3f0f2 0%,#f4f3f2 48%,#edf3f2 100%);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;overscroll-behavior:none}
+body{display:flex;justify-content:center;min-height:100vh;min-height:100svh;height:100vh;height:100dvh}
 button,select,input{font:inherit}
-.app{width:min(100%,720px);padding:env(safe-area-inset-top) 12px calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:14px}
-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 4px 2px}
+.app{width:min(100%,720px);height:100vh;height:100dvh;max-height:100vh;max-height:100dvh;overflow:hidden;padding:max(4px,env(safe-area-inset-top)) 10px max(6px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:7px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 3px 1px;flex:0 0 auto}
 .title{font-size:clamp(28px,7.5vw,42px);font-weight:800;letter-spacing:-.04em;line-height:1;color:#58627a}
 .stats{display:flex;gap:12px;align-items:center;color:var(--muted);font-size:14px;background:rgba(255,255,255,.82);border:1px solid #e4e2e7;padding:8px 12px;border-radius:18px;box-shadow:0 4px 12px rgba(96,102,126,.08)}
 .stat strong{display:block;color:var(--ink);font-size:18px;line-height:1.1;text-align:right}
-.controls{background:linear-gradient(180deg,#ffffff 0%,#fbfbfb 100%);border:1px solid var(--soft);border-radius:22px;padding:14px 16px 13px;display:grid;grid-template-columns:1fr;gap:8px;box-shadow:0 6px 18px rgba(96,102,126,.08)}
-.control{display:flex;flex-direction:column;gap:4px}
-.control label{font-size:12px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:800;padding-left:2px}
+.controls{width:100%;background:linear-gradient(180deg,#ffffff 0%,#fbfbfb 100%);border:1px solid var(--soft);border-radius:16px;padding:6px 12px 5px;display:grid;grid-template-columns:1fr;gap:3px;box-shadow:0 4px 12px rgba(96,102,126,.07);flex:0 0 auto}
+.control{display:flex;flex-direction:column;gap:1px}
+.control label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:800;padding-left:2px;line-height:1}
 select,input[type=range]{width:100%}
 select{border:1px solid var(--soft);background:#fff;border-radius:12px;padding:10px 12px;color:var(--ink)}
-.difficultyScale{position:relative;height:36px;margin:1px 2px 0}
-.difficultyRail{position:absolute;left:12px;right:12px;top:13px;height:10px;border-radius:999px;overflow:hidden;display:grid;grid-template-columns:repeat(4,1fr);gap:2px;background:#e5e2e8;box-shadow:inset 0 0 0 1px rgba(82,80,96,.10)}
+.difficultyScale{position:relative;height:28px;margin:0 2px}
+.difficultyRail{position:absolute;left:12px;right:12px;top:10px;height:8px;border-radius:999px;overflow:hidden;display:grid;grid-template-columns:repeat(4,1fr);gap:2px;background:#e5e2e8;box-shadow:inset 0 0 0 1px rgba(82,80,96,.10)}
 .difficultyRail span:nth-child(1){background:#b9d9c4}
 .difficultyRail span:nth-child(2){background:#d5d2b2}
 .difficultyRail span:nth-child(3){background:#ddb8a9}
 .difficultyRail span:nth-child(4){background:#c9b5d7}
-.difficultyStops{position:absolute;left:12px;right:12px;top:9px;height:18px;display:flex;justify-content:space-between;align-items:center;pointer-events:none}
+.difficultyStops{position:absolute;left:12px;right:12px;top:6px;height:16px;display:flex;justify-content:space-between;align-items:center;pointer-events:none}
 .difficultyStops i{width:8px;height:8px;border-radius:50%;background:#fff;border:2px solid #aaa5b2;box-shadow:0 1px 2px rgba(60,58,72,.12)}
-.difficultyScale input[type=range]{position:absolute;inset:0;width:100%;height:36px;margin:0;appearance:none;-webkit-appearance:none;background:transparent;cursor:pointer;z-index:2}
+.difficultyScale input[type=range]{position:absolute;inset:0;width:100%;height:28px;margin:0;appearance:none;-webkit-appearance:none;background:transparent;cursor:pointer;z-index:2}
 .difficultyScale input[type=range]::-webkit-slider-runnable-track{height:10px;background:transparent}
-.difficultyScale input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:27px;height:27px;border-radius:50%;background:#706c80;border:4px solid #fff;box-shadow:0 2px 7px rgba(61,58,78,.28);margin-top:-8.5px}
+.difficultyScale input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:#706c80;border:4px solid #fff;box-shadow:0 2px 7px rgba(61,58,78,.28);margin-top:-8px}
 .difficultyScale input[type=range]::-moz-range-track{height:10px;background:transparent}
 .difficultyScale input[type=range]::-moz-range-thumb{width:19px;height:19px;border-radius:50%;background:#706c80;border:4px solid #fff;box-shadow:0 2px 7px rgba(61,58,78,.28)}
 .scaleLabels{display:grid;grid-template-columns:repeat(5,1fr);margin:0 0 0;color:var(--muted);font-size:10px;font-weight:750}
-.scaleLabels button{min-height:28px;padding:3px 1px;border:0;background:transparent;color:inherit;box-shadow:none;border-radius:9px;font-size:10px;font-weight:750}
+.scaleLabels button{min-height:23px;padding:2px 1px;border:0;background:transparent;color:inherit;box-shadow:none;border-radius:9px;font-size:10px;font-weight:750}
 .scaleLabels button.active{color:#4c495c;background:#efedf2;font-weight:900}
 .recordsBtn{border:0;background:transparent;color:var(--muted);padding:0;min-height:0;border-radius:8px;box-shadow:none;text-align:left;cursor:pointer}
 .recordsBtn strong{text-align:right}
@@ -54,8 +59,8 @@ select{border:1px solid var(--soft);background:#fff;border-radius:12px;padding:1
 .iconBtn{width:38px;min-height:38px;padding:0;border-radius:50%;background:#efedf2;color:#5a5968;box-shadow:none;font-size:22px;line-height:1}
 .dangerBtn{background:#b9656c;color:#fff}
 .confirmText{color:#5c5963;line-height:1.45;margin-top:10px}
-.gameShell{padding:2px 0 0;display:flex;flex-direction:column;gap:13px;align-items:center;touch-action:none;user-select:none;-webkit-user-select:none}
-.boardWrap{width:100%;display:flex;justify-content:center;position:relative;overflow:visible;padding:2px 0}
+.gameShell{padding:0;display:flex;flex:1 1 auto;min-height:0;flex-direction:column;gap:6px;align-items:center;touch-action:none;user-select:none;-webkit-user-select:none;overflow:hidden}
+.boardWrap{width:100%;display:flex;justify-content:center;position:relative;overflow:visible;padding:1px 0;flex:0 0 auto}
 .boardArt{position:absolute;top:2px;left:50%;transform:translateX(-50%);display:block;pointer-events:none;overflow:visible;transition:filter .15s ease,opacity .15s ease}
 .board{position:relative;z-index:2;display:grid;border:0;border-radius:0;background:transparent;gap:0;touch-action:none;user-select:none;-webkit-user-select:none;max-width:100%;overflow:visible;box-shadow:none}
 .cell{position:relative;width:var(--cell);height:var(--cell);display:grid;place-items:center;background:transparent;font-size:calc(var(--cell)*.52);font-weight:700;line-height:1;touch-action:none;overflow:visible;border:0;border-radius:0;box-shadow:none}
@@ -66,88 +71,117 @@ select{border:1px solid var(--soft);background:#fff;border-radius:12px;padding:1
 .cell.x .mark::before,.cell.x .mark::after{content:"";position:absolute;left:50%;top:50%;width:100%;height:max(4px,calc(var(--cell)*.115));background:rgba(255,255,255,.91);border-radius:999px;box-shadow:0 1px 1px rgba(73,72,90,.12);transform-origin:center}
 .cell.x .mark::before{transform:translate(-50%,-50%) rotate(45deg)}
 .cell.x .mark::after{transform:translate(-50%,-50%) rotate(-45deg)}
-.cell.queen .mark{width:100%;height:100%;display:grid;place-items:center;transform:none}
-.cell.queen .coolMarker{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;font-size:calc(var(--cell)*.64);line-height:1;filter:none;transform:translateY(7%)}
-.cell.queen{animation:queenPop .15s ease-out}
-@keyframes queenPop{0%{transform:scale(.72)}78%{transform:scale(1.07)}100%{transform:scale(1)}}
+.cell.marker .mark{width:100%;height:100%;display:grid;place-items:center;transform:none}
+.cell.marker .coolMarker{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;font-size:calc(var(--cell)*.64);line-height:1;filter:none;transform:translateY(7%)}
+.cell.marker{animation:markerPop .15s ease-out}
+@keyframes markerPop{0%{transform:scale(.72)}78%{transform:scale(1.07)}100%{transform:scale(1)}}
 .cell.conflict{outline:3px solid var(--danger);outline-offset:-3px}
 .boardArt.hintMode{filter:none;opacity:1}
 .board.hintMode .cell{opacity:1;transition:opacity .15s ease,box-shadow .15s ease}
 .board.hintMode .cell:not(.hintScope):not(.hint):not(.hintTest)::before{inset:1px;border-radius:6px;background:rgba(244,244,246,.72);box-shadow:none}
-.board.hintMode .cell:not(.hintScope):not(.hint):not(.hintTest).x .mark,.board.hintMode .cell:not(.hintScope):not(.hint):not(.hintTest).queen .mark{opacity:.28}
+.board.hintMode .cell:not(.hintScope):not(.hint):not(.hintTest).x .mark,.board.hintMode .cell:not(.hintScope):not(.hint):not(.hintTest).marker .mark{opacity:.28}
 .board.hintMode .cell.hintScope::before{background:transparent;box-shadow:inset 0 0 0 2px rgba(255,255,255,.96),0 0 0 2px rgba(79,82,108,.36)}
-.board.hintMode .cell.hintScope.x .mark,.board.hintMode .cell.hintScope.queen .mark{opacity:1}
+.board.hintMode .cell.hintScope.x .mark,.board.hintMode .cell.hintScope.marker .mark{opacity:1}
 .cell.hint{z-index:4!important;opacity:1!important;animation:hintPulse 1s ease-in-out 3}
 .cell.hint::after{content:"?";position:absolute;right:5px;top:4px;z-index:3;font-size:calc(var(--cell)*.27);font-weight:950;color:#4f5270;line-height:1;text-shadow:0 1px 0 rgba(255,255,255,.8)}
 .cell.hint::before{background:var(--region)!important;box-shadow:inset 0 0 0 3px #fff,0 0 0 3px #595b79!important}
 .cell.hintTest{z-index:3!important}
 .cell.hintTest::before{background:var(--region)!important;box-shadow:inset 0 0 0 2px rgba(255,255,255,.96),0 0 0 3px rgba(91,94,132,.78)!important}
 @keyframes hintPulse{0%,100%{transform:scale(1)}50%{transform:scale(.94)}}
-.puzzleMeta{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;margin:-2px 0 0;font-size:14px;color:var(--muted)}
-.puzzleMeta .difficultyNow{font-size:18px;font-weight:850;color:#59627a;background:linear-gradient(180deg,#f3f2f7,#ebe7ef);border:1px solid #ddd8e4;border-radius:999px;padding:6px 12px;box-shadow:0 4px 10px rgba(101,96,117,.08)}
+.puzzleMeta{width:100%;display:flex;align-items:center;justify-content:center;gap:7px;margin:0;font-size:13px;color:var(--muted);flex:0 0 auto}
+.puzzleMeta .difficultyNow{font-size:16px;font-weight:850;color:#59627a;background:linear-gradient(180deg,#f3f2f7,#ebe7ef);border:1px solid #ddd8e4;border-radius:999px;padding:6px 12px;box-shadow:0 4px 10px rgba(101,96,117,.08)}
 .puzzleMeta .sizeNow{font-weight:750}
-.recordState{font-size:11px;color:var(--muted);text-align:center;margin-top:-4px}
-.actions{width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-button{border:0;border-radius:13px;padding:11px 10px;background:#6c6878;color:white;font-weight:750;min-height:46px}
+.recordState{font-size:10px;color:var(--muted);text-align:center;margin-top:-2px;line-height:1.1;flex:0 0 auto}
+.actions{width:100%;display:grid;gap:8px;flex:0 0 auto}.actionsTwo{grid-template-columns:repeat(2,1fr)}
+button{border:0;border-radius:13px;padding:8px 10px;background:#6c6878;color:white;font-weight:750;min-height:40px}
 button.secondary{background:#eceaf0;color:#4a5362}
 button.ghost{background:#fff;color:#4d5667;border:1px solid var(--soft)}
 button:disabled{opacity:.45}
-.message{min-height:22px;text-align:center;color:#6f7988;font-size:14px;padding:0 8px}
+.message{min-height:18px;max-height:44px;overflow:hidden;text-align:center;color:#6f7988;font-size:13px;line-height:1.25;padding:0 6px;flex:0 0 auto}
 .message.error{color:var(--danger)} .message.good{color:var(--ok)}
-.best{font-size:12px;color:var(--muted);text-align:center}
-.legend{display:flex;justify-content:center;gap:16px;font-size:12px;color:var(--muted);padding-bottom:2px}
+.best{font-size:11px;color:var(--muted);text-align:center;line-height:1.1;flex:0 0 auto}
+.legend{display:flex;justify-content:center;gap:10px;font-size:10px;color:var(--muted);padding:0;line-height:1.1;flex:0 0 auto}
 .modal{position:fixed;inset:0;background:rgba(20,18,15,.42);display:none;align-items:flex-end;justify-content:center;padding:14px;z-index:20}
 .modal.show{display:flex}.sheet{width:min(100%,560px);background:var(--panel);border-radius:22px;padding:18px;border:1px solid var(--soft);box-shadow:0 10px 28px rgba(70,70,84,.18)}
 .sheet h2{margin:0 0 10px;font-size:22px}.sheet p{margin:7px 0;color:#514d46;line-height:1.45}.sheet .row{display:flex;gap:8px;margin-top:14px}.sheet .row button{flex:1}
 @media (max-width:420px){.app{padding-left:8px;padding-right:8px}.controls{grid-template-columns:1fr}.gameShell{padding:2px 0 0}.stats{gap:8px}.stat strong{font-size:16px}.puzzleMeta .difficultyNow{font-size:16px}.actions button{font-size:13px;padding-left:5px;padding-right:5px}.sheet{padding:16px}.recordsTable{font-size:11px}}
+@media (max-width:420px){
+ .app{padding-left:6px;padding-right:6px;gap:5px}
+ header{padding-top:3px}
+ .title{font-size:25px}
+ .stats{gap:7px;padding:6px 9px;font-size:11px;border-radius:14px}
+ .stat strong{font-size:14px}
+ .gameShell{gap:5px}
+ .puzzleMeta .difficultyNow{font-size:14px;padding:4px 9px}
+ .actions button{font-size:13px;padding:6px 5px;min-height:37px}
+ .controls{padding:5px 9px 4px;border-radius:14px}
+ .control label{font-size:9px}
+ .scaleLabels,.scaleLabels button{font-size:9px}
+ .message{font-size:12px;max-height:40px}
+ .legend{font-size:9px}
+}
+@media (max-height:700px){
+ .title{font-size:23px}.stats{padding:5px 8px}
+ .gameShell{gap:4px}
+ .actions button{min-height:34px;padding:5px 6px}
+ .controls{padding-top:4px;padding-bottom:3px}
+ .difficultyScale{height:24px}
+ .difficultyScale input[type=range]{height:24px}
+ .scaleLabels button{min-height:20px}
+ .legend,.best,.recordState{font-size:9px}
+}
 </style>
 </head>
 <body>
 <div class="app">
   <header>
-    <div class="title">Queens</div>
+    <div class="title">One Each</div>
     <div class="stats">
       <div class="stat">Time<strong id="timer">0:00</strong></div>
       <button id="recordsBtn" class="stat recordsBtn" type="button" aria-label="View best-time records">Records<strong id="bestTop">—</strong></button>
     </div>
   </header>
 
-  <section class="controls">
-    <div class="control">
-      <label>Difficulty mix</label>
-      <div id="difficultyScale" class="difficultyScale">
-        <div class="difficultyRail" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-        <div class="difficultyStops" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
-        <input id="difficulty" type="range" min="0" max="100" step="25" value="75" aria-label="Difficulty mix" />
-      </div>
-      <div id="scaleLabels" class="scaleLabels">
-        <button type="button" data-bias="0">Easy</button>
-        <button type="button" data-bias="25">Medium</button>
-        <button type="button" data-bias="50">Hard</button>
-        <button type="button" data-bias="75">Expert</button>
-        <button type="button" data-bias="100">Brutal</button>
-      </div>
-    </div>
-  </section>
-
   <section class="gameShell">
     <div class="puzzleMeta"><span id="difficultyNow" class="difficultyNow" title="Difficulty is rated by a logic-only solver; puzzles that require guessing are rejected.">—</span><span id="sizeNow" class="sizeNow"></span></div>
-    <div class="boardWrap"><svg id="boardArt" class="boardArt" aria-hidden="true"></svg><div id="board" class="board" aria-label="Queens puzzle board"></div></div>
+    <div class="boardWrap"><svg id="boardArt" class="boardArt" aria-hidden="true"></svg><div id="board" class="board" aria-label="One Each puzzle board"></div></div>
     <div id="message" class="message"></div>
     <div id="recordState" class="recordState">Record eligible</div>
-    <div class="actions">
+    <div class="actions actionsTwo">
       <button id="undoBtn" class="ghost" disabled>Undo</button>
       <button id="hintBtn" class="secondary">Hint</button>
+    </div>
+
+    <section class="controls">
+      <div class="control">
+        <label>Difficulty mix</label>
+        <div id="difficultyScale" class="difficultyScale">
+          <div class="difficultyRail" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+          <div class="difficultyStops" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+          <input id="difficulty" type="range" min="0" max="100" step="25" value="75" aria-label="Difficulty mix" />
+        </div>
+        <div id="scaleLabels" class="scaleLabels">
+          <button type="button" data-bias="0">Easy</button>
+          <button type="button" data-bias="25">Medium</button>
+          <button type="button" data-bias="50">Hard</button>
+          <button type="button" data-bias="75">Expert</button>
+          <button type="button" data-bias="100">Brutal</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="actions actionsTwo">
+      <button id="restartBtn" class="ghost">Restart</button>
       <button id="newGameBtn" class="ghost">New game</button>
     </div>
-    <div class="legend">One queen per row · column · colour · queens may not touch diagonally</div>
+    <div class="legend">One 😎 per row · column · colour · 😎 may not touch diagonally</div>
     <div id="best" class="best"></div>
   </section>
 </div>
 
 <div id="winModal" class="modal">
   <div class="sheet">
-    <h2>Complete</h2>
+    <h2>Congratulations! 🎉</h2>
     <p id="winText"></p>
     <div class="row"><button id="nextBtn">Next puzzle</button></div>
   </div>
@@ -185,7 +219,7 @@ button:disabled{opacity:.45}
 'use strict';
 const boardEl=document.getElementById('board'), boardArt=document.getElementById('boardArt'), diffEl=document.getElementById('difficulty'), difficultyScale=document.getElementById('difficultyScale'), scaleLabels=document.getElementById('scaleLabels');
 const timerEl=document.getElementById('timer'), bestTop=document.getElementById('bestTop'), bestEl=document.getElementById('best'), msg=document.getElementById('message');
-const undoBtn=document.getElementById('undoBtn'), hintBtn=document.getElementById('hintBtn'), newGameBtn=document.getElementById('newGameBtn');
+const undoBtn=document.getElementById('undoBtn'), hintBtn=document.getElementById('hintBtn'), restartBtn=document.getElementById('restartBtn'), newGameBtn=document.getElementById('newGameBtn');
 const difficultyNow=document.getElementById('difficultyNow'), sizeNow=document.getElementById('sizeNow'), recordState=document.getElementById('recordState');
 const winModal=document.getElementById('winModal'), winText=document.getElementById('winText'), nextBtn=document.getElementById('nextBtn');
 const recordsBtn=document.getElementById('recordsBtn'), recordsModal=document.getElementById('recordsModal'), recordsTable=document.getElementById('recordsTable'), closeRecordsBtn=document.getElementById('closeRecordsBtn'), doneRecordsBtn=document.getElementById('doneRecordsBtn'), clearRecordsBtn=document.getElementById('clearRecordsBtn');
@@ -229,8 +263,15 @@ const COLOR_NAMES={
  '#aa9bd4':'lilac'
 };
 let state=null, timerTick=null, hiddenAt=null;
-const LS='queens_logic_v4';
-function loadStore(){try{return JSON.parse(localStorage.getItem(LS)||'{}')}catch{return {}}}
+const LS='one_each_logic_v1';
+const LEGACY_LS=atob('cXVlZW5zX2xvZ2ljX3Y0');
+function loadStore(){
+ try{
+   let raw=localStorage.getItem(LS);
+   if(!raw){raw=localStorage.getItem(LEGACY_LS);if(raw){localStorage.setItem(LS,raw);localStorage.removeItem(LEGACY_LS)}}
+   return JSON.parse(raw||'{}')
+ }catch{return {}}
+}
 function saveStore(s){try{localStorage.setItem(LS,JSON.stringify(s))}catch{}}
 function fmt(sec){sec=Math.max(0,Math.floor(sec));return `${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`}
 function keyBest(n,band){return `best_${n}_${band}`}
@@ -271,7 +312,7 @@ const PUZZLE_BANK={"6":[{"solution":[1,4,2,0,3,5],"regions":[0,0,0,0,1,1,0,0,0,1
 let lastPuzzleSignature="";
 function rngInt(n){return Math.floor(Math.random()*n)}
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=rngInt(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
-function queenPermutation(n){
+function markerPermutation(n){
  const cols=[...Array(n).keys()];
  function rec(r){if(r===n)return true;for(const c of shuffle(cols.filter(c=>!used.has(c)))){if(r>0&&Math.abs(c,pos[r-1])===1)continue;pos[r]=c;used.add(c);if(rec(r+1))return true;used.delete(c)}return false}
  const pos=Array(n).fill(-1),used=new Set(); return rec(0)?pos:null;
@@ -523,7 +564,7 @@ function makeWorker(){
  function wmix(v){const m={0:[.72,.22,.05,.01,0],25:[.15,.60,.20,.05,0],50:[.05,.20,.50,.20,.05],75:[.01,.05,.20,.59,.15],100:[0,.01,.06,.22,.71]};return m[wsnap(v)]}
  function sampleTargetBand(){const m=wmix(bias);let x=Math.random();for(let i=0;i<m.length;i++){x-=m[i];if(x<=0)return WBANDS[i]}return 'Hard'}
  function chooseSize(targetBand){const centre={Easy:7,Medium:8,Hard:9,Expert:10,Brutal:11}[targetBand]||9,vals=[];let total=0;for(let n=6;n<=12;n++){const d=(n-centre)/2.0,w=.08+Math.exp(-(d*d)/2);vals.push([n,w]);total+=w}let p=Math.random()*total;for(const [n,w] of vals){p-=w;if(p<=0)return n}return centre}
- function queenPermutation(n){const cols=[...Array(n).keys()];function rec(r){if(r===n)return true;for(const c of shuffle(cols.filter(c=>!used.has(c)))){if(r>0&&Math.abs(c-pos[r-1])===1)continue;pos[r]=c;used.add(c);if(rec(r+1))return true;used.delete(c)}return false}const pos=Array(n).fill(-1),used=new Set();return rec(0)?pos:null}
+ function markerPermutation(n){const cols=[...Array(n).keys()];function rec(r){if(r===n)return true;for(const c of shuffle(cols.filter(c=>!used.has(c)))){if(r>0&&Math.abs(c-pos[r-1])===1)continue;pos[r]=c;used.add(c);if(rec(r+1))return true;used.delete(c)}return false}const pos=Array(n).fill(-1),used=new Set();return rec(0)?pos:null}
  function neighbors4(i,n){const r=Math.floor(i/n),c=i%n,a=[];if(r)a.push(i-n);if(r<n-1)a.push(i+n);if(c)a.push(i-1);if(c<n-1)a.push(i+1);return a}
  function growRegions(n,sol){const total=n*n,reg=Array(total).fill(-1),front=Array.from({length:n},()=>[]),counts=Array(n).fill(1);for(let r=0;r<n;r++){const i=r*n+sol[r];reg[i]=r}for(let k=0;k<n;k++){const seed=k*n+sol[k];for(const nb of neighbors4(seed,n))if(reg[nb]<0)front[k].push(nb)}let left=total-n,guard=0;while(left&&guard++<12000){const ids=shuffle([...Array(n).keys()]).sort((a,b)=>counts[a]-counts[b]+(Math.random()-.5)*2);let did=false;for(const k of ids){const choices=[...new Set(front[k])].filter(i=>reg[i]<0);if(!choices.length)continue;const i=choices[rngInt(choices.length)];reg[i]=k;counts[k]++;left--;did=true;front[k]=front[k].filter(x=>x!==i);for(const nb of neighbors4(i,n))if(reg[nb]<0)front[k].push(nb);if(Math.random()<.75)break}if(!did){const un=reg.map((v,i)=>v<0?i:-1).filter(i=>i>=0);if(!un.length)break;const i=un[0],adj=neighbors4(i,n).map(j=>reg[j]).filter(x=>x>=0);if(adj.length){reg[i]=adj[rngInt(adj.length)];counts[reg[i]]++;left--}else return null}}return left?null:reg}
  function findSolutions(n,regions,limit=60){const usedC=Array(n).fill(false),usedR=Array(n).fill(false),pos=Array(n).fill(-1),sols=[];function rec(depth){if(sols.length>=limit)return;if(depth===n){sols.push(pos.slice());return}let bestR=-1,best=[];for(let r=0;r<n;r++)if(pos[r]<0){const opts=[];for(let c=0;c<n;c++){if(usedC[c])continue;const rg=regions[r*n+c];if(usedR[rg])continue;if(r>0&&pos[r-1]>=0&&Math.abs(c-pos[r-1])===1)continue;if(r<n-1&&pos[r+1]>=0&&Math.abs(c-pos[r+1])===1)continue;opts.push(c)}if(!opts.length)return;if(bestR<0||opts.length<best.length){bestR=r;best=opts;if(opts.length===1)break}}for(const c of best){const rg=regions[bestR*n+c];pos[bestR]=c;usedC[c]=true;usedR[rg]=true;rec(depth+1);usedC[c]=false;usedR[rg]=false;pos[bestR]=-1;if(sols.length>=limit)return}}rec(0);return sols}
@@ -646,7 +687,7 @@ function makeWorker(){
    let best=null,bestDistance=Infinity;
    const targetBand=sampleTargetBand(),targetIndex=WBANDS.indexOf(targetBand);
    for(let restart=0;restart<34;restart++){
-     const n=chooseSize(targetBand),solution=queenPermutation(n),regions=growRegions(n,solution);if(!regions)continue;
+     const n=chooseSize(targetBand),solution=markerPermutation(n),regions=growRegions(n,solution);if(!regions)continue;
      const fixed=repair(n,solution,regions);if(!fixed.ok)continue;
      const verify=findSolutions(n,fixed.reg,2);if(verify.length!==1||!same(verify[0],solution))continue;
      const a=logicAnalyse(n,fixed.reg,1);if(!a.solved)continue;
@@ -741,7 +782,18 @@ function paletteFor(n,regions){
  }
  return assigned;
 }
-function fitCells(n){const w=Math.min(window.innerWidth-20,680),s=Math.max(25,Math.min(56,Math.floor(w/n)));document.documentElement.style.setProperty('--cell',`${s}px`);return s}
+function fitCells(n){
+ const maxW=Math.min(window.innerWidth-12,680);
+ const app=document.querySelector('.app');
+ const currentBoard=Math.max(0,boardWrap?.offsetHeight||0);
+ const contentHeight=Math.max(app?.scrollHeight||0,0);
+ const nonBoard=Math.max(250,contentHeight-currentBoard);
+ const viewport=window.visualViewport?.height||window.innerHeight;
+ const availableH=Math.max(210,viewport-nonBoard-4);
+ const s=Math.max(18,Math.min(56,Math.floor(Math.min(maxW/n,availableH/n))));
+ document.documentElement.style.setProperty('--cell',`${s}px`);
+ return s;
+}
 function drawBoardArt(cellPx){
  const n=state.n;
  const slate='#696678';
@@ -835,8 +887,8 @@ function drawBoardArt(cellPx){
  boardArt.innerHTML=parts.join('');
 }
 function paintCell(i){
- const c=boardEl.children[i];if(!c)return;const m=c.querySelector('.mark'),v=state.marks[i];c.classList.remove('x','queen','conflict');m.textContent='';
- if(v===1){c.classList.add('x')}else if(v===2){c.classList.add('queen');m.innerHTML='<span class="coolMarker" aria-hidden="true">😎</span>'}
+ const c=boardEl.children[i];if(!c)return;const m=c.querySelector('.mark'),v=state.marks[i];c.classList.remove('x','marker','conflict');m.textContent='';
+ if(v===1){c.classList.add('x')}else if(v===2){c.classList.add('marker');m.innerHTML='<span class="coolMarker" aria-hidden="true">😎</span>'}
 }
 function updatePuzzleMeta(){
  difficultyNow.textContent=state.band;sizeNow.textContent=`${state.n}×${state.n}`;
@@ -853,16 +905,21 @@ function render(){
 }
 function setMessage(t,cls=''){msg.textContent=t;msg.className='message'+(cls?' '+cls:'')}
 function elapsed(){return state.elapsed+Math.max(0,Math.floor((Date.now()-state.startedAt)/1000))}
-function updateTimer(){if(!state||state.complete||hiddenAt)return;timerEl.textContent=fmt(elapsed())}
-function startTimer(){clearInterval(timerTick);timerTick=setInterval(updateTimer,500);updateTimer()}
-function pauseTimer(){if(!state||state.complete)return;state.elapsed=elapsed();state.startedAt=Date.now()}
-document.addEventListener('visibilitychange',()=>{if(document.hidden){pauseTimer();hiddenAt=Date.now();saveProgress()}else{hiddenAt=null;if(state){state.startedAt=Date.now();updateTimer()}}})
+function updateTimer(){if(!state||state.complete||document.hidden)return;timerEl.textContent=fmt(elapsed())}
+function startTimer(){clearInterval(timerTick);if(!state||state.complete||document.hidden)return;state.startedAt=Date.now();timerTick=setInterval(updateTimer,500);updateTimer()}
+function pauseTimer(){if(!state||state.complete)return;if(timerTick){state.elapsed=elapsed();clearInterval(timerTick);timerTick=null}state.startedAt=Date.now()}
+function resumeTimer(){if(!state||state.complete||state.failed||document.hidden)return;state.startedAt=Date.now();startTimer()}
+document.addEventListener('visibilitychange',()=>{if(document.hidden){pauseTimer();saveProgress()}else resumeTimer()});
+window.addEventListener('pagehide',()=>{pauseTimer();saveProgress()});
+window.addEventListener('pageshow',()=>{if(!document.hidden)resumeTimer()});
 function checkComplete(){
  if(state.complete)return;const n=state.n;for(let r=0;r<n;r++)if(state.marks[r*n+state.solution[r]]!==2)return;const q=state.marks.filter(v=>v===2).length;if(q!==n)return;
  state.complete=true;state.elapsed=elapsed();clearInterval(timerTick);timerEl.textContent=fmt(state.elapsed);const store=loadStore(),k=keyBest(n,state.band),old=store[k];let isBest=false;
  if(!state.hintUsed&&(!old||state.elapsed<old)){store[k]=state.elapsed;isBest=true}delete store.progress;saveStore(store);updateBest();
- const hintNote=state.hintUsed?' · hints used — time not recorded':(isBest?' — new best time.':'');
- winText.textContent=`${n}×${n} · ${state.band} · ${fmt(state.elapsed)}${hintNote}`;winModal.classList.add('show');setMessage('Solved.','good')
+ const hintNote=state.hintUsed?' Hints were used, so this one won’t count as a record.':(isBest?' New best time! 🏆':'');
+ winText.textContent=`You solved this ${n}×${n} ${state.band} puzzle in ${fmt(state.elapsed)}.${hintNote}`;
+ winModal.classList.add('show');
+ setMessage(isBest?'Brilliant — new best time! 🏆':'Nice work — puzzle solved! 🎉','good')
 }
 function updateBest(){const store=loadStore(),v=store[keyBest(state.n,state.band)];bestTop.textContent=v?fmt(v):'—';bestEl.textContent=`${state.n}×${state.n} · ${state.band}${v?` · best ${fmt(v)}`:''}`}
 
@@ -896,10 +953,13 @@ function loadProgress(){
      state.score=a.score;state.band=a.band;state.force=a.force;state.maxForce=a.maxForce;state.regionLine=a.regionLine;state.block=a.block;state.match=a.match;state.arc=a.arc;state.logicVersion=5;
    }
  }catch{}
- state.startedAt=Date.now();state.complete=false;render();startTimer();return true
+ state.startedAt=Date.now();state.complete=false;render();
+ if(state.failed){pauseTimer();hintBtn.disabled=true;setMessage('This puzzle is paused after a failed move. Review the board, then Restart when you’re ready.','error')}
+ else{hintBtn.disabled=false;startTimer()}
+ return true
 }
 
-function updateUndo(){if(undoBtn)undoBtn.disabled=!state||!state.history||!state.history.length||state.complete}
+function updateUndo(){if(undoBtn)undoBtn.disabled=!state||!state.history||!state.history.length||state.complete||state.failed}
 function pushHistory(changes,kind='action',meta={}){
  if(!changes.length)return null;const action={changes:changes.map(x=>({...x})),kind,...meta};state.history.push(action);if(state.history.length>200)state.history.shift();updateUndo();return action;
 }
@@ -913,24 +973,34 @@ function undo(){
  lastTap={i:-1,t:0,action:null};updateUndo();scheduleSave();setMessage('Undone.');
 }
 function conflictReason(){
- const n=state.n,queens=[];for(let i=0;i<n*n;i++)if(state.marks[i]===2)queens.push(i);
- for(let a=0;a<queens.length;a++)for(let b=a+1;b<queens.length;b++){const i=queens[a],j=queens[b],r1=Math.floor(i/n),c1=i%n,r2=Math.floor(j/n),c2=j%n;
-   if(Math.abs(r1-r2)===1&&Math.abs(c1-c2)===1)return 'Queens may not touch diagonally.';
-   if(r1===r2)return 'Only one queen is allowed in each row.';
-   if(c1===c2)return 'Only one queen is allowed in each column.';
-   if(state.regions[i]===state.regions[j])return 'Only one queen is allowed in each colour.';
+ const n=state.n,markers=[];for(let i=0;i<n*n;i++)if(state.marks[i]===2)markers.push(i);
+ for(let a=0;a<markers.length;a++)for(let b=a+1;b<markers.length;b++){const i=markers[a],j=markers[b],r1=Math.floor(i/n),c1=i%n,r2=Math.floor(j/n),c2=j%n;
+   if(Math.abs(r1-r2)===1&&Math.abs(c1-c2)===1)return 'Markers may not touch diagonally.';
+   if(r1===r2)return 'Only one marker is allowed in each row.';
+   if(c1===c2)return 'Only one marker is allowed in each column.';
+   if(state.regions[i]===state.regions[j])return 'Only one marker is allowed in each colour.';
  }
  return '';
 }
-function failAndRestart(reason){
- pauseTimer();const t=1+rngInt(7),p=transformed(state,t);state={...p,colors:state.colors.slice(),marks:Array(state.n*state.n).fill(0),elapsed:0,startedAt:Date.now(),complete:false,transform:t,history:[],hintUsed:false,hintCount:0,activeHint:null};
- render();startTimer();setMessage(`Failed — ${reason} Same puzzle restarted in a new orientation.`,'error');
+function failPuzzle(reason){
+ if(!state||state.complete||state.failed)return;
+ pauseTimer();
+ state.failed=true;
+ updateUndo();
+ hintBtn.disabled=true;
+ scheduleSave();
+ setMessage(`Oops! ${reason} The puzzle is paused so you can review the board. Restart when you’re ready.`,'error');
 }
-function afterQueen(){const reason=conflictReason();if(reason){failAndRestart(reason);return false}checkComplete();scheduleSave();return true}
+function afterMarker(){
+ const reason=conflictReason();
+ if(reason){failPuzzle(reason);return false}
+ checkComplete();scheduleSave();return true
+}
 
 let lastTap={i:-1,t:0,action:null},swipe=false,swipeMode=false,swipeSeen=new Set(),swipeChanges=[];
 const DOUBLE_TAP_MS=300;
 function singleImmediateTap(i,now){
+ if(!state||state.complete||state.failed)return;
  if(lastTap.i===i&&now-lastTap.t<DOUBLE_TAP_MS){
    const oldAction=lastTap.action;
    const from=oldAction&&oldAction.changes&&oldAction.changes.length===1?oldAction.changes[0].from:state.marks[i];
@@ -942,7 +1012,7 @@ function singleImmediateTap(i,now){
    }
    lastTap={i:-1,t:0,action:null};
    updateUndo();
-   if(afterQueen())setMessage('');
+   if(afterMarker())setMessage('');
    return;
  }
  const to=state.marks[i]===1?0:1;
@@ -956,6 +1026,7 @@ function pointerCell(e){
  return el?+el.dataset.i:null;
 }
 boardEl.addEventListener('pointerdown',e=>{
+ if(!state||state.complete||state.failed)return;
  if(!state||state.complete)return;
  const cell=e.target.closest('.cell');if(!cell)return;
  e.preventDefault();
@@ -989,11 +1060,20 @@ boardEl.addEventListener('pointercancel',()=>{
  swipe=false;swipeMode=false;swipeSeen.clear();swipeChanges=[];scheduleSave();
 });
 
+function restartCurrent(){
+ if(!state)return;
+ pauseTimer();
+ const t=1+rngInt(7),p=transformed(state,t);
+ state={...p,colors:state.colors.slice(),marks:Array(state.n*state.n).fill(0),elapsed:0,startedAt:Date.now(),complete:false,failed:false,transform:t,history:[],hintUsed:false,hintCount:0,activeHint:null};
+ hintBtn.disabled=false;
+ render();startTimer();setMessage('Fresh start — same puzzle, new angle. ✨');
+}
+
 function makeNew(){
  pauseTimer();hintBtn.disabled=true;
  try{
    const p=choosePuzzle(+diffEl.value);
-   state={...p,colors:paletteFor(p.n,p.regions),marks:Array(p.n*p.n).fill(0),elapsed:0,startedAt:Date.now(),complete:false,transform:0,history:[],hintUsed:false,hintCount:0,activeHint:null};
+   state={...p,colors:paletteFor(p.n,p.regions),marks:Array(p.n*p.n).fill(0),elapsed:0,startedAt:Date.now(),complete:false,failed:false,transform:0,history:[],hintUsed:false,hintCount:0,activeHint:null};
    render();startTimer();setMessage('');
  }catch(e){
    console.error(e);
@@ -1092,23 +1172,23 @@ function logicHintClue(){
          const colour=regionColourName(u);
          return {
            key:`single-${kind}-${u}-${target}`,type:'single',targetCells:[target],
-           intro:`There is only one ${colour} square left: row ${r+1}, column ${c+1}.`,
-           detail:`Every other square in the ${colour} region is ruled out, so its 😎 must go at row ${r+1}, column ${c+1}.`,
+           intro:`There is only one ${colour} square left.`,
+           detail:`That square must contain 😎.`,
            reveal:`Put 😎 at row ${r+1}, column ${c+1}.`
          };
        }
        if(kind===0){
          return {
            key:`single-${kind}-${u}-${target}`,type:'single',targetCells:[target],
-           intro:`Row ${u+1} has only one possible square left: column ${c+1}.`,
-           detail:`Every other square in row ${u+1} is ruled out, so its 😎 must go in column ${c+1}.`,
+           intro:`There is only one square left in row ${u+1}.`,
+           detail:`That square must contain 😎.`,
            reveal:`Put 😎 at row ${u+1}, column ${c+1}.`
          };
        }
        return {
          key:`single-${kind}-${u}-${target}`,type:'single',targetCells:[target],
-         intro:`Column ${u+1} has only one possible square left: row ${r+1}.`,
-         detail:`Every other square in column ${u+1} is ruled out, so its 😎 must go in row ${r+1}.`,
+         intro:`There is only one square left in column ${u+1}.`,
+         detail:`That square must contain 😎.`,
          reveal:`Put 😎 at row ${r+1}, column ${u+1}.`
        };
      }
@@ -1125,23 +1205,23 @@ function logicHintClue(){
      const cols=[...new Set(candidates.map(i=>i%n))];
 
      if(rows.length===1){
-       const r=rows[0],candidateCols=candidates.map(i=>i%n+1);
+       const r=rows[0];
        const targets=cellsInRow(r,n).filter(i=>s.cand[i]&&regions[i]!==rg&&!s.fixed[i]);
        if(targets.length)return {
          key:`region-row-${rg}-${r}`,type:'region-line',targetCells:targets,
-         intro:`Every remaining ${colour} square is in row ${r+1}, at column${candidateCols.length===1?'':'s'} ${candidateCols.join(', ')}.`,
-         detail:`The ${colour} 😎 must therefore be somewhere in row ${r+1}. That means no other colour can use row ${r+1}.`,
+         intro:`All the remaining ${colour} squares are in one row.`,
+         detail:`So the ${colour} 😎 must be in row ${r+1}, which means no other colour can use that row.`,
          reveal:`Cross ${cellRefs(targets)}.`
        };
      }
 
      if(cols.length===1){
-       const c=cols[0],candidateRows=candidates.map(i=>Math.floor(i/n)+1);
+       const c=cols[0];
        const targets=cellsInCol(c,n).filter(i=>s.cand[i]&&regions[i]!==rg&&!s.fixed[i]);
        if(targets.length)return {
          key:`region-col-${rg}-${c}`,type:'region-line',targetCells:targets,
-         intro:`Every remaining ${colour} square is in column ${c+1}, at row${candidateRows.length===1?'':'s'} ${candidateRows.join(', ')}.`,
-         detail:`The ${colour} 😎 must therefore be somewhere in column ${c+1}. That means no other colour can use column ${c+1}.`,
+         intro:`All the remaining ${colour} squares are in one column.`,
+         detail:`So the ${colour} 😎 must be in column ${c+1}, which means no other colour can use that column.`,
          reveal:`Cross ${cellRefs(targets)}.`
        };
      }
@@ -1157,8 +1237,8 @@ function logicHintClue(){
        const targets=unitCells(2,rg).filter(i=>s.cand[i]&&Math.floor(i/n)!==r&&!s.fixed[i]);
        if(targets.length)return {
          key:`row-region-${r}-${rg}`,type:'region-line',targetCells:targets,
-         intro:`Every remaining option in row ${r+1} is ${colour}.`,
-         detail:`Row ${r+1} must use the ${colour} region, so the ${colour} 😎 cannot be anywhere outside row ${r+1}.`,
+         intro:`All the remaining squares in row ${r+1} are ${colour}.`,
+         detail:`So row ${r+1} must use the ${colour} region, which means the ${colour} 😎 cannot be outside that row.`,
          reveal:`Cross ${cellRefs(targets)}.`
        };
      }
@@ -1173,8 +1253,8 @@ function logicHintClue(){
        const targets=unitCells(2,rg).filter(i=>s.cand[i]&&i%n!==c&&!s.fixed[i]);
        if(targets.length)return {
          key:`col-region-${c}-${rg}`,type:'region-line',targetCells:targets,
-         intro:`Every remaining option in column ${c+1} is ${colour}.`,
-         detail:`Column ${c+1} must use the ${colour} region, so the ${colour} 😎 cannot be anywhere outside column ${c+1}.`,
+         intro:`All the remaining squares in column ${c+1} are ${colour}.`,
+         detail:`So column ${c+1} must use the ${colour} region, which means the ${colour} 😎 cannot be outside that column.`,
          reveal:`Cross ${cellRefs(targets)}.`
        };
      }
@@ -1194,17 +1274,17 @@ function logicHintClue(){
        const a=unitCells(kind,u).filter(j=>s.cand[j]);
        if(!a.length||!a.every(j=>conflicts(i,j)))continue;
 
-       let subject,detail;
+       let subject,intro;
        if(kind===0){
          subject=`row ${u+1}`;
-         detail=`Every remaining square in row ${u+1} conflicts with row ${r+1}, column ${c+1}.`;
+         intro=`There is a square that blocks all remaining squares in row ${u+1}.`;
        }else if(kind===1){
          subject=`column ${u+1}`;
-         detail=`Every remaining square in column ${u+1} conflicts with row ${r+1}, column ${c+1}.`;
+         intro=`There is a square that blocks all remaining squares in column ${u+1}.`;
        }else{
          const colour=regionColourName(u);
          subject=`the ${colour} region`;
-         detail=`Every remaining ${colour} square conflicts with row ${r+1}, column ${c+1}.`;
+         intro=`There is a square that blocks all remaining ${colour} squares.`;
        }
 
        options.push({
@@ -1213,9 +1293,9 @@ function logicHintClue(){
          targetCells:[i],
          optionCount:a.length,
          kindRank:kind===2?0:kind===0?1:2,
-         intro:`Compare row ${r+1}, column ${c+1} with ${subject}.`,
-         detail,
-         reveal:`Row ${r+1}, column ${c+1} cannot contain 😎 because it would leave ${subject} with nowhere for its 😎. Cross that square.`
+         intro,
+         detail:`That square is at row ${r+1}, column ${c+1}. If it contained 😎, ${subject} would have nowhere left for its 😎.`,
+         reveal:`Cross row ${r+1}, column ${c+1}.`
        });
      }
    }
@@ -1229,13 +1309,11 @@ function logicHintClue(){
      for(const rr of [r-1,r+1])if(rr>=0&&rr<n){
        const compatible=[];for(let cc=0;cc<n;cc++){const j=rr*n+cc;if(s.cand[j]&&Math.abs(cc-c)>1)compatible.push(j)}
        if(!compatible.length){
-         const neighbourCandidates=cellsInRow(rr,n).filter(j=>s.cand[j]);
-         const cols=neighbourCandidates.map(j=>j%n+1);
          return {
            key:`arc-${i}-${rr}`,type:'arc',targetCells:[i],
-           intro:`Compare rows ${Math.min(r,rr)+1} and ${Math.max(r,rr)+1}. In row ${r+1}, consider column ${c+1}.`,
-           detail:`Row ${r+1}, column ${c+1} conflicts with every remaining option in row ${rr+1}: column${cols.length===1?'':'s'} ${cols.join(', ')}.`,
-           reveal:`So row ${r+1}, column ${c+1} cannot contain 😎. Cross it.`
+           intro:`There is a square that blocks all remaining squares in row ${rr+1}.`,
+           detail:`That square is at row ${r+1}, column ${c+1}. Its column and diagonals cover every remaining option in row ${rr+1}.`,
+           reveal:`Cross row ${r+1}, column ${c+1}.`
          };
        }
      }
@@ -1299,20 +1377,20 @@ function logicHintClue(){
      const L=left.length,R=rights.length;
      if(type===0){
        return {
-         intro:`Rows ${nums(left)} can only use columns ${nums(rights)}.`,
-         detail:`Those ${L} rows need ${L} different columns, and they have exactly ${R}. So columns ${nums(rights)} are reserved for those rows.`
+         intro:`Rows ${nums(left)} only contain ${R} possible columns.`,
+         detail:`Those are columns ${nums(rights)}. ${L} rows need ${L} different columns, so those columns are reserved for those rows.`
        };
      }
      const colours=colourNames(rights);
      if(type===1){
        return {
-         intro:`Rows ${nums(left)} can only use the ${colours} colour regions.`,
-         detail:`Those ${L} rows need ${L} different colours, and they have exactly ${R}: ${colours}. So those colours are reserved for those rows.`
+         intro:`Rows ${nums(left)} only contain ${R} colours.`,
+         detail:`They are ${colours}. ${L} rows need ${L} different colours, so those colours are reserved for those rows.`
        };
      }
      return {
-       intro:`Columns ${nums(left)} can only use the ${colours} colour regions.`,
-       detail:`Those ${L} columns need ${L} different colours, and they have exactly ${R}: ${colours}. So those colours are reserved for those columns.`
+       intro:`Columns ${nums(left)} only contain ${R} colours.`,
+       detail:`Those colours are ${colours}. ${L} columns need ${L} different colours, so those colours are reserved for those columns.`
      };
    }
 
@@ -1464,7 +1542,7 @@ function logicHintClue(){
  };
 }
 function hint(){
- if(!state||state.complete)return;
+ if(!state||state.complete||state.failed)return;
  state.hintUsed=true;state.hintCount=(state.hintCount||0)+1;updatePuzzleMeta();scheduleSave();clearHint();
  const clue=logicHintClue();
  if(!clue){setMessage('No further deduction was found from the current marks.');state.activeHint=null;return}
@@ -1486,6 +1564,7 @@ function hint(){
 }
 undoBtn.addEventListener('click',undo);
 hintBtn.addEventListener('click',hint);
+restartBtn.addEventListener('click',restartCurrent);
 newGameBtn.addEventListener('click',()=>{winModal.classList.remove('show');makeNew()});
 nextBtn.addEventListener('click',()=>{winModal.classList.remove('show');makeNew()});
 recordsBtn.addEventListener('click',openRecords);
@@ -1496,10 +1575,30 @@ cancelClearBtn.addEventListener('click',()=>hideModal(clearConfirmModal));
 confirmClearBtn.addEventListener('click',clearAllRecords);
 recordsModal.addEventListener('click',e=>{if(e.target===recordsModal)hideModal(recordsModal)});
 clearConfirmModal.addEventListener('click',e=>{if(e.target===clearConfirmModal)hideModal(clearConfirmModal)});
-window.addEventListener('resize',()=>{if(state){const s=fitCells(state.n);boardArt.style.width=`${state.n*s}px`;boardArt.style.height=`${state.n*s}px`;boardArt.setAttribute('width',state.n*s);boardArt.setAttribute('height',state.n*s)}});
+function refitBoard(){if(!state)return;const s=fitCells(state.n);boardArt.style.width=`${state.n*s}px`;boardArt.style.height=`${state.n*s}px`;boardArt.setAttribute('width',state.n*s);boardArt.setAttribute('height',state.n*s)}
+window.addEventListener('resize',refitBoard);
+window.visualViewport?.addEventListener('resize',refitBoard);
+
 
 loadGeneratedPool();
 if(!loadProgress())makeNew();
+
+if('serviceWorker' in navigator){
+ window.addEventListener('load',async()=>{
+   try{
+     const reg=await navigator.serviceWorker.register('./service-worker.js',{updateViaCache:'none'});
+     reg.update().catch(()=>{});
+     document.addEventListener('visibilitychange',()=>{if(!document.hidden)reg.update().catch(()=>{})});
+     let refreshing=false;
+     navigator.serviceWorker.addEventListener('controllerchange',()=>{
+       if(refreshing)return;
+       refreshing=true;
+       location.reload();
+     });
+   }catch(e){console.warn('Service worker registration failed',e)}
+ });
+}
+
 })();
 </script>
 </body>
