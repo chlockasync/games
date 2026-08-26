@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -212,6 +213,96 @@ button.secondary{background:#d3bd86;color:#49351f}button:disabled{opacity:.42;fi
 }
 @media (max-height:700px){
  .titleKicker{display:none}.claimHeader{min-height:22px}.claimKicker{display:none}.claimName{font-size:16px}.legend{font-size:9px}.puzzleMeta .difficultyNow{font-size:9px;padding:3px 7px}.message{font-size:11px}
+}
+
+
+
+/* === Concept 2 implementation overrides === */
+html,body{
+ background:
+  radial-gradient(circle at 18% 10%,rgba(255,212,138,.18),transparent 16%),
+  radial-gradient(circle at 82% 14%,rgba(248,205,126,.10),transparent 14%),
+  linear-gradient(180deg,#2f2016 0%,#24170f 100%);
+}
+body::before{background:linear-gradient(var(--mood),var(--moodDeep)),repeating-linear-gradient(90deg,rgba(255,255,255,.02) 0 2px,rgba(0,0,0,.015) 2px 6px)}
+body::after{opacity:.10;background-size:10px 10px,14px 14px}
+.app{max-width:640px;margin:0 auto;padding:10px 10px max(12px,env(safe-area-inset-bottom));}
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:0 0 4px;position:relative}
+.titleWrap{position:relative;flex:1 1 auto;min-width:0;max-width:calc(100% - 190px);padding:15px 16px 13px;border-radius:17px;background:linear-gradient(180deg,#3a281c,#24160f 58%,#2b1b12);border:1px solid #7b5937;box-shadow:0 14px 28px rgba(11,7,4,.34),inset 0 1px rgba(255,245,214,.12),inset 0 -1px rgba(0,0,0,.24)}
+.titleWrap::before{content:"";position:absolute;inset:7px;border-radius:11px;border:1px solid rgba(198,151,86,.18);pointer-events:none}
+.titleWrap::after{content:"⚒";position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:16px;color:#b9985f;opacity:.85}
+.title{position:relative;z-index:1;font-size:clamp(34px,8.5vw,56px);line-height:.9;letter-spacing:-.045em;color:#ead7a0;text-shadow:0 2px 0 rgba(0,0,0,.35),0 0 16px rgba(206,160,70,.08)}
+.titleKicker{position:relative;z-index:1;margin-top:8px;font-size:11px;letter-spacing:.24em;color:#c6a566}
+.stats{min-width:176px;padding:10px 13px;border-radius:15px;background:linear-gradient(180deg,#d9c59a,#b79b69);border:1px solid #7d5e37;box-shadow:0 10px 22px rgba(12,8,5,.28),inset 0 1px rgba(255,246,220,.42);display:grid;grid-template-columns:1fr 1fr;align-items:start;gap:10px}
+.stats::after{inset:5px;border-color:rgba(89,64,35,.24)}
+.stats .stat{display:flex;flex-direction:column;gap:2px;font-size:11px;letter-spacing:.03em;color:#5d4a31}
+.stats .stat strong{font-size:20px;line-height:1;color:#2f2217}
+.recordsBtn{align-items:flex-start;text-align:left}
+.recordsBtn strong{font-size:14px;line-height:1.15;margin-top:4px}
+.gameShell{position:relative;overflow:visible;padding:0 2px 10px}
+.gameTop{position:relative;gap:6px;margin-top:8px;padding:16px 18px 14px;border-radius:18px;background:linear-gradient(180deg,#3a281d,#24170f 62%,#2b1a13);border:1px solid #775836;box-shadow:0 16px 34px rgba(10,7,4,.34),inset 0 1px rgba(255,245,214,.10)}
+.gameTop::after{content:"Notes\AFindings\AClaims";white-space:pre;position:absolute;right:12px;top:14px;padding:8px 10px 9px 12px;border-radius:4px 8px 8px 4px;background:linear-gradient(180deg,#e1d1ac,#cdb585);color:#4a3522;font-family:Georgia,"Times New Roman",serif;font-size:13px;line-height:1.55;box-shadow:0 6px 14px rgba(10,7,4,.18);transform:rotate(.5deg);border-left:4px solid #b7955f}
+.gameTop::before{content:"";position:absolute;right:90px;top:22px;width:6px;height:82px;border-radius:99px;background:linear-gradient(180deg,#7e5736,#c69c57 45%,#6f4a2e);box-shadow:0 0 0 1px rgba(60,40,20,.35);transform:rotate(13deg)}
+.claimHeader{min-height:42px;padding-right:118px}
+.claimKicker{font-size:10px;color:#cfb279;letter-spacing:.28em}
+.claimName{font-size:clamp(27px,6.6vw,46px);color:#efddb6;text-shadow:0 2px 2px rgba(0,0,0,.42)}
+.puzzleMeta{padding-top:2px}
+.puzzleMeta .difficultyNow{font-size:13px;padding:5px 15px;border-radius:999px;background:linear-gradient(180deg,#ead8a7,#b99355);color:#3f2d1c}
+.legend{padding:4px 96px 0 6px;max-width:none;color:#e4d2a8;font-size:13px;line-height:1.28}
+.message{min-height:1.1em;padding-right:92px}
+.boardStage{padding:10px 0 12px;overflow:visible}
+.boardWrap{padding:0 8px}
+.boardWrap::before{width:calc(var(--cell) * var(--boardN,8) + 26px);height:calc(var(--cell) * var(--boardN,8) + 26px);background:linear-gradient(180deg,#d8c195,#bea172 70%,#a08154);border-radius:6px;box-shadow:0 16px 34px rgba(10,7,4,.36),0 2px 0 rgba(255,246,219,.22) inset,0 0 0 1px rgba(92,65,35,.44);transform:rotate(-.8deg)}
+.boardArt{filter:drop-shadow(0 8px 8px rgba(24,16,9,.20))}
+.cell.x .mark{width:76%;height:76%;display:grid;place-items:center;opacity:.90;filter:drop-shadow(0 1px rgba(255,239,201,.12))}
+.cell.x .mark::before,.cell.x .mark::after{display:none}
+.mapX{display:grid;place-items:center;width:100%;height:100%;transform:rotate(var(--xrot,0deg))}
+.mapX svg{display:block;width:100%;height:100%;overflow:visible}
+.mapX .stroke{fill:none;stroke:#433223;stroke-width:4.4;stroke-linecap:round;stroke-linejoin:round;opacity:.84}
+.mapX .scratch{fill:none;stroke:#433223;stroke-width:2.2;stroke-linecap:round;opacity:.35}
+.cell.marker .mark{filter:drop-shadow(0 3px 3px rgba(54,35,8,.30));}
+.goldNugget{width:76%;height:76%}
+button{min-height:54px;border-radius:13px;background:linear-gradient(180deg,#6f4c2b,#3d2717);border:1px solid #24160e;color:#f2e2ba;box-shadow:0 8px 18px rgba(11,7,4,.26),inset 0 1px rgba(255,248,226,.10)}
+button.ghost{background:linear-gradient(180deg,#5b4027,#342115);color:#eeddb4;border-color:#24160e;box-shadow:0 8px 18px rgba(11,7,4,.26),inset 0 1px rgba(255,248,226,.10)}
+.actions{gap:10px}
+.controls{padding:10px 12px 8px;border-radius:15px;background:linear-gradient(180deg,#e9d9b1,#cfb47e);border:1px solid #80633e;box-shadow:0 8px 18px rgba(11,7,4,.24),inset 0 1px rgba(255,248,226,.44)}
+.control label{font-size:11px;color:#61492d}
+.difficultyRail{height:8px;border-radius:999px;background:#94764b}
+.difficultyStops{top:5px}.difficultyStops i{width:10px;height:10px;background:#d9ca9a;border-color:#755d3c}
+.scaleLabels{font-size:11px;color:#61492d}
+.scaleLabels button.active{background:rgba(255,247,226,.52);color:#362617}
+.modal{background:rgba(13,9,6,.74)}
+.sheet{background:linear-gradient(180deg,#efe2bf,#d7c18f)}
+@media (max-width:520px){
+ .titleWrap{max-width:calc(100% - 164px);padding:13px 14px 12px}
+ .stats{min-width:154px;padding:9px 10px;gap:8px}
+ .stats .stat strong{font-size:18px}
+ .gameTop{padding:14px 14px 12px}
+ .gameTop::after{right:10px;top:12px;font-size:12px;padding:7px 9px 8px 10px}
+ .gameTop::before{right:81px;top:20px;height:73px}
+ .claimHeader{padding-right:112px}
+ .claimName{font-size:clamp(23px,7vw,38px)}
+ .legend{padding-right:110px}
+}
+@media (max-width:420px){
+ .app{padding-left:8px;padding-right:8px}
+ header{gap:8px}
+ .titleWrap{max-width:calc(100% - 146px);padding:12px 12px 11px}
+ .title{font-size:31px}.titleKicker{font-size:9px}
+ .stats{min-width:138px;padding:8px 8px 8px 9px}
+ .stats .stat{font-size:10px}.stats .stat strong{font-size:17px}
+ .gameTop::after{font-size:11px;right:8px;top:11px;padding:6px 8px 7px 10px}
+ .gameTop::before{right:70px;top:18px;height:70px;width:5px}
+ .claimHeader{padding-right:98px}
+ .legend{font-size:11px;padding-right:96px}
+ .controls{padding-left:10px;padding-right:10px}
+ button{min-height:50px}
+}
+@media (max-height:700px){
+ .titleKicker{display:block}
+ .gameTop::after,.gameTop::before{display:none}
+ .claimHeader,.legend,.message{padding-right:0}
+ .claimName{font-size:22px}
 }
 
 </style>
@@ -917,18 +1008,36 @@ function claimNameFor(p=state){
  return `${a} ${b}`;
 }
 function terrainKindForRegion(rg){return TERRAIN_TYPES[stringHash(puzzleSeed(state)+'|terrain|'+rg)%TERRAIN_TYPES.length]}
+const TERRAIN_STYLE={
+ ridge:{fill:'#ccb99b',ink:'#4f4132'},forest:{fill:'#b0ad7d',ink:'#415037'},creek:{fill:'#b6b9ad',ink:'#44555a'},
+ scrub:{fill:'#b8af86',ink:'#49503a'},stone:{fill:'#c5bbae',ink:'#564a3d'},grass:{fill:'#bdb37f',ink:'#4a5036'},
+ sand:{fill:'#ccb48a',ink:'#62513b'},quartz:{fill:'#d0c6b8',ink:'#61574b'},marsh:{fill:'#a8af98',ink:'#455247'},contour:{fill:'#c8b490',ink:'#5c4937'}
+};
+function terrainBaseFill(rg,kind){
+ const base=(TERRAIN_STYLE[kind]||TERRAIN_STYLE.grass).fill;
+ const h=stringHash(puzzleSeed(state)+'|fill|'+rg);
+ return shadeHex(base,.95+((h%10)*.013));
+}
+function terrainInk(kind){return (TERRAIN_STYLE[kind]||TERRAIN_STYLE.grass).ink}
 function terrainLandmark(kind,x,y){
- const common=`transform="translate(${x} ${y})" fill="none" stroke="#443421" stroke-width=".055" stroke-linecap="round" stroke-linejoin="round" opacity=".19"`;
- if(kind==='ridge')return `<g ${common}><path d="M-.62 .36-.22-.30.03 .03.30-.48.68 .36"/><path d="M-.45 .48q.43-.18.86 0"/></g>`;
- if(kind==='forest')return `<g ${common}><path d="M-.42 .35-.22-.10-.03 .35M-.30 .16-.13-.24.04 .16M.08 .36.30-.18.53 .36"/><path d="M-.22 .35v.16M.30 .36v.15"/></g>`;
- if(kind==='creek')return `<g ${common}><path d="M-.70-.18q.30-.24.60 0t.60 0t.60 0M-.70 .12q.30-.24.60 0t.60 0t.60 0"/></g>`;
- if(kind==='scrub')return `<g ${common}><path d="M-.48 .32q.10-.35.22 0m-.11-.18-.15-.12m.16.10.16-.16M.06 .36q.11-.40.25 0m-.13-.20-.18-.13m.19.09.17-.17"/></g>`;
- if(kind==='stone')return `<g ${common}><path d="m-.50 .18.13-.32.32-.09.22.24-.15.30-.34.03ZM.12-.06l.20-.22.30.08.08.28-.23.24-.29-.08Z"/></g>`;
- if(kind==='grass')return `<g ${common}><path d="M-.46 .36q.05-.28-.12-.44M-.46 .36q.07-.30.25-.45M-.04 .38q.03-.34-.15-.55M-.04 .38q.10-.33.28-.46M.36 .35q.02-.26-.12-.43M.36 .35q.08-.26.24-.38"/></g>`;
- if(kind==='sand')return `<g ${common}><path d="M-.64-.18q.20-.12.40 0t.40 0t.40 0M-.44 .17q.20-.12.40 0t.40 0t.40 0"/><circle cx="-.42" cy="-.40" r=".045" fill="#443421" stroke="none"/><circle cx=".30" cy=".38" r=".035" fill="#443421" stroke="none"/></g>`;
- if(kind==='quartz')return `<g ${common}><path d="m-.38 .30.12-.57.22.18.18-.38.20.42.18-.10-.06.47-.43.18Z"/><path d="M-.04-.09.02.42M.16-.45.14.36"/></g>`;
- if(kind==='marsh')return `<g ${common}><path d="M-.54 .34v-.46m0 .17-.14-.12m.14.02.13-.14M-.10 .35v-.56m0 .17-.16-.15m.16.04.17-.16M.35 .35v-.42m0 .13-.12-.10m.12.02.13-.12"/><path d="M-.66 .43q.22-.10.44 0t.44 0t.44 0"/></g>`;
- return `<g ${common}><path d="M-.70-.28q.38-.28.76-.03t.76-.02M-.72 .02q.34-.25.68-.03t.68 0M-.64 .32q.30-.20.60 0t.60-.02"/></g>`;
+ const common=`transform="translate(${x} ${y})" fill="none" stroke="${terrainInk(kind)}" stroke-width=".050" stroke-linecap="round" stroke-linejoin="round" opacity=".22"`;
+ if(kind==='ridge')return `<g ${common}><path d="M-.70 .34-.42-.05-.18-.32.04 .06.30-.26.64 .36"/><path d="M-.56 .46q.28-.16.56 0t.56 0"/></g>`;
+ if(kind==='forest')return `<g ${common}><path d="M-.48 .34-.28-.08-.09 .34M-.35 .16-.18-.22-.01 .16M.08 .38.30-.10.54 .38"/><path d="M-.28 .34v.14M.30 .38v.14"/></g>`;
+ if(kind==='creek')return `<g ${common}><path d="M-.76-.10q.20-.20.40 0t.40 0t.40 0t.40 0M-.72 .18q.24-.22.48 0t.48 0t.48 0"/></g>`;
+ if(kind==='scrub')return `<g ${common}><path d="M-.46 .34q.06-.28-.10-.42m.10.22.16-.16M-.04 .38q.08-.30-.11-.46m.11.24.17-.17M.36 .34q.05-.24-.08-.38m.08.18.13-.14"/></g>`;
+ if(kind==='stone')return `<g ${common}><path d="m-.46 .18.12-.26.28-.08.20.18-.04.28-.31.04Zm.08-.04.18-.18.28.05.07.22-.16.20-.31-.05Z"/></g>`;
+ if(kind==='grass')return `<g ${common}><path d="M-.44 .36q.04-.24-.08-.39M-.44 .36q.10-.27.24-.40M-.02 .38q.03-.30-.11-.49M-.02 .38q.09-.28.22-.41M.34 .34q.02-.24-.08-.37M.34 .34q.07-.24.21-.36"/></g>`;
+ if(kind==='sand')return `<g ${common}><path d="M-.64-.06q.24-.10.48 0t.48 0t.48 0M-.50 .24q.24-.10.48 0t.48 0t.48 0"/><circle cx="-.26" cy="-.20" r=".04" fill="${terrainInk(kind)}" stroke="none" opacity=".16"/></g>`;
+ if(kind==='quartz')return `<g ${common}><path d="m-.34 .28.10-.46.19.16.14-.28.18.33.16-.08-.05.38-.37.14Z"/><path d="M-.02-.06.02.32M.14-.28.11.24"/></g>`;
+ if(kind==='marsh')return `<g ${common}><path d="M-.54 .34v-.42m0 .16-.12-.10m.12.02.12-.12M-.10 .36v-.48m0 .15-.14-.12m.14.03.14-.14M.34 .35v-.34m0 .12-.10-.09m.10.02.10-.10"/><path d="M-.68 .44q.22-.08.44 0t.44 0t.44 0"/></g>`;
+ return `<g ${common}><path d="M-.74-.18q.26-.18.52 0t.52 0t.52 0M-.70 .14q.28-.18.56 0t.56 0t.56 0M-.62 .42q.24-.14.48 0t.48 0t.48 0"/></g>`;
+}
+function xMarkMarkup(i){
+ const h=stringHash(puzzleSeed(state)+'|x|'+i),rot=((h>>17)%13)-6;
+ const a1=(h%5)-2,b1=((h>>3)%5)-2,a2=((h>>6)%5)-2,b2=((h>>9)%5)-2,a3=((h>>12)%5)-2,b3=((h>>15)%5)-2;
+ const extra=((h>>19)%3)===0;
+ const scratch=extra?`<path class="scratch" d="M${19+a1} ${44+b2}q6 3 13 0"/>`:'';
+ return `<span class="mapX" aria-hidden="true" style="--xrot:${rot}deg"><svg viewBox="0 0 64 64"><path class="stroke" d="M${14+a1} ${15+b1}Q ${22+a1} ${22+b2} ${32+a2} ${32+b2}T ${49+a3} ${50+b3}"/><path class="stroke" d="M${48-a1} ${14+b2}Q ${40-a2} ${24-b1} ${31-a3} ${33-b2}T ${14-a2} ${49-b3}"/>${scratch}</svg></span>`;
 }
 
 function fitCells(n){
@@ -942,11 +1051,10 @@ function fitCells(n){
 }
 function drawBoardArt(cellPx){
  const n=state.n;
- const ink='#4a3927';
- const seamW=.034;
- const boundaryW=.058;
+ const ink='#4d3b28';
+ const seamW=.018;
+ const boundaryW=.055;
  const outerW=.070;
- const radius=.052;
  const parts=[];
 
  boardArt.setAttribute('viewBox',`0 0 ${n} ${n}`);
@@ -956,65 +1064,61 @@ function drawBoardArt(cellPx){
  boardArt.style.height=`${n*cellPx}px`;
 
  parts.push(`<defs>
-  <pattern id="paper-grain" width=".72" height=".72" patternUnits="userSpaceOnUse"><circle cx=".11" cy=".18" r=".012" fill="#3f3121" fill-opacity=".16"/><circle cx=".48" cy=".53" r=".009" fill="#fff3c9" fill-opacity=".20"/><circle cx=".64" cy=".22" r=".007" fill="#493723" fill-opacity=".12"/><path d="M.18 .66l.15-.02" stroke="#483621" stroke-width=".008" stroke-opacity=".10"/></pattern>
-  <pattern id="terrain-ridge" width="1" height="1" patternUnits="userSpaceOnUse"><path d="M-.1 .72Q.22 .45.52 .67T1.1 .55M-.1 .30Q.28 .05.58 .28T1.1 .18" fill="none" stroke="#433521" stroke-width=".035" stroke-opacity=".17"/></pattern>
-  <pattern id="terrain-forest" width="1" height="1" patternUnits="userSpaceOnUse"><path d="m.16 .72.12-.30.12.30m.24-.12.10-.25.10.25M.28 .72v.10M.74 .60v.09" fill="none" stroke="#34412c" stroke-width=".035" stroke-opacity=".20" stroke-linecap="round"/></pattern>
-  <pattern id="terrain-creek" width="1" height="1" patternUnits="userSpaceOnUse"><path d="M-.1 .28q.22-.16.44 0t.44 0t.44 0M-.1 .62q.22-.16.44 0t.44 0t.44 0" fill="none" stroke="#314b4c" stroke-width=".034" stroke-opacity=".19"/></pattern>
-  <pattern id="terrain-scrub" width="1" height="1" patternUnits="userSpaceOnUse"><path d="M.24 .74q.04-.20-.10-.32m.10.18.13-.13M.70 .50q.03-.18-.10-.29m.10.16.12-.12" fill="none" stroke="#35412e" stroke-width=".034" stroke-opacity=".18" stroke-linecap="round"/></pattern>
-  <pattern id="terrain-stone" width="1" height="1" patternUnits="userSpaceOnUse"><circle cx=".25" cy=".27" r=".065" fill="none" stroke="#40372d" stroke-width=".025" stroke-opacity=".16"/><circle cx=".72" cy=".64" r=".085" fill="none" stroke="#40372d" stroke-width=".025" stroke-opacity=".16"/><circle cx=".45" cy=".82" r=".035" fill="#40372d" fill-opacity=".10"/></pattern>
-  <pattern id="terrain-grass" width="1" height="1" patternUnits="userSpaceOnUse"><path d="M.25 .72q0-.19-.10-.30m.10.30q.03-.19.13-.29M.70 .48q0-.17-.09-.27m.09.27q.03-.17.12-.25" fill="none" stroke="#3e442b" stroke-width=".03" stroke-opacity=".18" stroke-linecap="round"/></pattern>
-  <pattern id="terrain-sand" width="1" height="1" patternUnits="userSpaceOnUse"><circle cx=".20" cy=".30" r=".027" fill="#4d3a23" fill-opacity=".13"/><circle cx=".59" cy=".17" r=".020" fill="#4d3a23" fill-opacity=".11"/><circle cx=".78" cy=".71" r=".030" fill="#4d3a23" fill-opacity=".12"/><path d="M.08 .62q.19-.10.38 0t.38 0" fill="none" stroke="#4d3a23" stroke-width=".025" stroke-opacity=".13"/></pattern>
-  <pattern id="terrain-quartz" width="1" height="1" patternUnits="userSpaceOnUse"><path d="m.21 .64.08-.30.11.10.09-.21.11.24.10-.05-.03.27-.24.08Zm.52-.36.05-.17.07.07.06-.12.08.15-.03.15-.15.03Z" fill="none" stroke="#514735" stroke-width=".027" stroke-opacity=".18"/></pattern>
-  <pattern id="terrain-marsh" width="1" height="1" patternUnits="userSpaceOnUse"><path d="M.22 .71v-.36m0 .14-.10-.08m.10.02.10-.10M.68 .48v-.30m0 .11-.09-.07m.09.01.09-.09M.08 .79q.21-.09.42 0t.42 0" fill="none" stroke="#34443b" stroke-width=".03" stroke-opacity=".18" stroke-linecap="round"/></pattern>
-  <pattern id="terrain-contour" width="1" height="1" patternUnits="userSpaceOnUse"><path d="M-.15 .19q.30-.23.60-.03t.70-.02M-.12 .50q.33-.25.66-.02t.66-.02M-.08 .81q.28-.20.56 0t.60-.02" fill="none" stroke="#493826" stroke-width=".027" stroke-opacity=".16"/></pattern>
+  <filter id="paper-fiber"><feTurbulence type="fractalNoise" baseFrequency="0.92" numOctaves="2" seed="5" result="noise"/><feColorMatrix in="noise" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 .08 0"/><feBlend in="SourceGraphic" mode="multiply"/></filter>
+  <pattern id="paper-grain" width=".9" height=".9" patternUnits="userSpaceOnUse"><circle cx=".11" cy=".18" r=".012" fill="#3f3121" fill-opacity=".12"/><circle cx=".48" cy=".53" r=".009" fill="#fff3c9" fill-opacity=".18"/><circle cx=".64" cy=".22" r=".007" fill="#493723" fill-opacity=".10"/><path d="M.18 .66l.15-.02" stroke="#483621" stroke-width=".008" stroke-opacity=".08"/></pattern>
+  <pattern id="terrain-ridge" width="1" height="1" patternUnits="userSpaceOnUse"><path d="M-.1 .72Q.22 .45.52 .67T1.1 .55M-.1 .30Q.28 .05.58 .28T1.1 .18" fill="none" stroke="#5a4732" stroke-width=".028" stroke-opacity=".16"/></pattern>
+  <pattern id="terrain-forest" width="1" height="1" patternUnits="userSpaceOnUse"><path d="m.16 .72.12-.30.12.30m.24-.12.10-.25.10.25M.28 .72v.10M.74 .60v.09" fill="none" stroke="#435038" stroke-width=".032" stroke-opacity=".18" stroke-linecap="round"/></pattern>
+  <pattern id="terrain-creek" width="1" height="1" patternUnits="userSpaceOnUse"><path d="M-.1 .28q.22-.16.44 0t.44 0t.44 0M-.1 .62q.22-.16.44 0t.44 0t.44 0" fill="none" stroke="#466066" stroke-width=".030" stroke-opacity=".15"/></pattern>
+  <pattern id="terrain-scrub" width="1" height="1" patternUnits="userSpaceOnUse"><path d="M.24 .74q.04-.20-.10-.32m.10.18.13-.13M.70 .50q.03-.18-.10-.29m.10.16.12-.12" fill="none" stroke="#52583f" stroke-width=".030" stroke-opacity=".16" stroke-linecap="round"/></pattern>
+  <pattern id="terrain-stone" width="1" height="1" patternUnits="userSpaceOnUse"><circle cx=".25" cy=".27" r=".065" fill="none" stroke="#5b4f43" stroke-width=".020" stroke-opacity=".14"/><circle cx=".72" cy=".64" r=".085" fill="none" stroke="#5b4f43" stroke-width=".020" stroke-opacity=".14"/></pattern>
+  <pattern id="terrain-grass" width="1" height="1" patternUnits="userSpaceOnUse"><path d="M.25 .72q0-.19-.10-.30m.10.30q.03-.19.13-.29M.70 .48q0-.17-.09-.27m.09.27q.03-.17.12-.25" fill="none" stroke="#4f563b" stroke-width=".028" stroke-opacity=".16" stroke-linecap="round"/></pattern>
+  <pattern id="terrain-sand" width="1" height="1" patternUnits="userSpaceOnUse"><circle cx=".20" cy=".30" r=".027" fill="#6e5737" fill-opacity=".10"/><circle cx=".78" cy=".71" r=".030" fill="#6e5737" fill-opacity=".10"/><path d="M.08 .62q.19-.10.38 0t.38 0" fill="none" stroke="#6e5737" stroke-width=".022" stroke-opacity=".12"/></pattern>
+  <pattern id="terrain-quartz" width="1" height="1" patternUnits="userSpaceOnUse"><path d="m.21 .64.08-.30.11.10.09-.21.11.24.10-.05-.03.27-.24.08Zm.52-.36.05-.17.07.07.06-.12.08.15-.03.15-.15.03Z" fill="none" stroke="#6b6054" stroke-width=".023" stroke-opacity=".14"/></pattern>
+  <pattern id="terrain-marsh" width="1" height="1" patternUnits="userSpaceOnUse"><path d="M.22 .71v-.36m0 .14-.10-.08m.10.02.10-.10M.68 .48v-.30m0 .11-.09-.07m.09.01.09-.09M.08 .79q.21-.09.42 0t.42 0" fill="none" stroke="#43574c" stroke-width=".028" stroke-opacity=".17" stroke-linecap="round"/></pattern>
+  <pattern id="terrain-contour" width="1" height="1" patternUnits="userSpaceOnUse"><path d="M-.15 .19q.30-.23.60-.03t.70-.02M-.12 .50q.33-.25.66-.02t.66-.02M-.08 .81q.28-.20.56 0t.60-.02" fill="none" stroke="#6c563d" stroke-width=".022" stroke-opacity=".16"/></pattern>
  </defs>`);
 
- // Under-map parchment gives every board the look of a field survey sheet.
- parts.push(`<rect x=".02" y=".02" width="${n-.04}" height="${n-.04}" rx=".12" fill="#d8c89d" stroke="#59432b" stroke-width=".05"/>`);
+ parts.push(`<rect x=".02" y=".02" width="${n-.04}" height="${n-.04}" rx=".06" fill="#d8c69c" stroke="#6e5438" stroke-width=".05" filter="url(#paper-fiber)"/>`);
+ parts.push(`<rect x=".12" y=".12" width="${n-.24}" height="${n-.24}" rx=".02" fill="url(#paper-grain)" opacity=".55"/>`);
 
  for(let r=0;r<n;r++)for(let c=0;c<n;c++){
-   const i=r*n+c,rg=state.regions[i],fill=state.colors[rg],kind=terrainKindForRegion(rg);
+   const i=r*n+c,rg=state.regions[i],kind=terrainKindForRegion(rg),fill=terrainBaseFill(rg,kind);
    parts.push(`<rect x="${c}" y="${r}" width="1" height="1" fill="${fill}"/>`);
-   parts.push(`<rect x="${c}" y="${r}" width="1" height="1" fill="url(#terrain-${kind})"/>`);
+   parts.push(`<rect x="${c}" y="${r}" width="1" height="1" fill="url(#terrain-${kind})" opacity=".9"/>`);
  }
- parts.push(`<rect x=".04" y=".04" width="${n-.08}" height="${n-.08}" rx=".10" fill="url(#paper-grain)" opacity=".55"/>`);
 
- // Fine survey seams within territories.
+ // faint survey grid
+ for(let i=1;i<n;i++){
+   parts.push(`<path d="M${i} .12V${n-.12}" stroke="#69553f" stroke-width=".015" opacity=".18"/>`);
+   parts.push(`<path d="M.12 ${i}H${n-.12}" stroke="#69553f" stroke-width=".015" opacity=".18"/>`);
+ }
+
  for(let r=0;r<n;r++)for(let c=0;c<n;c++){
-   const i=r*n+c,rg=state.regions[i],seam=shadeHex(state.colors[rg],.70);
-   if(c<n-1&&state.regions[i+1]===rg)parts.push(`<rect x="${c+1-seamW/2}" y="${r}" width="${seamW}" height="1" fill="${seam}" opacity=".45"/>`);
-   if(r<n-1&&state.regions[i+n]===rg)parts.push(`<rect x="${c}" y="${r+1-seamW/2}" width="1" height="${seamW}" fill="${seam}" opacity=".45"/>`);
+   const i=r*n+c,rg=state.regions[i],kind=terrainKindForRegion(rg),seam=shadeHex(terrainBaseFill(rg,kind),.87);
+   if(c<n-1&&state.regions[i+1]===rg)parts.push(`<rect x="${c+1-seamW/2}" y="${r}" width="${seamW}" height="1" fill="${seam}" opacity=".28"/>`);
+   if(r<n-1&&state.regions[i+n]===rg)parts.push(`<rect x="${c}" y="${r+1-seamW/2}" width="1" height="${seamW}" fill="${seam}" opacity=".28"/>`);
  }
 
- // Authoritative territory boundaries, like inked survey lines.
  for(let r=0;r<n;r++)for(let c=0;c<n;c++){
    const i=r*n+c,rg=state.regions[i];
-   if(c<n-1&&state.regions[i+1]!==rg)parts.push(`<rect x="${c+1-boundaryW/2}" y="${r}" width="${boundaryW}" height="1" fill="${ink}" opacity=".92"/>`);
-   if(r<n-1&&state.regions[i+n]!==rg)parts.push(`<rect x="${c}" y="${r+1-boundaryW/2}" width="1" height="${boundaryW}" fill="${ink}" opacity=".92"/>`);
+   if(c<n-1&&state.regions[i+1]!==rg)parts.push(`<rect x="${c+1-boundaryW/2}" y="${r}" width="${boundaryW}" height="1" fill="${ink}" opacity=".83"/>`);
+   if(r<n-1&&state.regions[i+n]!==rg)parts.push(`<rect x="${c}" y="${r+1-boundaryW/2}" width="1" height="${boundaryW}" fill="${ink}" opacity=".83"/>`);
  }
 
- // Soft, rounded territory faces preserve the original game's readable geometry.
- for(let r=0;r<n;r++)for(let c=0;c<n;c++){
-   const i=r*n+c,rg=state.regions[i],fill=state.colors[rg],kind=terrainKindForRegion(rg);
-   const sameL=c>0&&state.regions[i-1]===rg,sameR=c<n-1&&state.regions[i+1]===rg,sameT=r>0&&state.regions[i-n]===rg,sameB=r<n-1&&state.regions[i+n]===rg;
-   const left=c===0?outerW:(sameL?seamW/2:boundaryW/2),right=c===n-1?outerW:(sameR?seamW/2:boundaryW/2),top=r===0?outerW:(sameT?seamW/2:boundaryW/2),bottom=r===n-1?outerW:(sameB?seamW/2:boundaryW/2);
-   parts.push(`<rect x="${c+left}" y="${r+top}" width="${1-left-right}" height="${1-top-bottom}" rx="${radius}" ry="${radius}" fill="${fill}" opacity=".91"/>`);
-   parts.push(`<rect x="${c+left}" y="${r+top}" width="${1-left-right}" height="${1-top-bottom}" rx="${radius}" ry="${radius}" fill="url(#terrain-${kind})" opacity=".92"/>`);
- }
-
- // One large cartographic terrain symbol per territory gives the map its illustrated character.
  const sums=Array.from({length:n},()=>({x:0,y:0,count:0}));
  for(let r=0;r<n;r++)for(let c=0;c<n;c++){const rg=state.regions[r*n+c],s=sums[rg];s.x+=c+.5;s.y+=r+.5;s.count++}
  for(let rg=0;rg<n;rg++)if(sums[rg].count){const s=sums[rg];parts.push(terrainLandmark(terrainKindForRegion(rg),s.x/s.count,s.y/s.count))}
 
- // Double survey frame.
- parts.push(`<rect x="${outerW/2}" y="${outerW/2}" width="${n-outerW}" height="${n-outerW}" rx=".105" fill="none" stroke="#4a3927" stroke-width="${outerW}"/>`);
- parts.push(`<rect x=".115" y=".115" width="${n-.23}" height="${n-.23}" rx=".075" fill="none" stroke="#e5d6aa" stroke-width=".022" opacity=".70"/>`);
+ parts.push(`<rect x="${outerW/2}" y="${outerW/2}" width="${n-outerW}" height="${n-outerW}" rx=".08" fill="none" stroke="#5f4a31" stroke-width="${outerW}"/>`);
+ parts.push(`<rect x=".15" y=".15" width="${n-.30}" height="${n-.30}" rx=".04" fill="none" stroke="#efe4bf" stroke-width=".02" opacity=".65"/>`);
  boardArt.innerHTML=parts.join('');
 }
 function paintCell(i){
  const c=boardEl.children[i];if(!c)return;const m=c.querySelector('.mark'),v=state.marks[i];c.classList.remove('x','marker','conflict');m.textContent='';
- if(v===1){c.classList.add('x')}else if(v===2){
+ if(v===1){
+   c.classList.add('x');
+   m.innerHTML=xMarkMarkup(i);
+ }else if(v===2){
    c.classList.add('marker');
    m.innerHTML='<span class="goldNugget" aria-hidden="true"><svg viewBox="0 0 64 50"><path class="nuggetMain" d="M7 30 13 16l13-9 19 3 11 12-4 15-18 8-18-4Z"/><path class="nuggetShade" d="m13 31 12-5 9 5 18-8-1 13-18 7-17-4Z"/><path class="nuggetShine" d="m18 18 9-7 11 2-8 7Z"/><circle class="nuggetGlint" cx="43" cy="19" r="2.8"/></svg></span>';
  }
