@@ -8,7 +8,6 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="One Each" />
-<link rel="manifest" href="manifest.webmanifest" />
 <title>One Each — endless logic puzzles</title>
 <style>
 :root{
@@ -396,21 +395,26 @@ function logicAnalyse(n,regions,maxForceDepth=1){
     }
     return rem;
   }
-  function cellsConflict(i,j){
-    const r=Math.floor(i/n),c=i%n,rr=Math.floor(j/n),cc=j%n;
-    return r===rr||c===cc||regions[i]===regions[j]||(Math.abs(r-rr)===1&&Math.abs(c-cc)===1);
+  function conflictMask(i,j){
+    const r=Math.floor(i/n),c=i%n,rr=Math.floor(j/n),cc=j%n;let mask=0;
+    if(r===rr)mask|=1;if(c===cc)mask|=2;if(regions[i]===regions[j])mask|=4;if(Math.abs(r-rr)===1&&Math.abs(c-cc)===1)mask|=8;
+    return mask;
   }
-  function blockingPrune(s){
+  function blockingPrune(s,wantCompound=false){
     let rem=0;
     for(let i=0;i<total&&!s.bad;i++)if(s.cand[i]&&!s.fixed[i]){
       const r=Math.floor(i/n),c=i%n,rg=regions[i];
       let blocked=false;
       for(let kind=0;kind<3&&!blocked;kind++)for(let u=0;u<n&&!blocked;u++){
         if((kind===0&&u===r)||(kind===1&&u===c)||(kind===2&&u===rg))continue;
-        const a=unitCells(kind,u).filter(j=>s.cand[j]);
-        if(a.length&&a.every(j=>cellsConflict(i,j))){
-          if(remove(s,i)){rem++;blocked=true}
-        }
+        const a=unitCells(kind,u).filter(j=>s.cand[j]);if(!a.length)continue;
+        let common=15,all=true;
+        for(const j of a){const mask=conflictMask(i,j);if(!mask){all=false;break}common&=mask}
+        if(!all)continue;
+        // Direct blocks share one visible constraint across every affected square.
+        // Blocks that only work by combining different constraints are compound/indirect.
+        const compound=common===0;if(compound!==wantCompound)continue;
+        if(remove(s,i)){rem++;blocked=true}
       }
     }
     return rem;
@@ -431,10 +435,12 @@ function logicAnalyse(n,regions,maxForceDepth=1){
       if(one>=0){place(s,one);stats.singles++;stats.cost+=1;continue}
       let rl=regionLinePrune(s);if(s.bad)break;
       if(rl){stats.regionLine+=rl;stats.cost+=1.8+rl*.18;continue}
-      let b=blockingPrune(s);if(s.bad)break;
+      let b=blockingPrune(s,false);if(s.bad)break;
       if(b){stats.block+=b;stats.cost+=2.6+b*.25;continue}
+      let cb=blockingPrune(s,true);if(s.bad)break;
+      if(cb){stats.compoundBlock+=cb;stats.cost+=9+cb*.7;continue}
       let a=arcPrune(s);if(s.bad)break;
-      if(a){stats.arc+=a;stats.cost+=3+a*.25;continue}
+      if(a){stats.arc+=a;stats.cost+=9+a*.7;continue}
       let m=matchingPrune(s);if(s.bad)break;
       if(m){stats.match+=m;stats.cost+=6+m*.6;continue}
       break
@@ -443,24 +449,24 @@ function logicAnalyse(n,regions,maxForceDepth=1){
   function run(s,depth,stats,trial=false){propagate(s,stats);if(s.bad)return 'bad';if(solved(s))return 'solved';if(depth<=0)return 'stuck';
     const order=candidateOrder(s);
     for(const i of order){
-      let t=cloneState(s),ts={singles:0,regionLine:0,block:0,arc:0,match:0,force:0,maxForce:0,cost:0};place(t,i);let rr=run(t,depth-1,ts,true);if(rr==='bad'){
+      let t=cloneState(s),ts={singles:0,regionLine:0,block:0,compoundBlock:0,arc:0,match:0,force:0,maxForce:0,cost:0};place(t,i);let rr=run(t,depth-1,ts,true);if(rr==='bad'){
         if(remove(s,i)){stats.force++;const level=1+(ts.maxForce||0);stats.maxForce=Math.max(stats.maxForce,level);stats.cost+=(level===1?45:105)+ts.cost*.18;return run(s,depth,stats,trial)}
       }
-      t=cloneState(s);ts={singles:0,regionLine:0,block:0,arc:0,match:0,force:0,maxForce:0,cost:0};remove(t,i);rr=run(t,depth-1,ts,true);if(rr==='bad'){
+      t=cloneState(s);ts={singles:0,regionLine:0,block:0,compoundBlock:0,arc:0,match:0,force:0,maxForce:0,cost:0};remove(t,i);rr=run(t,depth-1,ts,true);if(rr==='bad'){
         place(s,i);stats.force++;const level=1+(ts.maxForce||0);stats.maxForce=Math.max(stats.maxForce,level);stats.cost+=(level===1?50:115)+ts.cost*.18;return run(s,depth,stats,trial)
       }
     }
     return 'stuck';
   }
-  const s=makeState(),stats={singles:0,regionLine:0,block:0,arc:0,match:0,force:0,maxForce:0,cost:0};const status=run(s,maxForceDepth,stats,false);
-  const score=Math.round(stats.cost+n*2+stats.regionLine*.25+stats.block*.5+stats.match*1.2+stats.force*18+stats.maxForce*35);
+  const s=makeState(),stats={singles:0,regionLine:0,block:0,compoundBlock:0,arc:0,match:0,force:0,maxForce:0,cost:0};const status=run(s,maxForceDepth,stats,false);
+  const score=Math.round(stats.cost+n*2+stats.regionLine*.25+stats.block*.5+stats.compoundBlock*2+stats.match*1.2+stats.force*18+stats.maxForce*35);
   let band='Easy';
   // Any hypothetical / forcing step puts the puzzle in Brutal.
   if(stats.force>0||stats.maxForce>0)band='Brutal';
   else if(score>=300)band='Brutal';
-  else if(stats.match>=28||score>=120)band='Expert';
+  else if(stats.compoundBlock>0||stats.arc>0||stats.match>=28||score>=120)band='Expert';
   else if(stats.match>0||score>=72)band='Hard';
-  else if(stats.regionLine>0||stats.block>0||stats.arc>0||score>=46)band='Medium';
+  else if(stats.regionLine>0||stats.block>0||score>=46)band='Medium';
   return {solved:status==='solved',status,score,band,...stats};
 }
 function logicalDifficulty(n,regions){const a=logicAnalyse(n,regions,1);return a.solved?a.score:Infinity}
@@ -501,15 +507,15 @@ const EASY_FALLBACKS=[
 ];
 function bankCandidates(){
  const out=[];
- const easyRatings=[["Medium", 23], ["Easy", 21], ["Easy", 21], ["Easy", 21], ["Easy", 24], ["Easy", 18], ["Easy", 24], ["Easy", 18], ["Easy", 18], ["Easy", 21]];
+ const easyRatings=[["Expert", 32], ["Easy", 21], ["Easy", 21], ["Easy", 21], ["Easy", 24], ["Easy", 18], ["Easy", 24], ["Easy", 18], ["Easy", 18], ["Easy", 21]];
  for(let index=0;index<EASY_FALLBACKS.length;index++){
    const p=EASY_FALLBACKS[index],r=easyRatings[index]||['Easy',20];
-   out.push({n:p.n,regions:p.regions.slice(),solution:p.solution.slice(),score:r[1],band:r[0],force:0,maxForce:0,regionLine:0,block:0,match:0,arc:0,logicVersion:5,source:'starter',baseId:`easy:${index}`});
+   out.push({n:p.n,regions:p.regions.slice(),solution:p.solution.slice(),score:r[1],band:r[0],force:0,maxForce:0,regionLine:0,block:0,compoundBlock:0,match:0,arc:0,logicVersion:6,source:'starter',baseId:`easy:${index}`});
  }
- const ratings={"6": [["Medium", 32, 0], ["Hard", 53, 0], ["Medium", 32, 0], ["Brutal", 134, 1], ["Medium", 24, 0]], "7": [["Medium", 28, 0], ["Medium", 50, 0], ["Brutal", 174, 1], ["Medium", 33, 0], ["Hard", 68, 0]], "8": [["Medium", 41, 0], ["Medium", 45, 0], ["Medium", 38, 0], ["Hard", 64, 0], ["Brutal", 181, 1]], "9": [["Medium", 60, 0], ["Expert", 92, 0], ["Hard", 88, 0], ["Hard", 82, 0], ["Brutal", 141, 1]], "10": [["Medium", 34, 0], ["Expert", 150, 0], ["Expert", 97, 0], ["Brutal", 144, 1], ["Medium", 44, 0]], "11": [["Expert", 113, 0], ["Expert", 145, 0], ["Expert", 116, 0]], "12": [["Expert", 225, 0], ["Expert", 202, 0]]};
+ const ratings={"6":[["Expert",56,0],["Expert",88,0],["Expert",52,0],["Brutal",172,1],["Medium",24,0]],"7":[["Medium",28,0],["Expert",84,0],["Brutal",209,1],["Expert",54,0],["Expert",107,0]],"8":[["Medium",37,0],["Expert",63,0],["Expert",44,0],["Expert",76,0],["Brutal",210,1]],"9":[["Expert",63,0],["Expert",104,0],["Expert",96,0],["Expert",94,0],["Brutal",158,1]],"10":[["Medium",34,0],["Expert",162,0],["Expert",105,0],["Brutal",152,1],["Medium",44,0]],"11":[["Expert",130,0],["Expert",174,0],["Expert",131,0]],"12":[["Expert",274,0],["Expert",236,0]]};
  for(let n=6;n<=12;n++)for(let index=0;index<(PUZZLE_BANK[n]||[]).length;index++){
    const p=PUZZLE_BANK[n][index],r=(ratings[n]||[])[index]||['Hard',70,0];
-   out.push({n,regions:p.regions.slice(),solution:p.solution.slice(),score:r[1],band:r[0],force:r[2]||0,maxForce:r[2]||0,regionLine:0,block:0,match:0,arc:0,logicVersion:5,source:'starter',baseId:`bank:${n}:${index}`});
+   out.push({n,regions:p.regions.slice(),solution:p.solution.slice(),score:r[1],band:r[0],force:r[2]||0,maxForce:r[2]||0,regionLine:0,block:0,compoundBlock:0,match:0,arc:0,logicVersion:6,source:'starter',baseId:`bank:${n}:${index}`});
  }
  return out;
 }
@@ -616,21 +622,26 @@ function makeWorker(){
     }
     return rem;
   }
-  function cellsConflict(i,j){
-    const r=Math.floor(i/n),c=i%n,rr=Math.floor(j/n),cc=j%n;
-    return r===rr||c===cc||regions[i]===regions[j]||(Math.abs(r-rr)===1&&Math.abs(c-cc)===1);
+  function conflictMask(i,j){
+    const r=Math.floor(i/n),c=i%n,rr=Math.floor(j/n),cc=j%n;let mask=0;
+    if(r===rr)mask|=1;if(c===cc)mask|=2;if(regions[i]===regions[j])mask|=4;if(Math.abs(r-rr)===1&&Math.abs(c-cc)===1)mask|=8;
+    return mask;
   }
-  function blockingPrune(s){
+  function blockingPrune(s,wantCompound=false){
     let rem=0;
     for(let i=0;i<total&&!s.bad;i++)if(s.cand[i]&&!s.fixed[i]){
       const r=Math.floor(i/n),c=i%n,rg=regions[i];
       let blocked=false;
       for(let kind=0;kind<3&&!blocked;kind++)for(let u=0;u<n&&!blocked;u++){
         if((kind===0&&u===r)||(kind===1&&u===c)||(kind===2&&u===rg))continue;
-        const a=unitCells(kind,u).filter(j=>s.cand[j]);
-        if(a.length&&a.every(j=>cellsConflict(i,j))){
-          if(remove(s,i)){rem++;blocked=true}
-        }
+        const a=unitCells(kind,u).filter(j=>s.cand[j]);if(!a.length)continue;
+        let common=15,all=true;
+        for(const j of a){const mask=conflictMask(i,j);if(!mask){all=false;break}common&=mask}
+        if(!all)continue;
+        // Direct blocks share one visible constraint across every affected square.
+        // Blocks that only work by combining different constraints are compound/indirect.
+        const compound=common===0;if(compound!==wantCompound)continue;
+        if(remove(s,i)){rem++;blocked=true}
       }
     }
     return rem;
@@ -651,10 +662,12 @@ function makeWorker(){
       if(one>=0){place(s,one);stats.singles++;stats.cost+=1;continue}
       let rl=regionLinePrune(s);if(s.bad)break;
       if(rl){stats.regionLine+=rl;stats.cost+=1.8+rl*.18;continue}
-      let b=blockingPrune(s);if(s.bad)break;
+      let b=blockingPrune(s,false);if(s.bad)break;
       if(b){stats.block+=b;stats.cost+=2.6+b*.25;continue}
+      let cb=blockingPrune(s,true);if(s.bad)break;
+      if(cb){stats.compoundBlock+=cb;stats.cost+=9+cb*.7;continue}
       let a=arcPrune(s);if(s.bad)break;
-      if(a){stats.arc+=a;stats.cost+=3+a*.25;continue}
+      if(a){stats.arc+=a;stats.cost+=9+a*.7;continue}
       let m=matchingPrune(s);if(s.bad)break;
       if(m){stats.match+=m;stats.cost+=6+m*.6;continue}
       break
@@ -663,24 +676,24 @@ function makeWorker(){
    function run(s,depth,stats,trial=false){propagate(s,stats);if(s.bad)return 'bad';if(solved(s))return 'solved';if(depth<=0)return 'stuck';
      const order=candidateOrder(s);
      for(const i of order){
-       let t=cloneState(s),ts={singles:0,regionLine:0,block:0,arc:0,match:0,force:0,maxForce:0,cost:0};place(t,i);let rr=run(t,depth-1,ts,true);if(rr==='bad'){
+       let t=cloneState(s),ts={singles:0,regionLine:0,block:0,compoundBlock:0,arc:0,match:0,force:0,maxForce:0,cost:0};place(t,i);let rr=run(t,depth-1,ts,true);if(rr==='bad'){
          if(remove(s,i)){stats.force++;const level=1+(ts.maxForce||0);stats.maxForce=Math.max(stats.maxForce,level);stats.cost+=(level===1?45:105)+ts.cost*.18;return run(s,depth,stats,trial)}
        }
-       t=cloneState(s);ts={singles:0,regionLine:0,block:0,arc:0,match:0,force:0,maxForce:0,cost:0};remove(t,i);rr=run(t,depth-1,ts,true);if(rr==='bad'){
+       t=cloneState(s);ts={singles:0,regionLine:0,block:0,compoundBlock:0,arc:0,match:0,force:0,maxForce:0,cost:0};remove(t,i);rr=run(t,depth-1,ts,true);if(rr==='bad'){
          place(s,i);stats.force++;const level=1+(ts.maxForce||0);stats.maxForce=Math.max(stats.maxForce,level);stats.cost+=(level===1?50:115)+ts.cost*.18;return run(s,depth,stats,trial)
        }
      }
      return 'stuck';
    }
-   const s=makeState(),stats={singles:0,regionLine:0,block:0,arc:0,match:0,force:0,maxForce:0,cost:0};const status=run(s,maxForceDepth,stats,false);
-   const score=Math.round(stats.cost+n*2+stats.regionLine*.25+stats.block*.5+stats.match*1.2+stats.force*18+stats.maxForce*35);
+   const s=makeState(),stats={singles:0,regionLine:0,block:0,compoundBlock:0,arc:0,match:0,force:0,maxForce:0,cost:0};const status=run(s,maxForceDepth,stats,false);
+   const score=Math.round(stats.cost+n*2+stats.regionLine*.25+stats.block*.5+stats.compoundBlock*2+stats.match*1.2+stats.force*18+stats.maxForce*35);
    let band='Easy';
    // Any hypothetical / forcing step puts the puzzle in Brutal.
    if(stats.force>0||stats.maxForce>0)band='Brutal';
    else if(score>=300)band='Brutal';
-   else if(stats.match>=28||score>=120)band='Expert';
+   else if(stats.compoundBlock>0||stats.arc>0||stats.match>=28||score>=120)band='Expert';
    else if(stats.match>0||score>=72)band='Hard';
-   else if(stats.regionLine>0||stats.block>0||stats.arc>0||score>=46)band='Medium';
+   else if(stats.regionLine>0||stats.block>0||score>=46)band='Medium';
    return {solved:status==='solved',status,score,band,...stats};
  }
  function workerChallenge(n,a){
@@ -695,7 +708,7 @@ function makeWorker(){
      const fixed=repair(n,solution,regions);if(!fixed.ok)continue;
      const verify=findSolutions(n,fixed.reg,2);if(verify.length!==1||!same(verify[0],solution))continue;
      const a=logicAnalyse(n,fixed.reg,1);if(!a.solved)continue;
-     const p={n,solution,regions:fixed.reg,score:a.score,band:a.band,force:a.force,maxForce:a.maxForce,regionLine:a.regionLine,block:a.block,match:a.match,arc:a.arc,logicVersion:5,source:'generated'};
+     const p={n,solution,regions:fixed.reg,score:a.score,band:a.band,force:a.force,maxForce:a.maxForce,regionLine:a.regionLine,block:a.block,compoundBlock:a.compoundBlock||0,match:a.match,arc:a.arc,logicVersion:6,source:'generated'};
      const bandDistance=Math.abs(WBANDS.indexOf(p.band)-targetIndex);
      const sizeCentre={Easy:7,Medium:8,Hard:9,Expert:10,Brutal:11}[targetBand]||9;
      const d=bandDistance*3+Math.abs(n-sizeCentre)*.18;
@@ -714,7 +727,7 @@ function ensureWorker(){
  generatorWorker.onmessage=e=>{
    generatorBusy=false;
    const p=e.data&&e.data.puzzle;
-   if(e.data&&e.data.ok&&p&&p.logicVersion===5&&p.n>=6&&p.n<=12&&p.regions?.length===p.n*p.n&&p.solution?.length===p.n){
+   if(e.data&&e.data.ok&&p&&p.logicVersion===6&&p.n>=6&&p.n<=12&&p.regions?.length===p.n*p.n&&p.solution?.length===p.n){
      p.source='generated';
      const h=puzzleHash(p),store=loadStore(),seen=new Set(store.seen||[]);
      if(!seen.has(h)&&!generatedPool.some(x=>puzzleHash(x)===h))generatedPool.push(p);
@@ -732,7 +745,7 @@ function requestGeneration(delay=0){
 }
 function loadGeneratedPool(){
  const pool=loadStore().generatedPool;
- if(Array.isArray(pool))generatedPool=pool.filter(p=>p&&p.logicVersion===5&&p.n>=6&&p.n<=12&&p.regions?.length===p.n*p.n&&p.solution?.length===p.n).slice(-POOL_TARGET);
+ if(Array.isArray(pool))generatedPool=pool.filter(p=>p&&p.logicVersion===6&&p.n>=6&&p.n<=12&&p.regions?.length===p.n*p.n&&p.solution?.length===p.n).slice(-POOL_TARGET);
  requestGeneration(2500);
 }
 function transformed(p,t){
@@ -950,7 +963,7 @@ function loadProgress(){
  try{
    const a=logicAnalyse(state.n,state.regions,1);
    if(a.solved){
-     state.score=a.score;state.band=a.band;state.force=a.force;state.maxForce=a.maxForce;state.regionLine=a.regionLine;state.block=a.block;state.match=a.match;state.arc=a.arc;state.logicVersion=5;
+     state.score=a.score;state.band=a.band;state.force=a.force;state.maxForce=a.maxForce;state.regionLine=a.regionLine;state.block=a.block;state.compoundBlock=a.compoundBlock||0;state.match=a.match;state.arc=a.arc;state.logicVersion=6;
    }
  }catch{}
  state.startedAt=Date.now();state.complete=false;render();
@@ -1079,7 +1092,7 @@ function makeNew(){
    console.error(e);
    try{
      const sizes=Object.keys(PUZZLE_BANK),n=+sizes[rngInt(sizes.length)],raw=PUZZLE_BANK[n][rngInt(PUZZLE_BANK[n].length)];
-     const p=transformed({n,regions:raw.regions.slice(),solution:raw.solution.slice(),score:70,band:'Hard',force:0,maxForce:0,logicVersion:5,source:'starter'},rngInt(8));
+     const p=transformed({n,regions:raw.regions.slice(),solution:raw.solution.slice(),score:70,band:'Hard',force:0,maxForce:0,logicVersion:6,source:'starter'},rngInt(8));
      state={...p,colors:paletteFor(p.n,p.regions),marks:Array(p.n*p.n).fill(0),elapsed:0,startedAt:Date.now(),complete:false,failed:false,transform:0,history:[],hintUsed:false,hintCount:0,activeHint:null};
      render();startTimer();setMessage('');
    }catch(fallbackError){
@@ -1270,17 +1283,21 @@ function logicHintClue(){
    return null;
  }
  function blockingClue(s){
-   function conflicts(i,j){
-     const r=Math.floor(i/n),c=i%n,rr=Math.floor(j/n),cc=j%n;
-     return r===rr||c===cc||regions[i]===regions[j]||(Math.abs(r-rr)===1&&Math.abs(c-cc)===1);
+   function conflictMask(i,j){
+     const r=Math.floor(i/n),c=i%n,rr=Math.floor(j/n),cc=j%n;let mask=0;
+     if(r===rr)mask|=1;if(c===cc)mask|=2;if(regions[i]===regions[j])mask|=4;if(Math.abs(r-rr)===1&&Math.abs(c-cc)===1)mask|=8;
+     return mask;
    }
    const options=[];
    for(let i=0;i<total;i++)if(s.cand[i]&&!s.fixed[i]){
      const r=Math.floor(i/n),c=i%n,rg=regions[i];
      for(let kind=0;kind<3;kind++)for(let u=0;u<n;u++){
        if((kind===0&&u===r)||(kind===1&&u===c)||(kind===2&&u===rg))continue;
-       const a=unitCells(kind,u).filter(j=>s.cand[j]);
-       if(!a.length||!a.every(j=>conflicts(i,j)))continue;
+       const a=unitCells(kind,u).filter(j=>s.cand[j]);if(!a.length)continue;
+       let common=15,all=true;
+       for(const j of a){const mask=conflictMask(i,j);if(!mask){all=false;break}common&=mask}
+       if(!all)continue;
+       const compound=common===0;
 
        let subject,intro;
        if(kind===0){
@@ -1299,6 +1316,7 @@ function logicHintClue(){
          key:`block-${i}-${kind}-${u}`,
          type:'blocking',
          targetCells:[i],
+         compound,
          optionCount:a.length,
          kindRank:kind===2?0:kind===0?1:2,
          intro,
@@ -1308,7 +1326,7 @@ function logicHintClue(){
      }
    }
    if(!options.length)return null;
-   options.sort((a,b)=>a.optionCount-b.optionCount||a.kindRank-b.kindRank||a.targetCells[0]-b.targetCells[0]);
+   options.sort((a,b)=>(a.compound===b.compound?0:a.compound?1:-1)||a.optionCount-b.optionCount||a.kindRank-b.kindRank||a.targetCells[0]-b.targetCells[0]);
    return options[0];
  }
  function arcClue(s){
