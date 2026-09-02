@@ -7,12 +7,12 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<link rel="manifest" href="./manifest.webmanifest?v=12" />
-<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png?v=12" />
-<link rel="icon" type="image/x-icon" href="./icons/favicon.ico?v=12" />
-<link rel="shortcut icon" type="image/x-icon" href="./icons/favicon.ico?v=12" />
-<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=12" />
-<link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png?v=12" />
+<link rel="manifest" href="./manifest.webmanifest?v=13" />
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png?v=13" />
+<link rel="icon" type="image/x-icon" href="./icons/favicon.ico?v=13" />
+<link rel="shortcut icon" type="image/x-icon" href="./icons/favicon.ico?v=13" />
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=13" />
+<link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png?v=13" />
 <meta name="apple-mobile-web-app-title" content="One Each" />
 <title>One Each — endless logic puzzles</title>
 <style>
@@ -309,6 +309,72 @@ header{margin-top:0!important;flex:0 0 auto}
   .messageSlot{min-height:36px;padding-top:5px;padding-bottom:4px}
 }
 
+
+/* 2026-09-02 UI balance + horizontal selector pass */
+.stat+.stat{border-left:0}
+.stats{gap:18px}
+.stat,.recordsBtn{padding:0 3px}
+.gameShell{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:visible}
+.gameTop{
+  flex:1 1 72px;min-height:64px;max-height:118px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:7px;padding:7px 0 9px;margin:0;
+}
+.puzzleMeta .difficultyNow{font-size:16px;padding:6px 13px;box-shadow:0 3px 9px rgba(101,96,117,.07)}
+.stats{font-size:12px;min-height:24px}
+.stat strong{font-size:16px}.statIcon{width:17px;height:17px}
+.boardStage{flex:0 0 auto!important;min-height:0!important;height:auto!important;display:block!important;padding:0!important;margin:0!important;overflow:visible!important}
+.boardWrap{width:100%!important;height:auto!important;min-height:0!important;display:flex!important;align-items:flex-start!important;justify-content:center!important;flex:0 0 auto!important}
+.messageSlot{flex:0 0 auto;min-height:48px;padding:7px 7px 6px;display:flex;align-items:center;justify-content:center}
+.message,.message.hintMessage{display:block;width:100%;text-align:center;padding:0 7px;line-height:1.34}
+.bottomControls{flex:0 0 auto;margin-top:0;padding-top:0;gap:3px}
+.actions,.controls{gap:3px}
+
+.wheelTrack{
+  height:48px!important;min-height:48px!important;width:100%;
+  display:flex!important;flex-direction:row!important;align-items:center!important;
+  overflow-x:auto!important;overflow-y:hidden!important;
+  scroll-snap-type:x mandatory!important;scroll-padding-inline:50%;scroll-behavior:smooth;
+  overscroll-behavior-x:contain;overscroll-behavior-y:none;
+  touch-action:pan-x!important;
+  padding:0 calc(50% - 42px)!important;
+  mask-image:linear-gradient(to right,rgba(0,0,0,.28),#000 24%,#000 76%,rgba(0,0,0,.28))!important;
+  -webkit-mask-image:linear-gradient(to right,rgba(0,0,0,.28),#000 24%,#000 76%,rgba(0,0,0,.28))!important;
+}
+.wheelOption{
+  scroll-snap-align:center;scroll-snap-stop:always;flex:0 0 84px!important;
+  width:84px;min-width:84px;min-height:38px!important;height:38px;
+  display:flex;align-items:center;justify-content:center;
+  padding:0 5px!important;line-height:1!important;font-size:11px!important;
+}
+.wheelOption.active{font-size:13px!important}
+
+@media (max-width:420px){
+  .gameTop{flex-basis:68px;min-height:60px;max-height:106px;gap:6px;padding:6px 0 8px}
+  .puzzleMeta .difficultyNow{font-size:15.5px;padding:6px 12px}
+  .stats{gap:15px;font-size:11.5px}.stat strong{font-size:15px}.statIcon{width:16px;height:16px}
+  .messageSlot{min-height:46px;padding:7px 6px 6px}
+  .wheelTrack{height:46px!important;min-height:46px!important;padding:0 calc(50% - 39px)!important}
+  .wheelOption{flex-basis:78px!important;width:78px;min-width:78px;height:36px;min-height:36px!important;font-size:10.5px!important}
+  .wheelOption.active{font-size:12.5px!important}
+}
+@media (max-height:700px){
+  .gameTop{flex-basis:56px;min-height:52px;max-height:78px;gap:4px;padding:3px 0 5px}
+  .puzzleMeta .difficultyNow{font-size:14px;padding:4px 9px}
+  .stats{font-size:10.5px;gap:12px}.stat strong{font-size:13.5px}.statIcon{width:15px;height:15px}
+  .messageSlot{min-height:38px;padding:4px 5px}
+  .wheelTrack{height:43px!important;min-height:43px!important}
+}
+
+
+/* 2026-09-02 control spacing tidy */
+.bottomControls{gap:6px!important}
+.actions{gap:7px!important}
+.controls{gap:7px!important}
+@media (max-height:700px){
+  .bottomControls{gap:5px!important}
+  .actions,.controls{gap:6px!important}
+}
 </style>
 </head>
 <body>
@@ -483,17 +549,21 @@ function sampleBand(v){
   return BANDS[mix.length-1];
 }
 function currentSettingsKey(){return `${difficultyBias}|${sizeMode}`}
-function centreWheelOption(wheel,button,smooth=true){if(!wheel||!button)return;button.scrollIntoView({behavior:smooth?'smooth':'auto',block:'center',inline:'nearest'})}
+function centreWheelOption(wheel,button,smooth=true){
+  if(!wheel||!button)return;
+  const left=button.offsetLeft-(wheel.clientWidth-button.offsetWidth)/2;
+  wheel.scrollTo({left,behavior:smooth?'smooth':'auto'});
+}
 function markWheel(wheel,value,smooth=false){
   const buttons=[...wheel.querySelectorAll('.wheelOption')];
   for(const b of buttons){const active=String(b.dataset.value)===String(value);b.classList.toggle('active',active);b.setAttribute('aria-selected',active?'true':'false')}
   centreWheelOption(wheel,buttons.find(b=>String(b.dataset.value)===String(value)),smooth);
 }
 function nearestWheelValue(wheel){
-  const box=wheel.getBoundingClientRect(),centre=box.top+box.height/2;
+  const box=wheel.getBoundingClientRect(),centre=box.left+box.width/2;
   let best=null,dist=Infinity;
   for(const b of wheel.querySelectorAll('.wheelOption')){
-    const r=b.getBoundingClientRect(),d=Math.abs((r.top+r.bottom)/2-centre);
+    const r=b.getBoundingClientRect(),d=Math.abs((r.left+r.right)/2-centre);
     if(d<dist){dist=d;best=b}
   }
   return best?.dataset.value;
@@ -509,10 +579,10 @@ function bindWheel(wheel,onValue){
     if(programmatic)return;clearTimeout(timer);timer=setTimeout(()=>{const v=nearestWheelValue(wheel);const b=wheel.querySelector(`.wheelOption[data-value="${v}"]`);select(b,true)},110)
   },{passive:true});
   wheel.addEventListener('wheel',e=>{
-    if(!e.deltaY)return;
+    const delta=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;if(!delta)return;
     e.preventDefault();
     const buttons=[...wheel.querySelectorAll('.wheelOption')],active=buttons.findIndex(b=>b.classList.contains('active'));
-    const next=Math.max(0,Math.min(buttons.length-1,active+(e.deltaY>0?1:-1)));
+    const next=Math.max(0,Math.min(buttons.length-1,active+(delta>0?1:-1)));
     if(next!==active)select(buttons[next],true);
   },{passive:false});
 }
@@ -540,23 +610,37 @@ function markerPermutation(n){
  const pos=Array(n).fill(-1),used=new Set(); return rec(0)?pos:null;
 }
 function neighbors4(i,n){const r=Math.floor(i/n),c=i%n,a=[];if(r)a.push(i-n);if(r<n-1)a.push(i+n);if(c)a.push(i-1);if(c<n-1)a.push(i+1);return a}
-function growRegions(n,sol){
+function growRegions(n,sol,style='mixed'){
  const total=n*n,reg=Array(total).fill(-1),front=Array.from({length:n},()=>[]),counts=Array(n).fill(1);
+ const styles=['balanced','compact','tendril'];if(style==='mixed')style=styles[rngInt(styles.length)];
+ const growthBias=Array.from({length:n},()=>.78+Math.random()*.44);
  for(let r=0;r<n;r++){const i=r*n+sol[r];reg[i]=r}
  for(let k=0;k<n;k++){const seed=k*n+sol[k];for(const nb of neighbors4(seed,n))if(reg[nb]<0)front[k].push(nb)}
  let left=total-n,guard=0;
- while(left&&guard++<10000){
-   const ids=shuffle([...Array(n).keys()]).sort((a,b)=>counts[a]-counts[b]+(Math.random()-.5)*2);
+ while(left&&guard++<12000){
+   const ids=shuffle([...Array(n).keys()]).sort((a,b)=>(counts[a]/growthBias[a])-(counts[b]/growthBias[b])+(Math.random()-.5)*.42);
    let did=false;
    for(const k of ids){
      const choices=[...new Set(front[k])].filter(i=>reg[i]<0);if(!choices.length)continue;
-     const i=choices[rngInt(choices.length)];reg[i]=k;counts[k]++;left--;did=true;
+     let i;
+     if(style==='balanced')i=choices[rngInt(choices.length)];
+     else{
+       let best=[],bestScore=style==='compact'?-Infinity:Infinity;
+       for(const cell of choices){
+         const same=neighbors4(cell,n).filter(nb=>reg[nb]===k).length;
+         const score=same+(Math.random()-.5)*.9;
+         if((style==='compact'&&score>bestScore)||(style==='tendril'&&score<bestScore)){bestScore=score;best=[cell]}
+         else if(Math.abs(score-bestScore)<.08)best.push(cell);
+       }
+       i=best[rngInt(best.length)];
+     }
+     reg[i]=k;counts[k]++;left--;did=true;
      front[k]=front[k].filter(x=>x!==i);for(const nb of neighbors4(i,n))if(reg[nb]<0)front[k].push(nb);
-     if(Math.random()<.75)break;
+     if(Math.random()<.76)break;
    }
    if(!did){
      const un=reg.map((v,i)=>v<0?i:-1).filter(i=>i>=0);if(!un.length)break;const i=un[0];
-     const adj=neighbors4(i,n).map(j=>reg[j]).filter(x=>x>=0);if(adj.length){reg[i]=adj[0];counts[adj[0]]++;left--}else return null;
+     const adj=neighbors4(i,n).map(j=>reg[j]).filter(x=>x>=0);if(adj.length){const k=adj[rngInt(adj.length)];reg[i]=k;counts[k]++;left--}else return null;
    }
  }
  return left?null:reg;
@@ -768,6 +852,14 @@ function same(a,b){return a.every((v,i)=>v===b[i])}
 function connectedAfterRemove(reg,n,src,rem){let start=-1,count=0;for(let i=0;i<reg.length;i++)if(reg[i]===src&&i!==rem){count++;if(start<0)start=i}if(start<0)return false;const seen=new Set([start]),q=[start];while(q.length){const x=q.pop();for(const nb of neighbors4(x,n))if(nb!==rem&&reg[nb]===src&&!seen.has(nb)){seen.add(nb);q.push(nb)}}return seen.size===count}
 function allMoves(n,sol,reg){const seeds=new Set(sol.map((c,r)=>r*n+c)),out=[];for(let i=0;i<reg.length;i++){if(seeds.has(i))continue;const src=reg[i],dsts=[...new Set(neighbors4(i,n).map(j=>reg[j]).filter(x=>x!==src))];if(!dsts.length||!connectedAfterRemove(reg,n,src,i))continue;for(const dst of dsts)out.push([i,src,dst])}return out}
 function repair(n,sol,reg,maxSteps=420){const history=new Set([reg.join(',')]);for(let step=0;step<maxSteps;step++){const sols=findSolutions(n,reg,12),alts=sols.filter(s=>!same(s,sol));if(!alts.length)return {ok:true,reg};const moves=allMoves(n,sol,reg);if(!moves.length)return {ok:false};let best=[],bestScore=-1;for(const mv of moves){const i=mv[0],r=Math.floor(i/n),c=i%n;let score=0;for(const a of alts)if(a[r]===c)score++;if(score>bestScore){bestScore=score;best=[mv]}else if(score===bestScore)best.push(mv)}shuffle(best);let chosen=null;for(const mv of best){reg[mv[0]]=mv[2];const sig=reg.join(',');reg[mv[0]]=mv[1];if(!history.has(sig)){chosen=mv;history.add(sig);break}}if(!chosen)chosen=moves[rngInt(moves.length)];reg[chosen[0]]=chosen[2]}return {ok:false}}
+function regionCounts(n,reg){const counts=Array(n).fill(0);for(const x of reg)if(x>=0&&x<n)counts[x]++;return counts}
+function visuallyBalanced(n,reg){
+  const counts=regionCounts(n,reg),max=Math.max(...counts),cap=Math.ceil(n*1.95);
+  // A little asymmetry is desirable; a single region taking a third or more of
+  // the board is not. Also avoid too many single-cell regions in one puzzle.
+  const singles=counts.filter(x=>x===1).length;
+  return max<=cap&&singles<=Math.max(2,Math.floor(n*.28));
+}
 function generateEasyRegions(n,sol){
   const total=n*n,order=shuffle([...Array(n).keys()]),stepOfRow=Array(n);
   for(let k=0;k<n;k++)stepOfRow[order[k]]=k;
@@ -787,11 +879,18 @@ function generateEasyRegions(n,sol){
     return seen.size===count;
   }
   if(!connectedLast())return null;
-  const targets=Array(n).fill(1);
-  for(let k=1;k<last;k++)targets[k]=1+Math.round(Math.pow(k/last,1.55)*n*2.6*(.78+Math.random()*.42));
+
+  // Preserve the forced-single construction but let the later regions absorb
+  // much more of the board. The previous formula intentionally left almost all
+  // unused cells in the final region, which is why one colour dominated games.
+  const targets=Array(n).fill(1),targetCap=Math.ceil(n*1.58);
+  for(let k=1;k<last;k++){
+    const t=k/last;
+    targets[k]=Math.min(targetCap,Math.max(2,Math.round(n*(.42+1.18*t)*(.88+Math.random()*.24))));
+  }
   const ids=[...Array(last).keys()].filter(k=>k>0);
   let guard=0,moved=true;
-  while(moved&&guard++<total*22){
+  while(moved&&guard++<total*30){
     moved=false;
     for(const k of shuffle(ids.slice())){
       let count=0;for(const x of reg)if(x===k)count++;
@@ -802,7 +901,23 @@ function generateEasyRegions(n,sol){
       for(const i of candidates){if(!connectedLast(i))continue;reg[i]=k;moved=true;break}
     }
   }
-  return reg;
+
+  // A second balancing pass transfers eligible boundary cells out of the final
+  // region while keeping the exact same easy-solve ordering intact.
+  const cap=Math.ceil(n*1.95);
+  for(let pass=0;pass<total*8;pass++){
+    const counts=regionCounts(n,reg);if(counts[last]<=cap)break;
+    let options=[];
+    for(let i=0;i<total;i++)if(reg[i]===last&&!seeds.has(i)){
+      for(const k of [...new Set(neighbors4(i,n).map(nb=>reg[nb]).filter(k=>k>=1&&k<last))]){
+        if(elim[i]>=k||counts[k]>=targetCap||!connectedLast(i))continue;
+        const join=neighbors4(i,n).filter(nb=>reg[nb]===k).length;
+        options.push([counts[k]-join*.35+Math.random()*.3,i,k]);
+      }
+    }
+    if(!options.length)break;options.sort((a,b)=>a[0]-b[0]);const [,i,k]=options[0];reg[i]=k;
+  }
+  return visuallyBalanced(n,reg)?reg:null;
 }
 function generateMediumRegions(n,sol,maxSteps=220){
   let reg=generateEasyRegions(n,sol);if(!reg)return null;
@@ -861,6 +976,7 @@ function chooseSize(targetBand,sizeMode){
 }
 function bandRank(b){return ['Easy','Medium','Hard','Expert','Brutal'].indexOf(b)}
 function packagePuzzle(n,solution,regions){
+  if(!visuallyBalanced(n,regions))return null;
   const verify=findSolutions(n,regions,2);if(verify.length!==1||!same(verify[0],solution))return null;
   const a=logicAnalyse(n,regions,1);if(!a.solved)return null;
   return {n,solution,regions,band:a.band,force:a.force,maxForce:a.maxForce,regionLine:a.regionLine,block:a.block,compoundBlock:a.compoundBlock,arc:a.arc,match:a.match,maxMatchGroup:a.maxMatchGroup,logicVersion:7,source:'generated'};
@@ -877,31 +993,44 @@ function generate(targetBand,sizeMode,recent,threshold){
     return null;
   };
 
-  // Easy and Medium are constructed directly so every board size remains practical.
-  if(targetBand==='Easy'||targetBand==='Medium'){
-    for(let attempt=0;attempt<36;attempt++){
-      const n=chooseSize(targetBand,sizeMode),solution=markerPermutation(n);if(!solution)continue;
-      const regions=generateConstructedRegions(n,solution,targetBand);if(!regions)continue;
-      const hit=consider(packagePuzzle(n,solution,regions));if(hit)return hit;
-    }
-    if(similarExact)return {puzzle:similarExact,exact:true,similar:true};
-    return {puzzle:closest,exact:false};
-  }
-
-  // Prefer naturally grown boards for variety, but only spend a bounded period
-  // searching before switching to a targeted construction.
-  const naturalStart=Date.now(),naturalBudget=sizeMode==='large'?900:600;
+  // Method 1: naturally grow connected regions. growRegions itself randomly
+  // alternates balanced, compact and tendril-like growth, giving genuinely
+  // different-looking board families instead of one construction recipe.
+  const naturalStart=Date.now();
+  const baseBudget=targetBand==='Easy'?420:targetBand==='Medium'?520:targetBand==='Hard'?650:targetBand==='Expert'?760:880;
+  const naturalBudget=baseBudget+(sizeMode==='large'?180:0);
   while(Date.now()-naturalStart<naturalBudget){
-    const n=chooseSize(targetBand,sizeMode),solution=markerPermutation(n),regions=growRegions(n,solution);if(!solution||!regions)continue;
+    const n=chooseSize(targetBand,sizeMode),solution=markerPermutation(n);if(!solution)continue;
+    const regions=growRegions(n,solution,'mixed');if(!regions)continue;
     const fixed=repair(n,solution,regions);if(!fixed.ok)continue;
     const hit=consider(packagePuzzle(n,solution,fixed.reg));if(hit)return hit;
   }
 
-  for(let attempt=0;attempt<14;attempt++){
+  // Method 2: targeted construction. This guarantees practical generation at
+  // awkward difficulty/size combinations, but the easy constructor now actively
+  // balances region areas instead of leaving one huge residual colour.
+  const attempts=(targetBand==='Easy'||targetBand==='Medium')?42:16;
+  for(let attempt=0;attempt<attempts;attempt++){
     const n=chooseSize(targetBand,sizeMode),solution=markerPermutation(n);if(!solution)continue;
     const regions=generateConstructedRegions(n,solution,targetBand);if(!regions)continue;
     const hit=consider(packagePuzzle(n,solution,regions));if(hit)return hit;
   }
+
+  // Method 3 for harder levels: start from another naturally-shaped board and
+  // walk its boundaries toward the requested solve type. This preserves a very
+  // different visual ancestry from the direct constructor.
+  if(targetBand==='Hard'||targetBand==='Expert'||targetBand==='Brutal'){
+    for(let attempt=0;attempt<10;attempt++){
+      const n=chooseSize(targetBand,sizeMode),solution=markerPermutation(n);if(!solution)continue;
+      let regions=growRegions(n,solution,'mixed');if(!regions)continue;
+      const fixed=repair(n,solution,regions);if(!fixed.ok)continue;regions=fixed.reg;
+      const start=logicAnalyse(n,regions,1);if(!start.solved)continue;
+      if(start.band!==targetBand){regions=randomWalkToBand(n,solution,regions,targetBand,targetBand==='Hard'?1800:targetBand==='Expert'?2600:3800)}
+      if(!regions)continue;
+      const hit=consider(packagePuzzle(n,solution,regions));if(hit)return hit;
+    }
+  }
+
   if(similarExact)return {puzzle:similarExact,exact:true,similar:true};
   return {puzzle:closest,exact:false};
 }
