@@ -21,20 +21,20 @@
 html,body{margin:0;width:100%;height:100%;min-height:100%;overflow:hidden;background:linear-gradient(135deg,#f3f0f2 0%,#f4f3f2 48%,#edf3f2 100%);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;overscroll-behavior:none}
 body{position:fixed;inset:0;display:flex;justify-content:center;min-height:100vh;min-height:100svh;height:100vh;height:100dvh}
 button,select,input{font:inherit}
-.app{width:min(100%,720px);height:100vh;height:100dvh;max-height:100vh;max-height:100dvh;overflow:hidden;padding:max(4px,env(safe-area-inset-top)) 10px max(6px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:7px}
-header{display:flex;flex-direction:column;gap:8px;padding:8px 6px 2px;flex:0 0 auto}
-.brandRow{display:grid;grid-template-columns:max-content minmax(0,1fr);align-items:start;gap:16px;min-width:0}
+.app{width:min(100%,720px);height:100vh;height:100dvh;max-height:100vh;max-height:100dvh;overflow-x:hidden;overflow-y:auto;padding:max(4px,env(safe-area-inset-top)) 10px max(6px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:5px;scrollbar-width:none;-ms-overflow-style:none}
+.app::-webkit-scrollbar{display:none}
+header{display:flex;flex-direction:column;gap:0;padding:8px 6px 1px;flex:0 0 auto}
+.brandRow{display:grid;grid-template-columns:max-content minmax(0,1fr);align-items:center;gap:12px;min-width:0}
 .title{font-size:clamp(33px,9vw,43px);font-weight:820;letter-spacing:-.045em;line-height:.98;color:#556078;white-space:nowrap}
-.instructions{font-size:clamp(10.8px,3.05vw,13.5px);line-height:1.28;color:#515d72;font-weight:620;max-width:none;padding-top:1px;letter-spacing:-.005em}
-.instructions span{display:block}
-.stats{display:flex;align-items:center;justify-content:center;color:#70798a;font-size:13px;padding:1px 2px 0}
+.instructions{min-width:0;font-size:clamp(10px,2.72vw,12.2px);line-height:1.28;color:#515d72;font-weight:620;text-align:center;letter-spacing:-.012em}
+.instructions span{display:block;white-space:nowrap}
+.stats{display:flex;align-items:center;justify-content:center;color:#70798a;font-size:12px;padding:0}
 .stat{display:flex;align-items:center;gap:7px;padding:0 15px;white-space:nowrap}
 .stat+.stat{border-left:1px solid #d8d5de}
 .stat strong{display:block;color:#3f495b;font-size:17px;line-height:1.1;text-align:right;font-weight:820}
-.controls{width:100%;background:transparent;border:0;border-radius:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;box-shadow:none;flex:0 0 auto}
-.control{display:flex;flex-direction:column;gap:3px;min-width:0;background:rgba(255,255,255,.90);border:1px solid #dfdce4;border-radius:14px;padding:5px 7px 6px;box-shadow:0 3px 10px rgba(85,84,100,.07)}
-.control label{font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;color:#6f7788;font-weight:900;text-align:center;line-height:1}
-.wheelTrack{position:relative;display:flex;flex-direction:column;align-items:stretch;height:50px;overflow-y:auto;overflow-x:hidden;scroll-snap-type:y mandatory;scroll-behavior:smooth;overscroll-behavior-y:contain;scrollbar-width:none;-ms-overflow-style:none;border-radius:10px;background:linear-gradient(180deg,#f7f6f9 0%,#f1eff4 47%,#f7f6f9 100%);box-shadow:inset 0 0 0 1px rgba(91,88,106,.07);touch-action:pan-y;padding:15px 4px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.30),#000 27%,#000 73%,rgba(0,0,0,.30));-webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,.30),#000 27%,#000 73%,rgba(0,0,0,.30))}
+.controls{width:100%;background:transparent;border:0;border-radius:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;box-shadow:none;flex:0 0 auto}
+.control{display:flex;min-width:0;height:50px;background:transparent;border:0;border-radius:14px;padding:0;box-shadow:none}
+.wheelTrack{position:relative;width:100%;display:flex;flex-direction:column;align-items:stretch;height:50px;overflow-y:auto;overflow-x:hidden;scroll-snap-type:y mandatory;scroll-behavior:smooth;overscroll-behavior-y:contain;scrollbar-width:none;-ms-overflow-style:none;border:1px solid #dddbe2;border-radius:14px;background:linear-gradient(180deg,rgba(248,247,250,.97),rgba(242,240,245,.98) 48%,rgba(248,247,250,.97));box-shadow:0 3px 10px rgba(82,81,96,.06);touch-action:pan-y;padding:15px 4px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.26),#000 31%,#000 69%,rgba(0,0,0,.26));-webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,.26),#000 31%,#000 69%,rgba(0,0,0,.26))}
 .wheelTrack::-webkit-scrollbar{display:none}
 .wheelOption{position:relative;scroll-snap-align:center;flex:0 0 20px;min-height:20px;padding:1px 6px;border:0;border-radius:7px;background:transparent;color:#858896;font-size:10.5px;font-weight:700;line-height:18px;box-shadow:none;white-space:nowrap;opacity:.62;transition:opacity .12s ease,background .12s ease,color .12s ease,box-shadow .12s ease,font-size .12s ease}
 .wheelOption.active{background:rgba(255,255,255,.96);color:#45495b;font-size:12.5px;font-weight:900;opacity:1;box-shadow:0 1px 4px rgba(74,71,89,.13),inset 0 0 0 1px rgba(108,104,124,.08)}
@@ -54,8 +54,8 @@ header{display:flex;flex-direction:column;gap:8px;padding:8px 6px 2px;flex:0 0 a
 .iconBtn{width:38px;min-height:38px;padding:0;border-radius:50%;background:#efedf2;color:#5a5968;box-shadow:none;font-size:22px;line-height:1}
 .dangerBtn{background:#b9656c;color:#fff}
 .confirmText{color:#5c5963;line-height:1.45;margin-top:10px}
-.gameShell{padding:0;display:flex;flex:1 1 auto;min-height:0;flex-direction:column;gap:0;align-items:stretch;touch-action:none;user-select:none;-webkit-user-select:none;overflow:hidden}
-.gameTop{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:1px}.boardStage{flex:1 1 auto;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:4px 0}.boardWrap{width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;overflow:visible;padding:0;flex:1 1 auto}.bottomControls{flex:0 0 auto;width:100%;display:flex;flex-direction:column;gap:8px;padding-top:4px}
+.gameShell{padding:0;display:flex;flex:1 0 auto;min-height:0;flex-direction:column;gap:0;align-items:stretch;touch-action:auto;user-select:none;-webkit-user-select:none;overflow:visible}
+.gameTop{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:3px;padding-top:1px}.boardStage{flex:1 1 auto;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:3px 0}.boardWrap{width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;overflow:visible;padding:0;flex:1 1 auto}.messageSlot{flex:0 0 auto;width:100%;display:flex;justify-content:center;padding:0}.bottomControls{flex:0 0 auto;width:100%;display:flex;flex-direction:column;gap:4px;padding-top:1px}
 .boardArt{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:block;pointer-events:none;overflow:visible;transition:filter .15s ease,opacity .15s ease}
 .board{position:relative;z-index:2;display:grid;border:0;border-radius:0;background:transparent;gap:0;touch-action:none;user-select:none;-webkit-user-select:none;max-width:100%;overflow:visible;box-shadow:none}
 .cell{position:relative;width:var(--cell);height:var(--cell);display:grid;place-items:center;background:transparent;font-size:calc(var(--cell)*.52);font-weight:700;line-height:1;touch-action:none;overflow:visible;border:0;border-radius:0;box-shadow:none}
@@ -86,14 +86,14 @@ header{display:flex;flex-direction:column;gap:8px;padding:8px 6px 2px;flex:0 0 a
 .puzzleMeta{width:100%;display:flex;align-items:center;justify-content:center;gap:7px;margin:0;font-size:13px;color:var(--muted);flex:0 0 auto}
 .puzzleMeta .difficultyNow{font-size:16px;font-weight:850;color:#59627a;background:linear-gradient(180deg,#f3f2f7,#ebe7ef);border:1px solid #ddd8e4;border-radius:999px;padding:6px 12px;box-shadow:0 4px 10px rgba(101,96,117,.08)}
 .puzzleMeta .sizeNow{font-weight:750}
-.actions{width:100%;display:grid;gap:8px;flex:0 0 auto}.actionsTwo{grid-template-columns:repeat(2,1fr)}
+.actions{width:100%;display:grid;gap:4px;flex:0 0 auto}.actionsTwo{grid-template-columns:repeat(2,1fr)}
 button{border:0;border-radius:14px;padding:11px 10px;background:#6c6878;color:white;font-weight:760;min-height:50px}
 button.secondary{background:#eceaf0;color:#4a5362}
 button.ghost{display:flex;align-items:center;justify-content:center;gap:9px;background:rgba(255,255,255,.91);color:#495369;border:1px solid #dddbe2;box-shadow:0 3px 10px rgba(82,81,96,.06)}
 button:disabled{opacity:.45}
-.message{min-height:0;max-height:86px;overflow:auto;text-align:center;color:#606a7c;font-size:13px;line-height:1.32;padding:0;flex:0 0 auto}
+.message{min-height:0;max-height:none;overflow:visible;text-align:center;color:#606a7c;font-size:13px;line-height:1.38;padding:0;flex:0 0 auto}
 .message.error{color:var(--danger)} .message.good{color:var(--ok)}
-.message.hintMessage{width:min(100%,620px);text-align:left;background:rgba(255,255,255,.90);border:1px solid #dfdce4;border-radius:12px;padding:8px 11px;color:#586171;box-shadow:0 3px 10px rgba(80,78,96,.06)}
+.message.hintMessage{width:min(100%,620px);text-align:left;background:rgba(255,255,255,.92);border:1px solid #dfdce4;border-radius:12px;padding:9px 12px;color:#586171;box-shadow:0 3px 10px rgba(80,78,96,.06)}
 .hintLine{display:block}
 .hintLine:first-child{font-weight:800;color:#4f5869}
 .hintLine+.hintLine{margin-top:4px;padding-top:4px;border-top:1px solid #ece9ef}
@@ -177,6 +177,54 @@ button:disabled{opacity:.45}
  .wheelTrack{height:42px;padding:11px 3px}
  .message:not(:empty):not(.hintMessage){min-height:32px;padding:5px 8px}
 }
+
+/* compact layout refinement */
+@media (max-width:420px){
+  .app{padding-left:7px;padding-right:7px;gap:4px}
+  header{padding:6px 4px 1px}
+  .brandRow{gap:10px}
+  .title{font-size:clamp(31px,8.9vw,37px)}
+  .instructions{font-size:clamp(9.7px,2.66vw,11px);line-height:1.25}
+  .gameTop{gap:2px}
+  .puzzleMeta .difficultyNow{font-size:14px;padding:4px 9px}
+  .stats{font-size:10.5px}
+  .stat{padding:0 9px;gap:5px}
+  .recordsBtn{padding:0 9px}
+  .stat strong{font-size:13.5px}
+  .statIcon{width:15px;height:15px}
+  .boardStage{padding:2px 0}
+  .messageSlot{padding:0}
+  .bottomControls{gap:3px;padding-top:0}
+  .actions{gap:3px}
+  .controls{gap:3px;padding:0;background:transparent;border:0;box-shadow:none}
+  .control{padding:0!important;background:transparent;border:0;box-shadow:none}
+  .actions button,.control,.wheelTrack{min-height:48px;height:48px}
+  .actions button{padding:8px 5px}
+  .wheelTrack{padding:14px 3px}
+  .wheelOption{font-size:9.8px;flex-basis:20px;min-height:20px}
+  .wheelOption.active{font-size:12px}
+  .message{font-size:12px;max-height:none;overflow:visible}
+  .message:not(:empty):not(.hintMessage){min-height:34px;padding:6px 9px}
+  .message.hintMessage{padding:8px 10px}
+}
+@media (max-width:360px){
+  .title{font-size:30px}
+  .instructions{font-size:8.9px}
+  .brandRow{gap:8px}
+}
+@media (max-height:700px){
+  .app{gap:3px}
+  header{padding-top:3px}
+  .title{font-size:29px}
+  .instructions{font-size:9.2px}
+  .puzzleMeta .difficultyNow{padding:3px 8px}
+  .actions button,.control,.wheelTrack{min-height:43px;height:43px}
+  .wheelTrack{padding:11px 3px}
+  .bottomControls,.actions,.controls{gap:3px}
+  .controls{padding:0}
+  .control{padding:0!important}
+  .message{max-height:none;overflow:visible}
+}
 </style>
 </head>
 <body>
@@ -184,23 +232,24 @@ button:disabled{opacity:.45}
   <header>
     <div class="brandRow">
       <div class="title">One Each</div>
-      <div class="instructions"><span>Find one 😎 in each row, column,</span><span>and colour. They're not next to</span><span>each other.</span></div>
-    </div>
-    <div class="stats">
-      <div class="stat"><svg class="statIcon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5l3 2"/></svg><span>Time</span><strong id="timer">0:00</strong></div>
-      <button id="recordsBtn" class="stat recordsBtn" type="button" aria-label="View best times"><svg class="statIcon" aria-hidden="true" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5v2a4 4 0 0 0 4 4M16 6h3v2a4 4 0 0 1-4 4M12 13v4M9 20h6M10 17h4"/></svg><span>Best time</span><strong id="bestTop">—</strong></button>
+      <div class="instructions"><span>Find one 😎 in each row, column, and colour.</span><span>They're not next to each other.</span></div>
     </div>
   </header>
 
   <section class="gameShell">
     <div class="gameTop">
       <div class="puzzleMeta"><span id="difficultyNow" class="difficultyNow" title="Difficulty is rated by the deduction system.">—</span></div>
-      <div id="message" class="message"></div>
+      <div class="stats">
+        <div class="stat"><svg class="statIcon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5l3 2"/></svg><span>Time</span><strong id="timer">0:00</strong></div>
+        <button id="recordsBtn" class="stat recordsBtn" type="button" aria-label="View best times"><svg class="statIcon" aria-hidden="true" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5v2a4 4 0 0 0 4 4M16 6h3v2a4 4 0 0 1-4 4M12 13v4M9 20h6M10 17h4"/></svg><span>Best time</span><strong id="bestTop">—</strong></button>
+      </div>
     </div>
 
     <div id="boardStage" class="boardStage">
       <div class="boardWrap"><svg id="boardArt" class="boardArt" aria-hidden="true"></svg><div id="board" class="board" aria-label="One Each puzzle board"></div></div>
     </div>
+
+    <div class="messageSlot"><div id="message" class="message"></div></div>
 
     <div class="bottomControls">
       <div class="actions actionsTwo">
@@ -210,7 +259,6 @@ button:disabled{opacity:.45}
 
       <section class="controls">
         <div class="control">
-          <label>Difficulty</label>
           <div id="difficultyWheel" class="wheelTrack" role="listbox" aria-label="Difficulty mix">
             <button class="wheelOption" type="button" data-value="0">Easy</button>
             <button class="wheelOption" type="button" data-value="25">Medium</button>
@@ -220,7 +268,6 @@ button:disabled{opacity:.45}
           </div>
         </div>
         <div class="control">
-          <label>Board size</label>
           <div id="sizeWheel" class="wheelTrack sizeWheel" role="listbox" aria-label="Board size">
             <button class="wheelOption" type="button" data-value="small">Small</button>
             <button class="wheelOption" type="button" data-value="medium">Medium</button>
