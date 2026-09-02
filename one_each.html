@@ -7,8 +7,12 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<link rel="manifest" href="manifest.webmanifest" />
-<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<link rel="manifest" href="./manifest.webmanifest?v=12" />
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png?v=12" />
+<link rel="icon" type="image/x-icon" href="./icons/favicon.ico?v=12" />
+<link rel="shortcut icon" type="image/x-icon" href="./icons/favicon.ico?v=12" />
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=12" />
+<link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png?v=12" />
 <meta name="apple-mobile-web-app-title" content="One Each" />
 <title>One Each — endless logic puzzles</title>
 <style>
@@ -225,6 +229,86 @@ button:disabled{opacity:.45}
   .control{padding:0!important}
   .message{max-height:none;overflow:visible}
 }
+
+/* Final compact layout pass: keep status tight to the board and hints in normal flow. */
+header{padding:6px 6px 2px}
+.gameShell{flex:0 0 auto;min-height:0;overflow:visible}
+.gameTop{gap:1px;padding:0 0 3px;margin:0}
+.puzzleMeta{margin:0;line-height:1}
+.puzzleMeta .difficultyNow{font-size:14px;padding:5px 10px;box-shadow:0 2px 7px rgba(101,96,117,.06)}
+.stats{margin:0;padding:0;line-height:1;min-height:24px}
+.stat{padding:2px 12px;gap:5px}
+.stat strong{font-size:14px}
+.statIcon{width:16px;height:16px}
+.boardStage{flex:0 0 auto;min-height:0;height:auto;display:block;overflow:visible;padding:0;margin:0}
+.boardWrap{width:100%;height:auto;min-height:0;display:flex;align-items:flex-start;justify-content:center;overflow:visible;padding:0;flex:0 0 auto}
+.messageSlot{min-height:30px;padding:3px 7px 2px;display:flex;align-items:center;justify-content:center}
+.message{width:100%;min-height:0;max-height:none;overflow:visible;text-align:center;padding:0 5px;font-size:12.5px;line-height:1.32}
+.message.hintMessage{width:100%;text-align:center;background:transparent;border:0;border-radius:0;padding:0 5px;color:#596375;box-shadow:none}
+.hintLine{display:block}
+.hintLine:first-child{font-weight:800;color:#4f5869}
+.hintLine+.hintLine{margin-top:2px;padding-top:0;border-top:0}
+.bottomControls{gap:2px;padding-top:0}
+.actions,.controls{gap:2px}
+.controls{padding:0}
+.control{height:48px;min-height:48px;padding:0}
+.wheelTrack{height:48px;min-height:48px;padding:14px 3px;border-radius:14px}
+.actions button{min-height:48px;height:48px}
+@media (max-width:420px){
+  header{padding-top:5px;padding-bottom:1px}
+  .gameTop{padding-bottom:2px}
+  .puzzleMeta .difficultyNow{font-size:13.5px;padding:4px 9px}
+  .stats{min-height:22px;font-size:10.5px}
+  .stat{padding:1px 10px;gap:4px}
+  .stat strong{font-size:13.5px}
+  .statIcon{width:15px;height:15px}
+  .messageSlot{min-height:28px;padding:2px 6px 1px}
+  .message{font-size:12px}
+  .bottomControls,.actions,.controls{gap:2px}
+  .actions button,.control,.wheelTrack{height:46px;min-height:46px}
+  .wheelTrack{padding:13px 3px}
+}
+@media (max-height:700px){
+  .gameTop{padding-bottom:1px}
+  .messageSlot{min-height:24px;padding:1px 5px}
+  .actions button,.control,.wheelTrack{height:43px;min-height:43px}
+  .wheelTrack{padding:11px 3px}
+}
+
+/* Installed-layout correction: compact header at top, board in the middle, controls at the bottom. */
+.app{
+  height:100vh;height:100dvh;min-height:100dvh;
+  display:flex;flex-direction:column;overflow-x:hidden;overflow-y:auto;
+}
+header{margin-top:0!important;flex:0 0 auto}
+.gameShell{
+  flex:1 0 auto;min-height:0;display:flex;flex-direction:column;
+  overflow:visible;margin:0!important;
+}
+.gameTop{flex:0 0 auto;padding-top:0;padding-bottom:3px}
+.boardStage{
+  flex:1 1 auto;height:auto;min-height:min(calc(100vw - 14px),680px);
+  display:flex;align-items:center;justify-content:center;overflow:visible;padding:0;margin:0;
+}
+.boardWrap{
+  width:100%;height:100%;min-height:0;display:flex;align-items:center;justify-content:center;
+  overflow:visible;padding:0;flex:1 1 auto;
+}
+.messageSlot{flex:0 0 auto;min-height:28px;padding:3px 7px 2px}
+.bottomControls{flex:0 0 auto;margin-top:0;padding-top:0}
+
+@media (min-height:760px){
+  .app{gap:5px}
+  header{padding-top:7px;padding-bottom:2px}
+  .gameTop{padding-bottom:4px}
+  .messageSlot{min-height:32px;padding-top:4px;padding-bottom:3px}
+}
+@media (min-height:900px){
+  header{padding-top:9px;padding-bottom:3px}
+  .gameTop{padding-bottom:5px}
+  .messageSlot{min-height:36px;padding-top:5px;padding-bottom:4px}
+}
+
 </style>
 </head>
 <body>
@@ -390,7 +474,7 @@ const DIFFICULTY_MIX={
   100: [0.00,0.00,0.00,0.20,0.80]
 };
 const SIZE_MODES=['small','medium','large','random'];
-let difficultyBias=75,sizeMode='random';
+let difficultyBias=0,sizeMode='small';
 function snapBias(v){return Math.max(0,Math.min(100,Math.round((+v||0)/25)*25))}
 function difficultyMix(v){return DIFFICULTY_MIX[snapBias(v)]||DIFFICULTY_MIX[50]}
 function sampleBand(v){
@@ -920,10 +1004,9 @@ function paletteFor(n,regions){
 }
 function fitCells(n){
  const stageW=Math.max(180,boardStage?.clientWidth||window.innerWidth-12);
- const stageH=Math.max(180,boardStage?.clientHeight||window.innerHeight*.5);
  const maxBoardW=Math.min(stageW-4,680);
- const maxBoardH=Math.max(180,stageH-4);
- const s=Math.max(18,Math.min(64,Math.floor(Math.min(maxBoardW/n,maxBoardH/n))));
+ const viewportCap=Math.max(180,(window.visualViewport?.height||window.innerHeight)-150);
+ const s=Math.max(18,Math.min(64,Math.floor(Math.min(maxBoardW/n,viewportCap/n))));
  document.documentElement.style.setProperty('--cell',`${s}px`);
  return s;
 }
@@ -1051,14 +1134,27 @@ function resumeTimer(){if(!state||state.complete||state.failed||document.hidden)
 document.addEventListener('visibilitychange',()=>{if(document.hidden){pauseTimer();saveProgress()}else resumeTimer()});
 window.addEventListener('pagehide',()=>{pauseTimer();saveProgress()});
 window.addEventListener('pageshow',()=>{if(!document.hidden)resumeTimer()});
+function improvementDuration(sec){
+ sec=Math.max(0,Math.round(sec));
+ if(sec<60)return `${sec} second${sec===1?'':'s'}`;
+ return fmt(sec);
+}
 function checkComplete(){
  if(state.complete)return;const n=state.n;for(let r=0;r<n;r++)if(state.marks[r*n+state.solution[r]]!==2)return;const q=state.marks.filter(v=>v===2).length;if(q!==n)return;
- state.complete=true;state.elapsed=elapsed();clearInterval(timerTick);timerEl.textContent=fmt(state.elapsed);const store=loadStore(),k=keyBest(n,state.band),old=store[k];let isBest=false;
- if(!state.hintUsed&&(!old||state.elapsed<old)){store[k]=state.elapsed;isBest=true}delete store.progress;saveStore(store);updateBest();
- const hintNote=state.hintUsed?' Hints were used, so this one won’t count as a record.':(isBest?' New best time! 🏆':'');
- winText.textContent=`You solved this ${n}×${n} ${state.band} puzzle in ${fmt(state.elapsed)}.${hintNote}`;
+ state.complete=true;state.elapsed=elapsed();clearInterval(timerTick);timerEl.textContent=fmt(state.elapsed);
+ const store=loadStore(),k=keyBest(n,state.band),previousBest=Number(store[k])||0;let isBest=false,improvement=0;
+ if(!state.hintUsed&&(!previousBest||state.elapsed<previousBest)){
+   improvement=previousBest?previousBest-state.elapsed:0;
+   store[k]=state.elapsed;isBest=true;
+ }
+ delete store.progress;saveStore(store);updateBest();
+ let resultNote='';
+ if(state.hintUsed)resultNote=' Hints were used, so this one won’t count as a record.';
+ else if(isBest&&previousBest)resultNote=` New best — ${improvementDuration(improvement)} faster than your previous best! 🏆`;
+ else if(isBest)resultNote=' First recorded time — new best! 🏆';
+ winText.textContent=`You solved this ${n}×${n} ${state.band} puzzle in ${fmt(state.elapsed)}.${resultNote}`;
  winModal.classList.add('show');
- setMessage(isBest?'Brilliant — new best time! 🏆':'Nice work — puzzle solved! 🎉','good')
+ setMessage(isBest?(previousBest?`${improvementDuration(improvement)} faster — new best! 🏆`:'New best time! 🏆'):'Nice work — puzzle solved! 🎉','good')
 }
 function updateBest(){const store=loadStore(),v=store[keyBest(state.n,state.band)];bestTop.textContent=v?fmt(v):'—'}
 
@@ -1691,7 +1787,7 @@ function hint(){
  if(!clue){setMessage('No further deduction was found from the current marks.');state.activeHint=null;return}
  if(clue.type==='trial'){
    state.activeHint=null;
-   setMessage('No simpler deduction is available — you’re going to have to move forward with trial and error.');
+   setMessage('No simpler deduction is available — you’re going to have to move forward with trial and error.','hintMessage');
    return;
  }
  let stage=1;
@@ -1720,7 +1816,7 @@ window.visualViewport?.addEventListener('resize',refitBoard);
 
 ensureWorker();
 if(!loadProgress())makeNew();else prefetchNext();
-if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){navigator.serviceWorker.register('./sw.js').catch(()=>{})}
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{})}
 
 
 })();
