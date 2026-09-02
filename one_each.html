@@ -530,7 +530,8 @@ function loadStore(){
 }
 function saveStore(s){try{localStorage.setItem(LS,JSON.stringify(s))}catch{}}
 function fmt(sec){sec=Math.max(0,Math.floor(sec));return `${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`}
-function keyBest(n,band){return `best_${n}_${band}`}
+const RECORDS_VERSION=2;
+function keyBest(n,band){return `best_v${RECORDS_VERSION}_${n}_${band}`}
 const BANDS=['Easy','Medium','Hard','Expert','Brutal'];
 const DIFFICULTY_MIX={
   0:   [0.80,0.20,0.00,0.00,0.00],
