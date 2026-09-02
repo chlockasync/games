@@ -22,24 +22,27 @@ html,body{margin:0;width:100%;height:100%;min-height:100%;overflow:hidden;backgr
 body{position:fixed;inset:0;display:flex;justify-content:center;min-height:100vh;min-height:100svh;height:100vh;height:100dvh}
 button,select,input{font:inherit}
 .app{width:min(100%,720px);height:100vh;height:100dvh;max-height:100vh;max-height:100dvh;overflow:hidden;padding:max(4px,env(safe-area-inset-top)) 10px max(6px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:7px}
-header{display:flex;flex-direction:column;gap:4px;padding:5px 3px 1px;flex:0 0 auto}
-.brandRow{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:12px;min-width:0}
-.title{font-size:clamp(28px,7.5vw,42px);font-weight:800;letter-spacing:-.04em;line-height:1;color:#58627a;white-space:nowrap}
-.instructions{font-size:clamp(11px,2.8vw,14px);line-height:1.25;color:#687282;font-weight:650;max-width:410px}
-.stats{display:flex;gap:15px;align-items:center;justify-content:flex-end;color:var(--muted);font-size:11px;padding:0 2px}
-.stat{display:flex;align-items:baseline;gap:5px}
-.stat strong{display:block;color:var(--ink);font-size:15px;line-height:1.1;text-align:right}
-.controls{width:100%;background:linear-gradient(180deg,#ffffff 0%,#fbfbfb 100%);border:1px solid var(--soft);border-radius:14px;padding:4px 7px;display:grid;grid-template-columns:1.15fr .85fr;gap:7px;box-shadow:0 4px 12px rgba(96,102,126,.07);flex:0 0 auto}
-.control{display:flex;flex-direction:column;gap:1px;min-width:0}
-.control label{font-size:9px;text-transform:uppercase;letter-spacing:.075em;color:var(--muted);font-weight:800;padding-left:3px;line-height:1}
-.wheelTrack{position:relative;display:flex;align-items:center;height:30px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-behavior:smooth;overscroll-behavior-x:contain;scrollbar-width:none;-ms-overflow-style:none;border-radius:10px;background:#f3f1f5;box-shadow:inset 0 0 0 1px rgba(91,88,106,.07);touch-action:pan-x}
+header{display:flex;flex-direction:column;gap:8px;padding:8px 6px 2px;flex:0 0 auto}
+.brandRow{display:grid;grid-template-columns:max-content minmax(0,1fr);align-items:start;gap:16px;min-width:0}
+.title{font-size:clamp(33px,9vw,43px);font-weight:820;letter-spacing:-.045em;line-height:.98;color:#556078;white-space:nowrap}
+.instructions{font-size:clamp(10.8px,3.05vw,13.5px);line-height:1.28;color:#515d72;font-weight:620;max-width:none;padding-top:1px;letter-spacing:-.005em}
+.instructions span{display:block}
+.stats{display:flex;align-items:center;justify-content:center;color:#70798a;font-size:13px;padding:1px 2px 0}
+.stat{display:flex;align-items:center;gap:7px;padding:0 15px;white-space:nowrap}
+.stat+.stat{border-left:1px solid #d8d5de}
+.stat strong{display:block;color:#3f495b;font-size:17px;line-height:1.1;text-align:right;font-weight:820}
+.controls{width:100%;background:transparent;border:0;border-radius:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;box-shadow:none;flex:0 0 auto}
+.control{display:flex;flex-direction:column;gap:3px;min-width:0;background:rgba(255,255,255,.90);border:1px solid #dfdce4;border-radius:14px;padding:5px 7px 6px;box-shadow:0 3px 10px rgba(85,84,100,.07)}
+.control label{font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;color:#6f7788;font-weight:900;text-align:center;line-height:1}
+.wheelTrack{position:relative;display:flex;flex-direction:column;align-items:stretch;height:50px;overflow-y:auto;overflow-x:hidden;scroll-snap-type:y mandatory;scroll-behavior:smooth;overscroll-behavior-y:contain;scrollbar-width:none;-ms-overflow-style:none;border-radius:10px;background:linear-gradient(180deg,#f7f6f9 0%,#f1eff4 47%,#f7f6f9 100%);box-shadow:inset 0 0 0 1px rgba(91,88,106,.07);touch-action:pan-y;padding:15px 4px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.30),#000 27%,#000 73%,rgba(0,0,0,.30));-webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,.30),#000 27%,#000 73%,rgba(0,0,0,.30))}
 .wheelTrack::-webkit-scrollbar{display:none}
-.wheelTrack::before,.wheelTrack::after{content:"";flex:0 0 30%}
-.wheelOption{scroll-snap-align:center;flex:0 0 auto;min-width:58px;min-height:26px;padding:4px 7px;border:0;border-radius:8px;background:transparent;color:#8a8d98;font-size:10px;font-weight:750;box-shadow:none;white-space:nowrap}
-.sizeWheel .wheelOption{min-width:54px}
-.wheelOption.active{background:#fff;color:#4c495c;font-weight:900;box-shadow:0 1px 4px rgba(74,71,89,.12)}
-.recordsBtn{border:0;background:transparent;color:var(--muted);padding:0;min-height:0;border-radius:8px;box-shadow:none;text-align:left;cursor:pointer}
+.wheelOption{position:relative;scroll-snap-align:center;flex:0 0 20px;min-height:20px;padding:1px 6px;border:0;border-radius:7px;background:transparent;color:#858896;font-size:10.5px;font-weight:700;line-height:18px;box-shadow:none;white-space:nowrap;opacity:.62;transition:opacity .12s ease,background .12s ease,color .12s ease,box-shadow .12s ease,font-size .12s ease}
+.wheelOption.active{background:rgba(255,255,255,.96);color:#45495b;font-size:12.5px;font-weight:900;opacity:1;box-shadow:0 1px 4px rgba(74,71,89,.13),inset 0 0 0 1px rgba(108,104,124,.08)}
+.recordsBtn{border:0;background:transparent;color:var(--muted);padding:0 15px;min-height:0;border-radius:8px;box-shadow:none;text-align:left;cursor:pointer}
 .recordsBtn strong{text-align:right}
+.statIcon{width:18px;height:18px;flex:0 0 auto;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.btnIcon{width:21px;height:21px;flex:0 0 auto;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.message:not(:empty):not(.hintMessage){width:min(100%,620px);min-height:38px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.80);border:1px solid #dfdce4;border-radius:12px;padding:7px 11px;box-shadow:0 3px 10px rgba(80,78,96,.05)}
 .recordsTableWrap{overflow-x:auto;margin:12px -4px 4px;padding:0 4px}
 .recordsTable{width:100%;min-width:430px;border-collapse:separate;border-spacing:0;font-size:12px;color:#4e5564}
 .recordsTable th,.recordsTable td{padding:8px 7px;text-align:center;border-bottom:1px solid #ece9ee}
@@ -84,13 +87,13 @@ header{display:flex;flex-direction:column;gap:4px;padding:5px 3px 1px;flex:0 0 a
 .puzzleMeta .difficultyNow{font-size:16px;font-weight:850;color:#59627a;background:linear-gradient(180deg,#f3f2f7,#ebe7ef);border:1px solid #ddd8e4;border-radius:999px;padding:6px 12px;box-shadow:0 4px 10px rgba(101,96,117,.08)}
 .puzzleMeta .sizeNow{font-weight:750}
 .actions{width:100%;display:grid;gap:8px;flex:0 0 auto}.actionsTwo{grid-template-columns:repeat(2,1fr)}
-button{border:0;border-radius:14px;padding:12px 10px;background:#6c6878;color:white;font-weight:750;min-height:50px}
+button{border:0;border-radius:14px;padding:11px 10px;background:#6c6878;color:white;font-weight:760;min-height:50px}
 button.secondary{background:#eceaf0;color:#4a5362}
-button.ghost{background:#fff;color:#4d5667;border:1px solid var(--soft)}
+button.ghost{display:flex;align-items:center;justify-content:center;gap:9px;background:rgba(255,255,255,.91);color:#495369;border:1px solid #dddbe2;box-shadow:0 3px 10px rgba(82,81,96,.06)}
 button:disabled{opacity:.45}
-.message{min-height:18px;max-height:86px;overflow:auto;text-align:center;color:#6f7988;font-size:13px;line-height:1.32;padding:0 6px;flex:0 0 auto}
+.message{min-height:0;max-height:86px;overflow:auto;text-align:center;color:#606a7c;font-size:13px;line-height:1.32;padding:0;flex:0 0 auto}
 .message.error{color:var(--danger)} .message.good{color:var(--ok)}
-.message.hintMessage{width:min(100%,620px);text-align:left;background:rgba(255,255,255,.86);border:1px solid #e3e0e7;border-radius:11px;padding:6px 9px;color:#586171;box-shadow:0 2px 8px rgba(80,78,96,.06)}
+.message.hintMessage{width:min(100%,620px);text-align:left;background:rgba(255,255,255,.90);border:1px solid #dfdce4;border-radius:12px;padding:8px 11px;color:#586171;box-shadow:0 3px 10px rgba(80,78,96,.06)}
 .hintLine{display:block}
 .hintLine:first-child{font-weight:800;color:#4f5869}
 .hintLine+.hintLine{margin-top:4px;padding-top:4px;border-top:1px solid #ece9ef}
@@ -101,30 +104,78 @@ button:disabled{opacity:.45}
 @media (max-width:420px){.app{padding-left:8px;padding-right:8px}.gameShell{padding:2px 0 0}.stats{gap:10px}.puzzleMeta .difficultyNow{font-size:16px}.actions button{font-size:14px;padding-left:6px;padding-right:6px;min-height:50px}.sheet{padding:16px}.recordsTable{font-size:11px}}
 @media (max-width:420px){
  .app{padding-left:6px;padding-right:6px;gap:5px}
- header{padding-top:3px;gap:3px}
- .brandRow{gap:8px}
- .title{font-size:25px}
- .instructions{font-size:10px;line-height:1.18}
- .stats{gap:10px;font-size:10px}
+ header{padding-top:4px;gap:5px}
+ .brandRow{gap:9px}
+ .title{font-size:26px}
+ .instructions{font-size:10.5px;line-height:1.22;padding-top:0}
+ .stats{font-size:10px}
+ .stat{padding:0 10px;gap:5px}
  .stat strong{font-size:13px}
  .gameShell{gap:0}.gameTop{gap:3px}.bottomControls{gap:6px}
  .puzzleMeta .difficultyNow{font-size:14px;padding:4px 9px}
  .actions button{font-size:14px;padding:11px 6px;min-height:50px}
- .controls{padding:4px 6px;border-radius:13px;gap:5px}
- .control label{font-size:8px}
- .wheelTrack{height:28px}
- .wheelOption{font-size:9px;min-width:52px;min-height:24px}
- .sizeWheel .wheelOption{min-width:48px}
+ .controls{padding:4px 6px 5px;border-radius:13px;gap:6px}
+ .control label{font-size:7.5px}
+ .wheelTrack{height:40px;padding:10px 3px}
+ .wheelOption{font-size:9.5px;flex-basis:20px;min-height:20px}
  .message{font-size:12px;max-height:72px}
 }
 @media (max-height:700px){
- .title{font-size:23px}.stats{padding:5px 8px}
+ .title{font-size:23px}
+ .instructions{font-size:9.5px}
+ .stats{font-size:9.5px}.stat strong{font-size:12px}
  .gameShell{gap:0}.gameTop{gap:2px}.bottomControls{gap:5px}
  .actions button{min-height:44px;padding:8px 6px}
- .controls{padding-top:3px;padding-bottom:3px}
- .wheelTrack{height:26px}
- .wheelOption{min-height:23px;padding-top:3px;padding-bottom:3px}
+ .controls{padding-top:3px;padding-bottom:4px}
+ .wheelTrack{height:36px;padding:8px 3px}
+ .wheelOption{flex-basis:20px;min-height:20px}
  .message{max-height:64px}
+}
+
+@media (max-width:420px){
+ .app{padding-left:7px;padding-right:7px;gap:6px}
+ header{padding:7px 5px 2px;gap:7px}
+ .brandRow{gap:12px}
+ .title{font-size:clamp(32px,9vw,38px)}
+ .instructions{font-size:clamp(10.6px,3.05vw,12.6px);line-height:1.27;padding-top:1px}
+ .stats{font-size:12px}
+ .stat{padding:0 12px;gap:6px}
+ .recordsBtn{padding:0 12px}
+ .stat strong{font-size:15.5px}
+ .statIcon{width:17px;height:17px}
+ .gameTop{gap:5px}
+ .puzzleMeta .difficultyNow{font-size:14px;padding:5px 10px}
+ .bottomControls{gap:7px}
+ .actions button{font-size:14px;padding:10px 6px;min-height:49px}
+ .btnIcon{width:20px;height:20px}
+ .controls{gap:8px}
+ .control{padding:5px 6px 6px}
+ .control label{font-size:8px}
+ .wheelTrack{height:48px;padding:14px 3px}
+ .wheelOption{font-size:10px;flex-basis:20px;min-height:20px}
+ .wheelOption.active{font-size:12px}
+ .message{font-size:12px;max-height:76px}
+ .message:not(:empty):not(.hintMessage){min-height:36px;padding:7px 9px}
+}
+@media (max-width:360px){
+ .brandRow{gap:9px}
+ .title{font-size:31px}
+ .instructions{font-size:10.4px}
+ .stat{padding:0 9px}
+ .recordsBtn{padding:0 9px}
+ .controls{gap:6px}
+}
+@media (max-height:700px){
+ header{padding-top:3px;gap:4px}
+ .title{font-size:30px}
+ .instructions{font-size:10px;line-height:1.2}
+ .stats{font-size:10.5px}.stat strong{font-size:13px}.statIcon{width:15px;height:15px}
+ .gameTop{gap:3px}.bottomControls{gap:5px}
+ .actions button{min-height:43px;padding:7px 5px}
+ .btnIcon{width:18px;height:18px}
+ .control{padding-top:4px;padding-bottom:4px}
+ .wheelTrack{height:42px;padding:11px 3px}
+ .message:not(:empty):not(.hintMessage){min-height:32px;padding:5px 8px}
 }
 </style>
 </head>
@@ -133,11 +184,11 @@ button:disabled{opacity:.45}
   <header>
     <div class="brandRow">
       <div class="title">One Each</div>
-      <div class="instructions">Find one * in each row, column, and colour. They're not next to each other.</div>
+      <div class="instructions"><span>Find one 😎 in each row, column,</span><span>and colour. They're not next to</span><span>each other.</span></div>
     </div>
     <div class="stats">
-      <div class="stat">Time <strong id="timer">0:00</strong></div>
-      <button id="recordsBtn" class="stat recordsBtn" type="button" aria-label="View best times">Best time <strong id="bestTop">—</strong></button>
+      <div class="stat"><svg class="statIcon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5l3 2"/></svg><span>Time</span><strong id="timer">0:00</strong></div>
+      <button id="recordsBtn" class="stat recordsBtn" type="button" aria-label="View best times"><svg class="statIcon" aria-hidden="true" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5v2a4 4 0 0 0 4 4M16 6h3v2a4 4 0 0 1-4 4M12 13v4M9 20h6M10 17h4"/></svg><span>Best time</span><strong id="bestTop">—</strong></button>
     </div>
   </header>
 
@@ -153,8 +204,8 @@ button:disabled{opacity:.45}
 
     <div class="bottomControls">
       <div class="actions actionsTwo">
-        <button id="undoBtn" class="ghost" disabled>Undo</button>
-        <button id="hintBtn" class="ghost">Hint</button>
+        <button id="undoBtn" class="ghost" disabled><svg class="btnIcon" aria-hidden="true" viewBox="0 0 24 24"><path d="M9 8H4V3"/><path d="M4.5 8a8 8 0 1 1 .7 8.8"/></svg><span>Undo</span></button>
+        <button id="hintBtn" class="ghost"><svg class="btnIcon" aria-hidden="true" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M8.2 15.3A7 7 0 1 1 15.8 15.3C14.7 16.1 14 17 14 18h-4c0-1-.7-1.9-1.8-2.7z"/><path d="M12 1v2M4.2 4.2l1.4 1.4M19.8 4.2l-1.4 1.4M2 12h2M20 12h2"/></svg><span>Hint</span></button>
       </div>
 
       <section class="controls">
@@ -180,8 +231,8 @@ button:disabled{opacity:.45}
       </section>
 
       <div class="actions actionsTwo">
-        <button id="restartBtn" class="ghost">Restart</button>
-        <button id="newGameBtn" class="ghost">New game</button>
+        <button id="restartBtn" class="ghost"><svg class="btnIcon" aria-hidden="true" viewBox="0 0 24 24"><path d="M19 7V3l-4 4 4 4V7a8 8 0 1 0 1 7"/></svg><span>Restart</span></button>
+        <button id="newGameBtn" class="ghost"><svg class="btnIcon" aria-hidden="true" viewBox="0 0 24 24"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>New game</span></button>
       </div>
     </div>
   </section>
@@ -301,17 +352,17 @@ function sampleBand(v){
   return BANDS[mix.length-1];
 }
 function currentSettingsKey(){return `${difficultyBias}|${sizeMode}`}
-function centreWheelOption(wheel,button,smooth=true){if(!wheel||!button)return;button.scrollIntoView({behavior:smooth?'smooth':'auto',block:'nearest',inline:'center'})}
+function centreWheelOption(wheel,button,smooth=true){if(!wheel||!button)return;button.scrollIntoView({behavior:smooth?'smooth':'auto',block:'center',inline:'nearest'})}
 function markWheel(wheel,value,smooth=false){
   const buttons=[...wheel.querySelectorAll('.wheelOption')];
   for(const b of buttons){const active=String(b.dataset.value)===String(value);b.classList.toggle('active',active);b.setAttribute('aria-selected',active?'true':'false')}
   centreWheelOption(wheel,buttons.find(b=>String(b.dataset.value)===String(value)),smooth);
 }
 function nearestWheelValue(wheel){
-  const box=wheel.getBoundingClientRect(),centre=box.left+box.width/2;
+  const box=wheel.getBoundingClientRect(),centre=box.top+box.height/2;
   let best=null,dist=Infinity;
   for(const b of wheel.querySelectorAll('.wheelOption')){
-    const r=b.getBoundingClientRect(),d=Math.abs((r.left+r.right)/2-centre);
+    const r=b.getBoundingClientRect(),d=Math.abs((r.top+r.bottom)/2-centre);
     if(d<dist){dist=d;best=b}
   }
   return best?.dataset.value;
@@ -327,7 +378,7 @@ function bindWheel(wheel,onValue){
     if(programmatic)return;clearTimeout(timer);timer=setTimeout(()=>{const v=nearestWheelValue(wheel);const b=wheel.querySelector(`.wheelOption[data-value="${v}"]`);select(b,true)},110)
   },{passive:true});
   wheel.addEventListener('wheel',e=>{
-    if(Math.abs(e.deltaY)<=Math.abs(e.deltaX))return;
+    if(!e.deltaY)return;
     e.preventDefault();
     const buttons=[...wheel.querySelectorAll('.wheelOption')],active=buttons.findIndex(b=>b.classList.contains('active'));
     const next=Math.max(0,Math.min(buttons.length-1,active+(e.deltaY>0?1:-1)));
