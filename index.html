@@ -274,6 +274,20 @@ header{padding:6px 6px 2px}
   .wheelTrack{padding:11px 3px}
 }
 
+/* Tall-screen balance pass: centre the complete game stack on roomy installed-app viewports. */
+@media (min-height:760px){
+  .app{gap:5px}
+  header{margin-top:auto;padding-top:8px;padding-bottom:4px}
+  .gameShell{margin-bottom:auto}
+  .gameTop{padding-top:2px;padding-bottom:7px}
+  .messageSlot{min-height:44px;padding:7px 7px 5px}
+}
+@media (min-height:900px){
+  header{padding-top:10px;padding-bottom:5px}
+  .gameTop{padding-bottom:9px}
+  .messageSlot{min-height:50px;padding-top:9px;padding-bottom:7px}
+}
+
 </style>
 </head>
 <body>
@@ -1099,14 +1113,27 @@ function resumeTimer(){if(!state||state.complete||state.failed||document.hidden)
 document.addEventListener('visibilitychange',()=>{if(document.hidden){pauseTimer();saveProgress()}else resumeTimer()});
 window.addEventListener('pagehide',()=>{pauseTimer();saveProgress()});
 window.addEventListener('pageshow',()=>{if(!document.hidden)resumeTimer()});
+function improvementDuration(sec){
+ sec=Math.max(0,Math.round(sec));
+ if(sec<60)return `${sec} second${sec===1?'':'s'}`;
+ return fmt(sec);
+}
 function checkComplete(){
  if(state.complete)return;const n=state.n;for(let r=0;r<n;r++)if(state.marks[r*n+state.solution[r]]!==2)return;const q=state.marks.filter(v=>v===2).length;if(q!==n)return;
- state.complete=true;state.elapsed=elapsed();clearInterval(timerTick);timerEl.textContent=fmt(state.elapsed);const store=loadStore(),k=keyBest(n,state.band),old=store[k];let isBest=false;
- if(!state.hintUsed&&(!old||state.elapsed<old)){store[k]=state.elapsed;isBest=true}delete store.progress;saveStore(store);updateBest();
- const hintNote=state.hintUsed?' Hints were used, so this one won’t count as a record.':(isBest?' New best time! 🏆':'');
- winText.textContent=`You solved this ${n}×${n} ${state.band} puzzle in ${fmt(state.elapsed)}.${hintNote}`;
+ state.complete=true;state.elapsed=elapsed();clearInterval(timerTick);timerEl.textContent=fmt(state.elapsed);
+ const store=loadStore(),k=keyBest(n,state.band),previousBest=Number(store[k])||0;let isBest=false,improvement=0;
+ if(!state.hintUsed&&(!previousBest||state.elapsed<previousBest)){
+   improvement=previousBest?previousBest-state.elapsed:0;
+   store[k]=state.elapsed;isBest=true;
+ }
+ delete store.progress;saveStore(store);updateBest();
+ let resultNote='';
+ if(state.hintUsed)resultNote=' Hints were used, so this one won’t count as a record.';
+ else if(isBest&&previousBest)resultNote=` New best — ${improvementDuration(improvement)} faster than your previous best! 🏆`;
+ else if(isBest)resultNote=' First recorded time — new best! 🏆';
+ winText.textContent=`You solved this ${n}×${n} ${state.band} puzzle in ${fmt(state.elapsed)}.${resultNote}`;
  winModal.classList.add('show');
- setMessage(isBest?'Brilliant — new best time! 🏆':'Nice work — puzzle solved! 🎉','good')
+ setMessage(isBest?(previousBest?`${improvementDuration(improvement)} faster — new best! 🏆`:'New best time! 🏆'):'Nice work — puzzle solved! 🎉','good')
 }
 function updateBest(){const store=loadStore(),v=store[keyBest(state.n,state.band)];bestTop.textContent=v?fmt(v):'—'}
 
