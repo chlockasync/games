@@ -379,6 +379,60 @@ header{margin-top:0!important;flex:0 0 auto}
   .bottomControls{gap:5px!important}
   .actions,.controls{gap:6px!important}
 }
+
+
+/* 2026-09-02 stable installed-screen layout
+   Keep the brand/header high, reserve a real Android status-bar buffer,
+   and anchor normal controls to the bottom. The message area owns the
+   flexible space between board and controls, so hints never cover the board. */
+.app{
+  height:100dvh!important;min-height:100dvh!important;max-height:100dvh!important;
+  padding-top:max(26px,env(safe-area-inset-top))!important;
+  padding-bottom:max(8px,env(safe-area-inset-bottom))!important;
+  display:flex!important;flex-direction:column!important;
+  overflow-x:hidden!important;overflow-y:auto!important;
+}
+header{
+  flex:0 0 auto!important;
+  margin:0!important;
+  padding-top:4px!important;
+  padding-bottom:2px!important;
+}
+.gameShell{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  display:flex!important;flex-direction:column!important;
+  overflow:visible!important;
+}
+.gameTop{
+  flex:0 0 auto!important;
+  min-height:0!important;max-height:none!important;
+  padding:5px 0 7px!important;
+  margin:0!important;
+}
+.boardStage{
+  flex:0 0 auto!important;
+  min-height:0!important;height:auto!important;
+  margin:0!important;padding:0!important;
+}
+.messageSlot{
+  flex:1 0 auto!important;
+  min-height:44px!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  padding:6px 7px!important;
+}
+.bottomControls{
+  flex:0 0 auto!important;
+  margin-top:0!important;
+  padding-top:0!important;
+}
+@media (max-height:760px){
+  .app{padding-top:max(20px,env(safe-area-inset-top))!important;padding-bottom:max(6px,env(safe-area-inset-bottom))!important}
+  header{padding-top:2px!important;padding-bottom:1px!important}
+  .gameTop{padding:3px 0 5px!important}
+  .messageSlot{min-height:34px!important;padding:4px 6px!important}
+}
+
 </style>
 </head>
 <body>
@@ -790,8 +844,10 @@ function logicAnalyse(n,regions,maxForceDepth=1){
 }
 
 
-let generatorWorker=null,generatorBusy=false,cachedPuzzle=null,pendingNew=false,generationToken=0;
+let generatorWorker=null,generatorBusy=false,pendingNew=false,generationToken=0,generationJob=null,bankFillTimer=null,pendingPreferredBand=null;
 const RECENT_LIMIT=320,NEAR_DUPLICATE_SIMILARITY=.89;
+const BANK_BASE_TARGET=1,BANK_CURRENT_TARGET=2; // one of every option, two for the active mix
+const puzzleBank=new Map(),bankFailures=new Map(),bankRetryAfter=new Map();
 
 function puzzleTransforms(n,regions){
   const out=[];
@@ -826,13 +882,15 @@ function startPuzzle(p){
   state={...turned,colors:paletteFor(turned.n,turned.regions),marks:Array(turned.n*turned.n).fill(0),elapsed:0,startedAt:Date.now(),complete:false,failed:false,transform:0,history:[],hintUsed:false,hintCount:0,activeHint:null};
   render();startTimer();setMessage('');
   newGameBtn.disabled=false;hintBtn.disabled=false;
-  prefetchNext();
+  scheduleBankFill(120);
 }
 function resetPrefetch(){
-  cachedPuzzle=null;pendingNew=false;generationToken++;
-  if(generatorWorker){generatorWorker.terminate();generatorWorker=null}
-  generatorBusy=false;
-  if(state&&!state.complete)prefetchNext();
+  // Changing controls no longer throws away prepared puzzles. It simply changes
+  // which difficulty/size queues get replenished first. If a New game is already
+  // waiting, keep waiting but retarget it to the newly selected controls.
+  if(pendingNew)pendingPreferredBand=choosePendingBand();
+  else pendingPreferredBand=null;
+  scheduleBankFill(0);
 }
 function makeWorker(){
   if(!('Worker' in window)||!('Blob' in window))return null;
@@ -1060,48 +1118,118 @@ onmessage=e=>{const d=e.data||{};if(d.type!=='generate')return;try{const result=
 `;
   const blob=new Blob([workerSource],{type:'application/javascript'}),url=URL.createObjectURL(blob),w=new Worker(url);URL.revokeObjectURL(url);return w;
 }
+function bankKey(band,mode){return `${band}|${mode}`}
+function bankQueue(band,mode){
+  const key=bankKey(band,mode);if(!puzzleBank.has(key))puzzleBank.set(key,[]);return puzzleBank.get(key);
+}
+function bandAllowedWeight(band){return difficultyMix(difficultyBias)[BANDS.indexOf(band)]||0}
+function desiredDepth(band,mode){
+  return mode===sizeMode&&bandAllowedWeight(band)>0?BANK_CURRENT_TARGET:BANK_BASE_TARGET;
+}
+function bankAvoidRecords(){
+  const out=recentPuzzleRecords().slice();
+  for(const q of puzzleBank.values())for(const p of q)out.push({n:p.n,sig:canonicalFingerprint(p.n,p.regions)});
+  return out;
+}
+function weightedBandFromAvailable(available){
+  if(!available.length)return null;
+  let total=0,weights=[];
+  for(const band of available){const w=Math.max(.001,bandAllowedWeight(band));weights.push([band,w]);total+=w}
+  let x=Math.random()*total;for(const [band,w] of weights){x-=w;if(x<=0)return band}return weights.at(-1)[0];
+}
+function takeBankPuzzle(){
+  const available=BANDS.filter(b=>bandAllowedWeight(b)>0&&bankQueue(b,sizeMode).length);
+  const band=weightedBandFromAvailable(available);if(!band)return null;
+  const q=bankQueue(band,sizeMode),idx=rngInt(q.length),p=q.splice(idx,1)[0];
+  scheduleBankFill(30);return p;
+}
+function choosePendingBand(){
+  const candidates=BANDS.filter(b=>bandAllowedWeight(b)>0);
+  if(!candidates.length)return BANDS[difficultyBias/25]||'Hard';
+  let bestFail=Math.min(...candidates.map(b=>bankFailures.get(bankKey(b,sizeMode))||0));
+  const fresher=candidates.filter(b=>(bankFailures.get(bankKey(b,sizeMode))||0)===bestFail);
+  return weightedBandFromAvailable(fresher)||candidates[0];
+}
+function nextBankJob(){
+  // If New game is waiting, prepare one of the currently selected combinations first.
+  if(pendingNew){
+    if(!pendingPreferredBand||bandAllowedWeight(pendingPreferredBand)<=0)pendingPreferredBand=choosePendingBand();
+    const key=bankKey(pendingPreferredBand,sizeMode);
+    if(bankQueue(pendingPreferredBand,sizeMode).length===0)return {band:pendingPreferredBand,mode:sizeMode,key,urgent:true};
+  }
+  // Keep two ready for every band that the current difficulty mix can actually serve.
+  const currentBands=BANDS.filter(b=>bandAllowedWeight(b)>0).sort((a,b)=>(bankQueue(a,sizeMode).length-bankQueue(b,sizeMode).length));
+  for(const band of currentBands){
+    const key=bankKey(band,sizeMode),q=bankQueue(band,sizeMode);
+    if(q.length<desiredDepth(band,sizeMode)&&(bankRetryAfter.get(key)||0)<=Date.now())return {band,mode:sizeMode,key,urgent:true}
+  }
+  // Then maintain at least one puzzle for every explicit difficulty × size option.
+  const modes=SIZE_MODES.slice();
+  // Rotate the starting point so background filling doesn't always favour Easy/Small after a reload.
+  const offset=Math.floor((Date.now()/1000))%(BANDS.length*modes.length),jobs=[];
+  for(const mode of modes)for(const band of BANDS)jobs.push({band,mode,key:bankKey(band,mode)});
+  for(let j=0;j<jobs.length;j++){
+    const job=jobs[(j+offset)%jobs.length],q=bankQueue(job.band,job.mode);
+    if(q.length<BANK_BASE_TARGET&&(bankRetryAfter.get(job.key)||0)<=Date.now())return job;
+  }
+  return null;
+}
+function scheduleBankFill(delay=0){
+  clearTimeout(bankFillTimer);bankFillTimer=setTimeout(fillBank,delay);
+}
 function ensureWorker(){
   if(generatorWorker)return generatorWorker;
   generatorWorker=makeWorker();if(!generatorWorker)return null;
   generatorWorker.onmessage=e=>{
     generatorBusy=false;
-    const d=e.data||{};
-    if(d.token!==generationToken){prefetchNext();return}
-    if(!d.ok||!d.result?.puzzle){
-      if(d.purpose==='new'){newGameBtn.disabled=false;hintBtn.disabled=false;setMessage('Could not generate that combination. Try New game again.','error');pendingNew=false}
-      return;
+    const d=e.data||{},job=generationJob;generationJob=null;
+    if(!job){scheduleBankFill(80);return}
+    const key=job.key;
+    let accepted=false;
+    if(d.ok&&d.result?.puzzle&&d.result.exact){
+      // Prefer genuinely different boards. If the generator only found a near-repeat,
+      // retry twice before accepting it so a dry queue cannot stall forever.
+      const failures=bankFailures.get(key)||0;
+      if(!d.result.similar||failures>=2){
+        const q=bankQueue(job.band,job.mode);
+        if(q.length<desiredDepth(job.band,job.mode))q.push(d.result.puzzle);
+        bankFailures.set(key,0);bankRetryAfter.delete(key);accepted=true;
+      }
     }
-    const p=d.result.puzzle;
-    if(!d.result.exact){
-      // Preserve the requested difficulty rather than silently serving a neighbouring band.
-      if(d.purpose==='new'){newGameBtn.disabled=false;hintBtn.disabled=false;setMessage(`Couldn't make a ${d.targetBand.toLowerCase()} ${sizeMode} board this time. Try New game again.`,'error');pendingNew=false}
-      else setTimeout(prefetchNext,300);
-      return;
+    if(!accepted){
+      const failures=(bankFailures.get(key)||0)+1;bankFailures.set(key,failures);
+      // Don't burn battery endlessly on an awkward background combination. Urgent
+      // New-game requests ignore this cooldown and continue trying immediately.
+      if(failures>=3)bankRetryAfter.set(key,Date.now()+Math.min(30000,1500*failures));
+      if(pendingNew&&job.mode===sizeMode&&job.band===pendingPreferredBand&&failures>=3){bankRetryAfter.delete(key);pendingPreferredBand=choosePendingBand()}
     }
-    if(d.settingsKey!==currentSettingsKey()){prefetchNext();return}
-    if(d.purpose==='new'||pendingNew){
-      pendingNew=false;cachedPuzzle=null;startPuzzle(p);
-    }else{
-      cachedPuzzle={puzzle:p,settingsKey:d.settingsKey};
+    if(pendingNew){
+      const p=takeBankPuzzle();
+      if(p){pendingNew=false;pendingPreferredBand=null;startPuzzle(p);return}
     }
+    scheduleBankFill(accepted?60:180);
   };
-  generatorWorker.onerror=()=>{generatorBusy=false;generatorWorker?.terminate();generatorWorker=null;if(pendingNew){pendingNew=false;newGameBtn.disabled=false;hintBtn.disabled=false;setMessage('Puzzle generation failed. Try New game again.','error')}};
+  generatorWorker.onerror=()=>{
+    generatorBusy=false;generationJob=null;generatorWorker?.terminate();generatorWorker=null;
+    if(pendingNew)setMessage('Preparing a puzzle…','');
+    scheduleBankFill(350);
+  };
   return generatorWorker;
 }
-function requestGenerated(purpose){
-  if(generatorBusy)return false;
+function requestBankJob(job){
+  if(generatorBusy||!job)return false;
   const worker=ensureWorker();if(!worker)return false;
-  generatorBusy=true;
-  const targetBand=sampleBand(difficultyBias),settingsKey=currentSettingsKey(),token=generationToken;
-  const avoid=recentPuzzleRecords();
-  if(cachedPuzzle?.puzzle)avoid.push({n:cachedPuzzle.puzzle.n,sig:canonicalFingerprint(cachedPuzzle.puzzle.n,cachedPuzzle.puzzle.regions)});
-  worker.postMessage({type:'generate',purpose,targetBand,sizeMode,recent:avoid,threshold:NEAR_DUPLICATE_SIMILARITY,settingsKey,token});
+  generatorBusy=true;generationJob=job;
+  const avoid=bankAvoidRecords();
+  worker.postMessage({type:'generate',purpose:'bank',targetBand:job.band,sizeMode:job.mode,recent:avoid,threshold:NEAR_DUPLICATE_SIMILARITY,settingsKey:job.key,token:generationToken});
   return true;
 }
-function prefetchNext(){
-  if(!state||state.complete||generatorBusy||cachedPuzzle)return;
-  requestGenerated('prefetch');
+function fillBank(){
+  if(generatorBusy)return;
+  const job=nextBankJob();if(!job)return;
+  requestBankJob(job);
 }
+function prefetchNext(){scheduleBankFill(80)}
 function transformed(p,t){
  const n=p.n;function map(r,c){switch(t){case 0:return[r,c];case 1:return[c,n-1-r];case 2:return[n-1-r,n-1-c];case 3:return[n-1-c,r];case 4:return[r,n-1-c];case 5:return[n-1-r,c];case 6:return[c,r];default:return[n-1-c,n-1-r]}}
  const reg=Array(n*n),sol=Array(n).fill(-1);for(let r=0;r<n;r++)for(let c=0;c<n;c++){const [rr,cc]=map(r,c);reg[rr*n+cc]=p.regions[r*n+c]}
@@ -1457,15 +1585,11 @@ function restartCurrent(){
 
 function makeNew(){
   pauseTimer();clearHint();resetHintFlow();
-  if(cachedPuzzle&&cachedPuzzle.settingsKey===currentSettingsKey()){
-    const p=cachedPuzzle.puzzle;cachedPuzzle=null;startPuzzle(p);return;
-  }
-  pendingNew=true;newGameBtn.disabled=true;hintBtn.disabled=true;
-  setMessage(`Generating ${BANDS[difficultyBias/25].toLowerCase()} mix · ${sizeMode} size…`);
-  if(generatorBusy)return;
-  if(!requestGenerated('new')){
-    pendingNew=false;newGameBtn.disabled=false;hintBtn.disabled=false;setMessage('Puzzle generation is not available in this browser.','error');
-  }
+  const ready=takeBankPuzzle();
+  if(ready){startPuzzle(ready);return}
+  pendingNew=true;pendingPreferredBand=choosePendingBand();newGameBtn.disabled=true;hintBtn.disabled=true;
+  setMessage(`Preparing ${BANDS[difficultyBias/25].toLowerCase()} mix · ${sizeMode} size…`);
+  scheduleBankFill(0);
 }
 
 function cellsInRow(r,n){const out=[];for(let c=0;c<n;c++)out.push(r*n+c);return out}

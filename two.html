@@ -379,6 +379,60 @@ header{margin-top:0!important;flex:0 0 auto}
   .bottomControls{gap:5px!important}
   .actions,.controls{gap:6px!important}
 }
+
+
+/* 2026-09-02 stable installed-screen layout
+   Keep the brand/header high, reserve a real Android status-bar buffer,
+   and anchor normal controls to the bottom. The message area owns the
+   flexible space between board and controls, so hints never cover the board. */
+.app{
+  height:100dvh!important;min-height:100dvh!important;max-height:100dvh!important;
+  padding-top:max(26px,env(safe-area-inset-top))!important;
+  padding-bottom:max(8px,env(safe-area-inset-bottom))!important;
+  display:flex!important;flex-direction:column!important;
+  overflow-x:hidden!important;overflow-y:auto!important;
+}
+header{
+  flex:0 0 auto!important;
+  margin:0!important;
+  padding-top:4px!important;
+  padding-bottom:2px!important;
+}
+.gameShell{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  display:flex!important;flex-direction:column!important;
+  overflow:visible!important;
+}
+.gameTop{
+  flex:0 0 auto!important;
+  min-height:0!important;max-height:none!important;
+  padding:5px 0 7px!important;
+  margin:0!important;
+}
+.boardStage{
+  flex:0 0 auto!important;
+  min-height:0!important;height:auto!important;
+  margin:0!important;padding:0!important;
+}
+.messageSlot{
+  flex:1 0 auto!important;
+  min-height:44px!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  padding:6px 7px!important;
+}
+.bottomControls{
+  flex:0 0 auto!important;
+  margin-top:0!important;
+  padding-top:0!important;
+}
+@media (max-height:760px){
+  .app{padding-top:max(20px,env(safe-area-inset-top))!important;padding-bottom:max(6px,env(safe-area-inset-bottom))!important}
+  header{padding-top:2px!important;padding-bottom:1px!important}
+  .gameTop{padding:3px 0 5px!important}
+  .messageSlot{min-height:34px!important;padding:4px 6px!important}
+}
+
 </style>
 </head>
 <body>
