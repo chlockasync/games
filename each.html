@@ -7,14 +7,14 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<link rel="manifest" href="./manifest.webmanifest?v=15" />
-<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png?v=15" />
-<link rel="icon" type="image/x-icon" href="./icons/favicon.ico?v=15" />
-<link rel="shortcut icon" type="image/x-icon" href="./icons/favicon.ico?v=15" />
-<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=15" />
-<link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png?v=15" />
+<link rel="manifest" href="./manifest.webmanifest?v=16" />
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png?v=16" />
+<link rel="icon" type="image/x-icon" href="./icons/favicon.ico?v=16" />
+<link rel="shortcut icon" type="image/x-icon" href="./icons/favicon.ico?v=16" />
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=16" />
+<link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png?v=16" />
 <meta name="apple-mobile-web-app-title" content="Each" />
-<title>One Each / Two Each</title>
+<title>Each</title>
 <style>
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f3f2f4}
 body{position:fixed;inset:0}
@@ -35,8 +35,7 @@ let active=localStorage.getItem(MODE_KEY)==='two'?'two':'one';
 const loaded={one:false,two:false};
 function tell(mode,isActive){const f=frames[mode];if(loaded[mode]&&f.contentWindow)f.contentWindow.postMessage({type:'each-active',active:isActive},'*')}
 function ensure(mode){
- const f=frames[mode];
- if(loaded[mode]||f.dataset.loading==='1')return;
+ const f=frames[mode];if(loaded[mode]||f.dataset.loading==='1')return;
  f.dataset.loading='1';
  f.addEventListener('load',()=>{loaded[mode]=true;delete f.dataset.loading;tell(mode,mode===active)},{once:true});
  f.src=urls[mode];
@@ -45,13 +44,9 @@ function show(mode){
  if(mode!=='one'&&mode!=='two')return;
  active=mode;localStorage.setItem(MODE_KEY,mode);ensure(mode);
  for(const m of ['one','two']){const on=m===mode;frames[m].classList.toggle('active',on);tell(m,on)}
- document.title=mode==='one'?'One Each — endless logic puzzles':'Two Each — endless logic puzzles';
+ document.title=mode==='one'?'One Each':'Two Each';
 }
-window.addEventListener('message',e=>{
- const d=e.data;if(!d||d.type!=='each-switch')return;
- if(e.source!==frames.one.contentWindow&&e.source!==frames.two.contentWindow)return;
- show(d.target);
-});
+window.addEventListener('message',e=>{const d=e.data;if(!d||d.type!=='each-switch')return;if(e.source!==frames.one.contentWindow&&e.source!==frames.two.contentWindow)return;show(d.target)});
 ensure(active);show(active);
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
 })();

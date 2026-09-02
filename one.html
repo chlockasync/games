@@ -4,15 +4,18 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
 <meta name="theme-color" content="#f4f1ea" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<link rel="manifest" href="./manifest.webmanifest?v=15" />
-<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png?v=15" />
-<link rel="icon" type="image/x-icon" href="./icons/favicon.ico?v=15" />
-<link rel="shortcut icon" type="image/x-icon" href="./icons/favicon.ico?v=15" />
-<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=15" />
-<link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png?v=15" />
+<link rel="manifest" href="./manifest.webmanifest?v=16" />
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png?v=16" />
+<link rel="icon" type="image/x-icon" href="./icons/favicon.ico?v=16" />
+<link rel="shortcut icon" type="image/x-icon" href="./icons/favicon.ico?v=16" />
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=16" />
+<link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png?v=16" />
 <meta name="apple-mobile-web-app-title" content="One Each" />
 <title>One Each — endless logic puzzles</title>
 <style>
@@ -22,7 +25,7 @@
   --cell:min(11vw,52px);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;width:100%;height:100%;min-height:100%;overflow:hidden;background:linear-gradient(135deg,#f3f0f2 0%,#f4f3f2 48%,#edf3f2 100%);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;overscroll-behavior:none}
+html,body{margin:0;width:100%;height:100%;min-height:100%;overflow:hidden;background:linear-gradient(135deg,#f3f0f2 0%,#f4f3f2 48%,#edf3f2 100%);color:var(--ink);font-family:Inter,"Segoe UI",Roboto,system-ui,sans-serif;overscroll-behavior:none}
 body{position:fixed;inset:0;display:flex;justify-content:center;min-height:100vh;min-height:100svh;height:100vh;height:100dvh}
 button,select,input{font:inherit}
 .app{width:min(100%,720px);height:100vh;height:100dvh;max-height:100vh;max-height:100dvh;overflow-x:hidden;overflow-y:auto;padding:max(4px,env(safe-area-inset-top)) 10px max(6px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:5px;scrollbar-width:none;-ms-overflow-style:none}
@@ -615,7 +618,7 @@ function neighbors4(i,n){const r=Math.floor(i/n),c=i%n,a=[];if(r)a.push(i-n);if(
 function growRegions(n,sol,style='mixed'){
  const total=n*n,reg=Array(total).fill(-1),front=Array.from({length:n},()=>[]),counts=Array(n).fill(1);
  const styles=['balanced','compact','tendril'];if(style==='mixed')style=styles[rngInt(styles.length)];
- const growthBias=Array.from({length:n},()=>.78+Math.random()*.44);
+ const growthBias=Array.from({length:n},()=>style==='balanced'?.96+Math.random()*.08:.88+Math.random()*.24);
  for(let r=0;r<n;r++){const i=r*n+sol[r];reg[i]=r}
  for(let k=0;k<n;k++){const seed=k*n+sol[k];for(const nb of neighbors4(seed,n))if(reg[nb]<0)front[k].push(nb)}
  let left=total-n,guard=0;
@@ -788,7 +791,7 @@ function logicAnalyse(n,regions,maxForceDepth=1){
 
 
 let generatorWorker=null,generatorBusy=false,cachedPuzzle=null,pendingNew=false,generationToken=0;
-const RECENT_LIMIT=180,NEAR_DUPLICATE_SIMILARITY=.93;
+const RECENT_LIMIT=320,NEAR_DUPLICATE_SIMILARITY=.89;
 
 function puzzleTransforms(n,regions){
   const out=[];
@@ -856,11 +859,13 @@ function allMoves(n,sol,reg){const seeds=new Set(sol.map((c,r)=>r*n+c)),out=[];f
 function repair(n,sol,reg,maxSteps=420){const history=new Set([reg.join(',')]);for(let step=0;step<maxSteps;step++){const sols=findSolutions(n,reg,12),alts=sols.filter(s=>!same(s,sol));if(!alts.length)return {ok:true,reg};const moves=allMoves(n,sol,reg);if(!moves.length)return {ok:false};let best=[],bestScore=-1;for(const mv of moves){const i=mv[0],r=Math.floor(i/n),c=i%n;let score=0;for(const a of alts)if(a[r]===c)score++;if(score>bestScore){bestScore=score;best=[mv]}else if(score===bestScore)best.push(mv)}shuffle(best);let chosen=null;for(const mv of best){reg[mv[0]]=mv[2];const sig=reg.join(',');reg[mv[0]]=mv[1];if(!history.has(sig)){chosen=mv;history.add(sig);break}}if(!chosen)chosen=moves[rngInt(moves.length)];reg[chosen[0]]=chosen[2]}return {ok:false}}
 function regionCounts(n,reg){const counts=Array(n).fill(0);for(const x of reg)if(x>=0&&x<n)counts[x]++;return counts}
 function visuallyBalanced(n,reg){
-  const counts=regionCounts(n,reg),max=Math.max(...counts),cap=Math.ceil(n*1.95);
-  // A little asymmetry is desirable; a single region taking a third or more of
-  // the board is not. Also avoid too many single-cell regions in one puzzle.
+  const counts=regionCounts(n,reg),max=Math.max(...counts),min=Math.min(...counts);
+  // Average region area is n cells. Permit useful asymmetry, but reject the
+  // "one giant colour plus scraps" family much earlier than before.
+  const cap=Math.max(n+2,Math.ceil(n*1.32));
   const singles=counts.filter(x=>x===1).length;
-  return max<=cap&&singles<=Math.max(2,Math.floor(n*.28));
+  const tiny=counts.filter(x=>x<Math.max(2,Math.floor(n*.42))).length;
+  return max<=cap&&singles<=2&&tiny<=Math.max(2,Math.floor(n*.30))&&min>=1;
 }
 function generateEasyRegions(n,sol){
   const total=n*n,order=shuffle([...Array(n).keys()]),stepOfRow=Array(n);
@@ -882,39 +887,54 @@ function generateEasyRegions(n,sol){
   }
   if(!connectedLast())return null;
 
-  // Preserve the forced-single construction but let the later regions absorb
-  // much more of the board. The previous formula intentionally left almost all
-  // unused cells in the final region, which is why one colour dominated games.
-  const targets=Array(n).fill(1),targetCap=Math.ceil(n*1.58);
+  // All three profiles preserve exactly the same forced-single solve order,
+  // but deliberately make different region shapes.
+  const profiles=['balanced','compact','branchy'],profile=profiles[rngInt(profiles.length)];
+  const targetCap=Math.max(n+1,Math.ceil(n*1.34)),targets=Array(n).fill(1);
   for(let k=1;k<last;k++){
     const t=k/last;
-    targets[k]=Math.min(targetCap,Math.max(2,Math.round(n*(.42+1.18*t)*(.88+Math.random()*.24))));
+    const base=n*(.72+.36*t); // late regions are only mildly larger, not 1.6x n
+    targets[k]=Math.min(targetCap,Math.max(2,Math.round(base*(.88+Math.random()*.24))));
   }
   const ids=[...Array(last).keys()].filter(k=>k>0);
   let guard=0,moved=true;
-  while(moved&&guard++<total*30){
+  while(moved&&guard++<total*36){
     moved=false;
     for(const k of shuffle(ids.slice())){
       let count=0;for(const x of reg)if(x===k)count++;
       if(count>=targets[k])continue;
       const candidates=[];
       for(let i=0;i<total;i++)if(reg[i]===last&&!seeds.has(i)&&elim[i]<k&&neighbors4(i,n).some(nb=>reg[nb]===k))candidates.push(i);
-      shuffle(candidates);
-      for(const i of candidates){if(!connectedLast(i))continue;reg[i]=k;moved=true;break}
+      if(!candidates.length)continue;
+      let ranked=candidates.map(i=>{
+        const same=neighbors4(i,n).filter(nb=>reg[nb]===k).length;
+        const r=Math.floor(i/n),c=i%n,seedRow=order[k],seedCol=sol[seedRow];
+        const dist=Math.abs(r-seedRow)+Math.abs(c-seedCol);
+        let score=Math.random()*.45;
+        if(profile==='compact')score+=same*1.25-dist*.08;
+        else if(profile==='branchy')score+=(2-same)*1.15+dist*.05;
+        else score+=same*.28-dist*.025;
+        return [score,i];
+      }).sort((a,b)=>b[0]-a[0]);
+      for(const [,i] of ranked){if(!connectedLast(i))continue;reg[i]=k;moved=true;break}
     }
   }
 
-  // A second balancing pass transfers eligible boundary cells out of the final
-  // region while keeping the exact same easy-solve ordering intact.
-  const cap=Math.ceil(n*1.95);
-  for(let pass=0;pass<total*8;pass++){
+  // Keep draining the residual region into any legal neighbour until every
+  // colour is within the visual size cap. Choice policy follows the profile so
+  // these are genuinely different board families, not recolours of one shape.
+  const cap=Math.max(n+2,Math.ceil(n*1.32));
+  for(let pass=0;pass<total*14;pass++){
     const counts=regionCounts(n,reg);if(counts[last]<=cap)break;
-    let options=[];
-    for(let i=0;i<total;i++)if(reg[i]===last&&!seeds.has(i)){
+    const options=[];
+    for(let i=0;i<total;i++)if(reg[i]===last&&!seeds.has(i)&&connectedLast(i)){
       for(const k of [...new Set(neighbors4(i,n).map(nb=>reg[nb]).filter(k=>k>=1&&k<last))]){
-        if(elim[i]>=k||counts[k]>=targetCap||!connectedLast(i))continue;
-        const join=neighbors4(i,n).filter(nb=>reg[nb]===k).length;
-        options.push([counts[k]-join*.35+Math.random()*.3,i,k]);
+        if(elim[i]>=k||counts[k]>=targetCap)continue;
+        const same=neighbors4(i,n).filter(nb=>reg[nb]===k).length;
+        let score=counts[k]+Math.random()*.5;
+        if(profile==='compact')score-=same*.65;
+        else if(profile==='branchy')score+=same*.55;
+        options.push([score,i,k]);
       }
     }
     if(!options.length)break;options.sort((a,b)=>a[0]-b[0]);const [,i,k]=options[0];reg[i]=k;
@@ -1011,7 +1031,7 @@ function generate(targetBand,sizeMode,recent,threshold){
   // Method 2: targeted construction. This guarantees practical generation at
   // awkward difficulty/size combinations, but the easy constructor now actively
   // balances region areas instead of leaving one huge residual colour.
-  const attempts=(targetBand==='Easy'||targetBand==='Medium')?42:16;
+  const attempts=targetBand==='Easy'?90:targetBand==='Medium'?70:16;
   for(let attempt=0;attempt<attempts;attempt++){
     const n=chooseSize(targetBand,sizeMode),solution=markerPermutation(n);if(!solution)continue;
     const regions=generateConstructedRegions(n,solution,targetBand);if(!regions)continue;
@@ -1036,7 +1056,7 @@ function generate(targetBand,sizeMode,recent,threshold){
   if(similarExact)return {puzzle:similarExact,exact:true,similar:true};
   return {puzzle:closest,exact:false};
 }
-onmessage=e=>{const d=e.data||{};if(d.type!=='generate')return;try{const result=generate(d.targetBand,d.sizeMode,d.recent||[],d.threshold||.93);postMessage({ok:!!result.puzzle,result,token:d.token,settingsKey:d.settingsKey,purpose:d.purpose,targetBand:d.targetBand})}catch(err){postMessage({ok:false,error:String(err&&err.message||err),token:d.token,settingsKey:d.settingsKey,purpose:d.purpose,targetBand:d.targetBand})}};
+onmessage=e=>{const d=e.data||{};if(d.type!=='generate')return;try{const result=generate(d.targetBand,d.sizeMode,d.recent||[],d.threshold||.89);postMessage({ok:!!result.puzzle,result,token:d.token,settingsKey:d.settingsKey,purpose:d.purpose,targetBand:d.targetBand})}catch(err){postMessage({ok:false,error:String(err&&err.message||err),token:d.token,settingsKey:d.settingsKey,purpose:d.purpose,targetBand:d.targetBand})}};
 `;
   const blob=new Blob([workerSource],{type:'application/javascript'}),url=URL.createObjectURL(blob),w=new Worker(url);URL.revokeObjectURL(url);return w;
 }

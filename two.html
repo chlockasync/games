@@ -4,15 +4,18 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
 <meta name="theme-color" content="#f4f1ea" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<link rel="manifest" href="./manifest.webmanifest?v=15" />
-<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png?v=15" />
-<link rel="icon" type="image/x-icon" href="./icons/favicon.ico?v=15" />
-<link rel="shortcut icon" type="image/x-icon" href="./icons/favicon.ico?v=15" />
-<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=15" />
-<link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png?v=15" />
+<link rel="manifest" href="./manifest.webmanifest?v=16" />
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png?v=16" />
+<link rel="icon" type="image/x-icon" href="./icons/favicon.ico?v=16" />
+<link rel="shortcut icon" type="image/x-icon" href="./icons/favicon.ico?v=16" />
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=16" />
+<link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png?v=16" />
 <meta name="apple-mobile-web-app-title" content="Two Each" />
 <title>Two Each — endless logic puzzles</title>
 <style>
@@ -22,7 +25,7 @@
   --cell:min(11vw,52px);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;width:100%;height:100%;min-height:100%;overflow:hidden;background:linear-gradient(135deg,#f3f0f2 0%,#f4f3f2 48%,#edf3f2 100%);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;overscroll-behavior:none}
+html,body{margin:0;width:100%;height:100%;min-height:100%;overflow:hidden;background:linear-gradient(135deg,#f3f0f2 0%,#f4f3f2 48%,#edf3f2 100%);color:var(--ink);font-family:Inter,"Segoe UI",Roboto,system-ui,sans-serif;overscroll-behavior:none}
 body{position:fixed;inset:0;display:flex;justify-content:center;min-height:100vh;min-height:100svh;height:100vh;height:100dvh}
 button,select,input{font:inherit}
 .app{width:min(100%,720px);height:100vh;height:100dvh;max-height:100vh;max-height:100dvh;overflow-x:hidden;overflow-y:auto;padding:max(4px,env(safe-area-inset-top)) 10px max(6px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:5px;scrollbar-width:none;-ms-overflow-style:none}
@@ -78,8 +81,8 @@ header{display:flex;flex-direction:column;gap:0;padding:8px 6px 1px;flex:0 0 aut
 .cell.conflict{outline:3px solid var(--danger);outline-offset:-3px}
 .boardArt.hintMode{filter:none;opacity:1}
 .board.hintMode .cell{opacity:1;transition:opacity .15s ease,box-shadow .15s ease}
-.board.hintMode .cell:not(.hintScope):not(.hint):not(.hintTest)::before{inset:1px;border-radius:6px;background:rgba(244,244,246,.72);box-shadow:none}
-.board.hintMode .cell:not(.hintScope):not(.hint):not(.hintTest).x .mark,.board.hintMode .cell:not(.hintScope):not(.hint):not(.hintTest).marker .mark{opacity:.28}
+.board.hintMode .cell:not(.hintScope):not(.hint):not(.hintTest)::before{background:transparent;box-shadow:none}
+.board.hintMode .cell:not(.hintScope):not(.hint):not(.hintTest).x .mark,.board.hintMode .cell:not(.hintScope):not(.hint):not(.hintTest).marker .mark{opacity:1}
 .board.hintMode .cell.hintScope::before{background:transparent;box-shadow:inset 0 0 0 2px rgba(255,255,255,.96),0 0 0 2px rgba(79,82,108,.36)}
 .board.hintMode .cell.hintScope.x .mark,.board.hintMode .cell.hintScope.marker .mark{opacity:1}
 .cell.hint{z-index:4!important;opacity:1!important;animation:hintPulse 1s ease-in-out 3}
@@ -1177,6 +1180,14 @@ function colourNames(rgs){
  return `${a.slice(0,-1).join(', ')}, and ${a[a.length-1]}`;
 }
 function unitName(kind,u){return kind===0?`row ${u+1}`:kind===1?`column ${u+1}`:`the ${regionColourName(u)} region`}
+function capFirst(s){return s?s[0].toUpperCase()+s.slice(1):s}
+function cellAxisRef(i,kind){const r=Math.floor(i/state.n)+1,c=i%state.n+1;return kind===1?`row ${r}`:`column ${c}`}
+function unitListName(kind,arr){
+ const a=[...arr];
+ if(kind===0)return `${a.length===1?'row':'rows'} ${a.map(x=>x+1).join(a.length===2?' and ':', ')}`;
+ if(kind===1)return `${a.length===1?'column':'columns'} ${a.map(x=>x+1).join(a.length===2?' and ':', ')}`;
+ const names=a.map(regionColourName);return `${names.join(names.length===2?' and ':', ')} ${names.length===1?'region':'regions'}`;
+}
 
 function logicHintClue(){
  const n=state.n,total=n*n,regions=state.regions,units=[[],[],[]];
@@ -1198,31 +1209,31 @@ function logicHintClue(){
  for(const k of [2,0,1])for(let u=0;u<n;u++){
    const f=fixedCount(s,k,u),a=candCells(s,k,u),open=a.filter(i=>!s.fixed[i]);
    if(f===2&&open.length)return {key:`full-${k}-${u}`,type:'quota',targetCells:open,scopeCells:units[k][u],intro:`${label(k,u)[0].toUpperCase()+label(k,u).slice(1)} already has its two 😎.`,detail:'Every other square in it can be crossed out.',reveal:`Cross ${cellRefs(open)}.`};
-   if(a.length===2&&open.length)return {key:`need-${k}-${u}`,type:'quota',targetCells:open,scopeCells:units[k][u],intro:`Only enough possible squares remain in ${label(k,u)} to complete its two 😎.`,detail:`There are exactly two candidate squares left in total, including any 😎 already placed.`,reveal:`Place 😎 in ${cellRefs(open)}.`};
+   if(a.length===2&&open.length)return {key:`need-${k}-${u}`,type:'quota',targetCells:open,scopeCells:units[k][u],intro:`${capFirst(label(k,u))} has only enough spaces left for its two 😎.`,detail:`There are exactly two possible cells left in total, counting any 😎 already placed.`,reveal:`Place 😎 in ${cellRefs(open)}.`};
  }
  for(const k of [2,0,1])for(let u=0;u<n;u++){
    const co=completions(s,k,u);if(!co.length)continue;const open=units[k][u].filter(i=>s.cand[i]&&!s.fixed[i]);
-   for(const i of open){const used=co.filter(x=>x.includes(i)).length;if(used===0)return {key:`local-out-${k}-${u}-${i}`,type:'pair',targetCells:[i],scopeCells:units[k][u],intro:`Look at the possible pairs in ${label(k,u)}.`,detail:`${cellRef(i)} is not part of any pair that can supply the two 😎 without them touching.`,reveal:`Cross ${cellRef(i)}.`};if(used===co.length)return {key:`local-in-${k}-${u}-${i}`,type:'pair',targetCells:[i],scopeCells:units[k][u],intro:`Look at the possible pairs in ${label(k,u)}.`,detail:`Every possible pair for ${label(k,u)} includes ${cellRef(i)}.`,reveal:`Place 😎 in ${cellRef(i)}.`}}
+   for(const i of open){const used=co.filter(x=>x.includes(i)).length;if(used===0)return {key:`local-out-${k}-${u}-${i}`,type:'pair',targetCells:[i],scopeCells:units[k][u],intro:`There is a cell in ${label(k,u)} that cannot belong to any legal pair.`,detail:`It is ${cellRef(i)}. Every pair using that cell would make the two 😎 touch.`,reveal:`Cross ${cellRef(i)}.`};if(used===co.length)return {key:`local-in-${k}-${u}-${i}`,type:'pair',targetCells:[i],scopeCells:units[k][u],intro:`There is a cell in ${label(k,u)} that has to be used — it appears in every legal pair.`,detail:`That cell is ${cellRef(i)}. Every way to place the two 😎 in ${label(k,u)} uses it.`,reveal:`Place 😎 in ${cellRef(i)}.`}}
  }
  for(let ka=0;ka<3;ka++)for(let ua=0;ua<n;ua++){
    const needA=2-fixedCount(s,ka,ua),remA=candCells(s,ka,ua).filter(i=>!s.fixed[i]);if(needA<=0||remA.length<=needA)continue;
-   for(let kb=0;kb<3;kb++)if(kb!==ka)for(let ub=0;ub<n;ub++){const needB=2-fixedCount(s,kb,ub);if(needB!==needA||needB<=0)continue;const B=new Set(units[kb][ub]);if(!remA.every(i=>B.has(i)))continue;const A=new Set(units[ka][ua]),targets=candCells(s,kb,ub).filter(i=>!s.fixed[i]&&!A.has(i));if(targets.length)return {key:`lock-${ka}-${ua}-${kb}-${ub}`,type:'locked',targetCells:targets,scopeCells:uniqueCells([...units[ka][ua],...units[kb][ub]]),intro:`All the remaining 😎 for ${label(ka,ua)} have to come from ${label(kb,ub)}.`,detail:`Both units need the same number of remaining 😎, so ${label(kb,ub)} cannot spend any of its remaining quota outside ${label(ka,ua)}.`,reveal:`Cross ${cellRefs(targets)}.`}}
+   for(let kb=0;kb<3;kb++)if(kb!==ka)for(let ub=0;ub<n;ub++){const needB=2-fixedCount(s,kb,ub);if(needB!==needA||needB<=0)continue;const B=new Set(units[kb][ub]);if(!remA.every(i=>B.has(i)))continue;const A=new Set(units[ka][ua]),targets=candCells(s,kb,ub).filter(i=>!s.fixed[i]&&!A.has(i));if(targets.length)return {key:`lock-${ka}-${ua}-${kb}-${ub}`,type:'locked',targetCells:targets,scopeCells:uniqueCells([...units[ka][ua],...units[kb][ub]]),intro:`Every remaining possible cell in ${label(ka,ua)} is also inside ${label(kb,ub)}.`,detail:`Both still need ${needA===1?'one 😎':'two 😎'}, so every remaining 😎 in ${label(kb,ub)} must also satisfy ${label(ka,ua)}. Its other cells can be crossed out.`,reveal:`Cross ${cellRefs(targets)}.`}}
  }
  // MEDIUM — direct blocking: an immediate quota contradiction.
- for(let i=0;i<total;i++)if(s.cand[i]&&!s.fixed[i]){const t=clone(s);place(t,i);const fail=t.bad?{reason:t.reason||'it would touch an existing 😎'}:simpleFailure(t);if(fail)return {key:`block-${i}`,type:'blocking',targetCells:[i],scopeCells:uniqueCells([i,...(t.reasonCells||[])]),intro:`One square cannot contain 😎 because it immediately leaves another quota impossible.`,detail:`If ${cellRef(i)} contained 😎, ${fail.reason}.`,reveal:`Cross ${cellRef(i)}.`}}
+ for(let i=0;i<total;i++)if(s.cand[i]&&!s.fixed[i]){const t=clone(s);place(t,i);const fail=t.bad?{reason:t.reason||'it would touch an existing 😎'}:simpleFailure(t);if(fail){const blocked=fail.k!=null?label(fail.k,fail.u):null,r=Math.floor(i/n)+1;return {key:`block-${i}`,type:'blocking',targetCells:[i],scopeCells:uniqueCells([i,...(t.reasonCells||[])]),intro:blocked?`There is a cell in row ${r} that would leave ${blocked} without enough available spaces.`:`There is a cell in row ${r} that cannot contain 😎.`,detail:`It is ${cellRef(i)}. If it contained 😎, ${fail.reason}.`,reveal:`Cross ${cellRef(i)}.`}}}
  // HARD — adjacent-unit compatibility, pair-level blocking, and two-unit capacity groups.
  function compatibleSets(a,b){for(const i of a)for(const j of b)if(touching(i,j,n))return false;return true}
  for(const k of [0,1])for(let u=0;u<n-1;u++){
    const A=completions(s,k,u),B=completions(s,k,u+1);if(!A.length||!B.length)continue;
-   for(const [which,own,other] of [[u,A,B],[u+1,B,A]])for(const i of units[k][which].filter(i=>s.cand[i]&&!s.fixed[i])){let ok=false;for(const x of own)if(x.includes(i)){for(const y of other)if(compatibleSets(x,y)){ok=true;break}if(ok)break}if(!ok){const kind=k===0?'rows':'columns';return {key:`adj-${k}-${u}-${i}`,type:'adjacent',targetCells:[i],scopeCells:uniqueCells([...units[k][u],...units[k][u+1]]),intro:`These two adjacent ${kind} have to fit their pairs together.`,detail:`Every pair using ${cellRef(i)} would put at least one 😎 next to every possible pair in the neighbouring ${k===0?'row':'column'}.`,reveal:`Cross ${cellRef(i)}.`}};}
+   for(const [which,own,other] of [[u,A,B],[u+1,B,A]])for(const i of units[k][which].filter(i=>s.cand[i]&&!s.fixed[i])){let ok=false;for(const x of own)if(x.includes(i)){for(const y of other)if(compatibleSets(x,y)){ok=true;break}if(ok)break}if(!ok){const neighbour=which===u?u+1:u,axis=k===0?'row':'column',where=cellAxisRef(i,k);return {key:`adj-${k}-${u}-${i}`,type:'adjacent',targetCells:[i],scopeCells:uniqueCells([...units[k][u],...units[k][u+1]]),intro:`There is a cell in ${axis} ${which+1} that would block every available pair in ${axis} ${neighbour+1}.`,detail:`It is ${where}. Every pair using that cell conflicts with every possible pair in ${axis} ${neighbour+1}, because the 😎 would be next to each other.`,reveal:`Cross ${cellRef(i)}.`}};}
  }
  function groupClue(minSize,maxSize){
    function pairOfDir(i,dir){const r=Math.floor(i/n),c=i%n,g=regions[i];switch(dir){case 0:return[r,c];case 1:return[c,r];case 2:return[r,g];case 3:return[g,r];case 4:return[c,g];default:return[g,c]}}
    function kindForLeft(dir){return dir===0||dir===2?0:dir===1||dir===4?1:2}function kindForRight(dir){return dir===0||dir===1?1:dir===2||dir===3?2:1}
-   for(let wanted=minSize;wanted<=Math.min(n,maxSize);wanted++)for(let dir=0;dir<6;dir++){const lk=kindForLeft(dir),rk=kindForRight(dir),leftNeed=Array(n),rightNeed=Array(n),neigh=Array(n).fill(0);for(let u=0;u<n;u++){leftNeed[u]=2-fixedCount(s,lk,u);rightNeed[u]=2-fixedCount(s,rk,u)}for(let i=0;i<total;i++)if(s.cand[i]&&!s.fixed[i]){const [aa,bb]=pairOfDir(i,dir);neigh[aa]|=1<<bb}const active=[];for(let aa=0;aa<n;aa++)if(leftNeed[aa]>0)active.push(aa);if(wanted>active.length)continue;const lim=1<<active.length;for(let mask=1;mask<lim;mask++){let bits=0;for(let x=mask;x;x&=x-1)bits++;if(bits!==wanted)continue;let demand=0,rights=0,leftMask=0;for(let x=0;x<active.length;x++)if(mask&(1<<x)){const aa=active[x];leftMask|=1<<aa;demand+=leftNeed[aa];rights|=neigh[aa]}let cap=0;for(let bb=0;bb<n;bb++)if(rights&(1<<bb))cap+=Math.max(0,rightNeed[bb]);if(cap!==demand)continue;const targets=[];for(let i=0;i<total;i++)if(s.cand[i]&&!s.fixed[i]){const [aa,bb]=pairOfDir(i,dir);if(!(leftMask&(1<<aa))&&(rights&(1<<bb)))targets.push(i)}if(targets.length){const left=[...Array(n).keys()].filter(aa=>leftMask&(1<<aa)),right=[...Array(n).keys()].filter(bb=>rights&(1<<bb));const names=(kind,arr)=>kind===0?`rows ${arr.map(x=>x+1).join(', ')}`:kind===1?`columns ${arr.map(x=>x+1).join(', ')}`:`${colourNames(arr)} regions`;return {key:`group-${dir}-${left.join('-')}-${right.join('-')}`,type:'group',complexity:wanted,targetCells:targets,scopeCells:uniqueCells([...targets,...left.flatMap(x=>units[lk][x]),...right.flatMap(x=>units[rk][x])]),intro:`${wanted===2?'Two units':'A group of '+wanted+' units'} have exactly enough shared capacity left.`,detail:`${names(lk,left)} must use all the remaining capacity available in ${names(rk,right)}. No other unit can use those same slots.`,reveal:`Cross ${cellRefs(targets)}.`}}}}
+   for(let wanted=minSize;wanted<=Math.min(n,maxSize);wanted++)for(let dir=0;dir<6;dir++){const lk=kindForLeft(dir),rk=kindForRight(dir),leftNeed=Array(n),rightNeed=Array(n),neigh=Array(n).fill(0);for(let u=0;u<n;u++){leftNeed[u]=2-fixedCount(s,lk,u);rightNeed[u]=2-fixedCount(s,rk,u)}for(let i=0;i<total;i++)if(s.cand[i]&&!s.fixed[i]){const [aa,bb]=pairOfDir(i,dir);neigh[aa]|=1<<bb}const active=[];for(let aa=0;aa<n;aa++)if(leftNeed[aa]>0)active.push(aa);if(wanted>active.length)continue;const lim=1<<active.length;for(let mask=1;mask<lim;mask++){let bits=0;for(let x=mask;x;x&=x-1)bits++;if(bits!==wanted)continue;let demand=0,rights=0,leftMask=0;for(let x=0;x<active.length;x++)if(mask&(1<<x)){const aa=active[x];leftMask|=1<<aa;demand+=leftNeed[aa];rights|=neigh[aa]}let cap=0;for(let bb=0;bb<n;bb++)if(rights&(1<<bb))cap+=Math.max(0,rightNeed[bb]);if(cap!==demand)continue;const targets=[];for(let i=0;i<total;i++)if(s.cand[i]&&!s.fixed[i]){const [aa,bb]=pairOfDir(i,dir);if(!(leftMask&(1<<aa))&&(rights&(1<<bb)))targets.push(i)}if(targets.length){const left=[...Array(n).keys()].filter(aa=>leftMask&(1<<aa)),right=[...Array(n).keys()].filter(bb=>rights&(1<<bb));const leftName=unitListName(lk,left),rightName=unitListName(rk,right),rightVerb=right.length===1?'has':'have';return {key:`group-${dir}-${left.join('-')}-${right.join('-')}`,type:'group',complexity:wanted,targetCells:targets,scopeCells:uniqueCells([...targets,...left.flatMap(x=>units[lk][x]),...right.flatMap(x=>units[rk][x])]),intro:`${capFirst(leftName)} can only place their remaining 😎 in ${rightName}.`,detail:`Together they still need ${demand} 😎, and ${rightName} ${rightVerb} exactly ${demand} places left for them. Those places are reserved, so the other units cannot use them.`,reveal:`Cross ${cellRefs(targets)}.`}}}}
    return null;
  }
- for(let i=0;i<total;i++)if(s.cand[i]&&!s.fixed[i]){const t=clone(s);place(t,i);if(t.bad||simpleFailure(t))continue;const fail=pairFailure(t);if(fail)return {key:`compound-${i}`,type:'compound',targetCells:[i],scopeCells:uniqueCells([i,...units[fail.k][fail.u]]),intro:`This square looks possible at first, but it breaks the way another unit can make its pair.`,detail:`If ${cellRef(i)} contained 😎, ${fail.reason}.`,reveal:`Cross ${cellRef(i)}.`}}
+ for(let i=0;i<total;i++)if(s.cand[i]&&!s.fixed[i]){const t=clone(s);place(t,i);if(t.bad||simpleFailure(t))continue;const fail=pairFailure(t);if(fail){const r=Math.floor(i/n)+1;return {key:`compound-${i}`,type:'compound',targetCells:[i],scopeCells:uniqueCells([i,...units[fail.k][fail.u]]),intro:`There is a cell in row ${r} that would leave ${label(fail.k,fail.u)} with no legal pair.`,detail:`It is ${cellRef(i)}. If it contained 😎, ${fail.reason}.`,reveal:`Cross ${cellRef(i)}.`}}}
  let gc=groupClue(2,2);if(gc)return gc;
  // EXPERT — three/four adjacent rows together or larger capacity groups.
  function windowClue(len){
@@ -1231,7 +1242,7 @@ function logicHintClue(){
      const combos=[],pick=Array(len),colBase=Array(n).fill(0),regBase=Array(n).fill(0);for(let i=0;i<total;i++)if(s.fixed[i]){const r=Math.floor(i/n);if(r<start||r>=start+len){colBase[i%n]++;regBase[regions[i]]++}}
      function rec(k,cols,regs){if(combos.length>25000)return;if(k===len){combos.push(pick.map(p=>p.slice()));return}const r=start+k;for(const p of dom[k]){if(k&&!p.every(a=>pick[k-1].every(b=>Math.abs(a-b)>1)))continue;const nc=cols.slice(),nr=regs.slice();let ok=true;for(const c of p){nc[c]++;const g=regions[r*n+c];nr[g]++;if(nc[c]>2||nr[g]>2){ok=false;break}}if(ok){pick[k]=p;rec(k+1,nc,nr)}}}
      rec(0,colBase,regBase);if(!combos.length)continue;
-     for(let k=0;k<len;k++){const r=start+k;for(const i of units[0][r].filter(i=>s.cand[i]&&!s.fixed[i])){const c=i%n,used=combos.filter(co=>co[k].includes(c)).length;if(used===0)return {key:`window-out-${len}-${start}-${i}`,type:'window',targetCells:[i],scopeCells:uniqueCells(Array.from({length:len},(_,x)=>units[0][start+x]).flat()),intro:`These ${len} neighbouring rows have to fit together as a group.`,detail:`Across every arrangement that gives each of these rows two non-touching 😎 without overfilling a column or colour, ${cellRef(i)} is never used.`,reveal:`Cross ${cellRef(i)}.`};if(used===combos.length)return {key:`window-in-${len}-${start}-${i}`,type:'window',targetCells:[i],scopeCells:uniqueCells(Array.from({length:len},(_,x)=>units[0][start+x]).flat()),intro:`These ${len} neighbouring rows have to fit together as a group.`,detail:`Every arrangement that keeps those rows compatible uses ${cellRef(i)}.`,reveal:`Place 😎 in ${cellRef(i)}.`}}}
+     for(let k=0;k<len;k++){const r=start+k;for(const i of units[0][r].filter(i=>s.cand[i]&&!s.fixed[i])){const c=i%n,used=combos.filter(co=>co[k].includes(c)).length;if(used===0)return {key:`window-out-${len}-${start}-${i}`,type:'window',targetCells:[i],scopeCells:uniqueCells(Array.from({length:len},(_,x)=>units[0][start+x]).flat()),intro:`Looking across rows ${start+1}–${start+len}, there is one cell that cannot appear in any complete arrangement.`,detail:`It is ${cellRef(i)}. Every way to give those rows two non-touching 😎 while keeping the columns and colours valid leaves that cell unused.`,reveal:`Cross ${cellRef(i)}.`};if(used===combos.length)return {key:`window-in-${len}-${start}-${i}`,type:'window',targetCells:[i],scopeCells:uniqueCells(Array.from({length:len},(_,x)=>units[0][start+x]).flat()),intro:`Looking across rows ${start+1}–${start+len}, there is one cell that appears in every complete arrangement.`,detail:`It is ${cellRef(i)}. Every way to fit those rows together while keeping the columns and colours valid uses that cell.`,reveal:`Place 😎 in ${cellRef(i)}.`}}}
    }
    return null;
  }
