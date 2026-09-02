@@ -1,0 +1,1283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#f4f1ea" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="manifest" href="./manifest.webmanifest?v=3" />
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png?v=3" />
+<link rel="icon" type="image/x-icon" href="./icons/favicon.ico?v=3" />
+<link rel="shortcut icon" type="image/x-icon" href="./icons/favicon.ico?v=3" />
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=3" />
+<link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png?v=3" />
+<meta name="apple-mobile-web-app-title" content="Two Each" />
+<title>Two Each — endless logic puzzles</title>
+<style>
+:root{
+  --bg:#f3f2f4;--panel:#fbfbfb;--ink:#384253;--muted:#788190;--line:#7d8495;
+  --soft:#e3e0e6;--accent:#59637a;--danger:#b25c67;--ok:#4b8b68;--regionEdge:#6d677d;
+  --cell:min(11vw,52px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;min-height:100%;overflow:hidden;background:linear-gradient(135deg,#f3f0f2 0%,#f4f3f2 48%,#edf3f2 100%);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;overscroll-behavior:none}
+body{position:fixed;inset:0;display:flex;justify-content:center;min-height:100vh;min-height:100svh;height:100vh;height:100dvh}
+button,select,input{font:inherit}
+.app{width:min(100%,720px);height:100vh;height:100dvh;max-height:100vh;max-height:100dvh;overflow-x:hidden;overflow-y:auto;padding:max(4px,env(safe-area-inset-top)) 10px max(6px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:5px;scrollbar-width:none;-ms-overflow-style:none}
+.app::-webkit-scrollbar{display:none}
+header{display:flex;flex-direction:column;gap:0;padding:8px 6px 1px;flex:0 0 auto}
+.brandRow{display:grid;grid-template-columns:max-content minmax(0,1fr);align-items:center;gap:12px;min-width:0}
+.title{font-size:clamp(33px,9vw,43px);font-weight:820;letter-spacing:-.045em;line-height:.98;color:#556078;white-space:nowrap}
+.instructions{min-width:0;font-size:clamp(10px,2.72vw,12.2px);line-height:1.28;color:#515d72;font-weight:620;text-align:center;letter-spacing:-.012em}
+.instructions span{display:block;white-space:nowrap}
+.stats{display:flex;align-items:center;justify-content:center;color:#70798a;font-size:12px;padding:0}
+.stat{display:flex;align-items:center;gap:7px;padding:0 15px;white-space:nowrap}
+.stat+.stat{border-left:1px solid #d8d5de}
+.stat strong{display:block;color:#3f495b;font-size:17px;line-height:1.1;text-align:right;font-weight:820}
+.controls{width:100%;background:transparent;border:0;border-radius:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;box-shadow:none;flex:0 0 auto}
+.control{display:flex;min-width:0;height:50px;background:transparent;border:0;border-radius:14px;padding:0;box-shadow:none}
+.wheelTrack{position:relative;width:100%;display:flex;flex-direction:column;align-items:stretch;height:50px;overflow-y:auto;overflow-x:hidden;scroll-snap-type:y mandatory;scroll-behavior:smooth;overscroll-behavior-y:contain;scrollbar-width:none;-ms-overflow-style:none;border:1px solid #dddbe2;border-radius:14px;background:linear-gradient(180deg,rgba(248,247,250,.97),rgba(242,240,245,.98) 48%,rgba(248,247,250,.97));box-shadow:0 3px 10px rgba(82,81,96,.06);touch-action:pan-y;padding:15px 4px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.26),#000 31%,#000 69%,rgba(0,0,0,.26));-webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,.26),#000 31%,#000 69%,rgba(0,0,0,.26))}
+.wheelTrack::-webkit-scrollbar{display:none}
+.wheelOption{position:relative;scroll-snap-align:center;flex:0 0 20px;min-height:20px;padding:1px 6px;border:0;border-radius:7px;background:transparent;color:#858896;font-size:10.5px;font-weight:700;line-height:18px;box-shadow:none;white-space:nowrap;opacity:.62;transition:opacity .12s ease,background .12s ease,color .12s ease,box-shadow .12s ease,font-size .12s ease}
+.wheelOption.active{background:rgba(255,255,255,.96);color:#45495b;font-size:12.5px;font-weight:900;opacity:1;box-shadow:0 1px 4px rgba(74,71,89,.13),inset 0 0 0 1px rgba(108,104,124,.08)}
+.recordsBtn{border:0;background:transparent;color:var(--muted);padding:0 15px;min-height:0;border-radius:8px;box-shadow:none;text-align:left;cursor:pointer}
+.recordsBtn strong{text-align:right}
+.statIcon{width:18px;height:18px;flex:0 0 auto;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.btnIcon{width:21px;height:21px;flex:0 0 auto;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.message:not(:empty):not(.hintMessage){width:min(100%,620px);min-height:38px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.80);border:1px solid #dfdce4;border-radius:12px;padding:7px 11px;box-shadow:0 3px 10px rgba(80,78,96,.05)}
+.recordsTableWrap{overflow-x:auto;margin:12px -4px 4px;padding:0 4px}
+.recordsTable{width:100%;min-width:430px;border-collapse:separate;border-spacing:0;font-size:12px;color:#4e5564}
+.recordsTable th,.recordsTable td{padding:8px 7px;text-align:center;border-bottom:1px solid #ece9ee}
+.recordsTable th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#7b7f8b;font-weight:850;background:#f7f5f8}
+.recordsTable th:first-child,.recordsTable td:first-child{text-align:left;font-weight:850;position:sticky;left:0;background:var(--panel)}
+.recordsTable tr:last-child td{border-bottom:0}
+.sheetHead{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.sheetHead h2{margin:0}
+.iconBtn{width:38px;min-height:38px;padding:0;border-radius:50%;background:#efedf2;color:#5a5968;box-shadow:none;font-size:22px;line-height:1}
+.dangerBtn{background:#b9656c;color:#fff}
+.confirmText{color:#5c5963;line-height:1.45;margin-top:10px}
+.gameShell{padding:0;display:flex;flex:1 0 auto;min-height:0;flex-direction:column;gap:0;align-items:stretch;touch-action:auto;user-select:none;-webkit-user-select:none;overflow:visible}
+.gameTop{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:3px;padding-top:1px}.boardStage{flex:1 1 auto;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:3px 0}.boardWrap{width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;overflow:visible;padding:0;flex:1 1 auto}.messageSlot{flex:0 0 auto;width:100%;display:flex;justify-content:center;padding:0}.bottomControls{flex:0 0 auto;width:100%;display:flex;flex-direction:column;gap:4px;padding-top:1px}
+.boardArt{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:block;pointer-events:none;overflow:visible;transition:filter .15s ease,opacity .15s ease}
+.board{position:relative;z-index:2;display:grid;border:0;border-radius:0;background:transparent;gap:0;touch-action:none;user-select:none;-webkit-user-select:none;max-width:100%;overflow:visible;box-shadow:none}
+.cell{position:relative;width:var(--cell);height:var(--cell);display:grid;place-items:center;background:transparent;font-size:calc(var(--cell)*.52);font-weight:700;line-height:1;touch-action:none;overflow:visible;border:0;border-radius:0;box-shadow:none}
+.cell::before{content:"";position:absolute;inset:4px;border-radius:7px;background:transparent;pointer-events:none}
+.cell.region-right,.cell.region-bottom,.cell.last-col,.cell.last-row{border:0}
+.cell>*{position:relative;z-index:1}
+.cell.x .mark{position:relative;width:52%;height:52%;display:block;transform:none;opacity:.76;filter:none}
+.cell.x .mark::before,.cell.x .mark::after{content:"";position:absolute;left:50%;top:50%;width:100%;height:max(4px,calc(var(--cell)*.115));background:rgba(255,255,255,.91);border-radius:999px;box-shadow:0 1px 1px rgba(73,72,90,.12);transform-origin:center}
+.cell.x .mark::before{transform:translate(-50%,-50%) rotate(45deg)}
+.cell.x .mark::after{transform:translate(-50%,-50%) rotate(-45deg)}
+.cell.marker .mark{width:100%;height:100%;display:grid;place-items:center;transform:none}
+.cell.marker .coolMarker{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;font-size:calc(var(--cell)*.64);line-height:1;filter:none;transform:translateY(7%)}
+.cell.marker{animation:markerPop .15s ease-out}
+@keyframes markerPop{0%{transform:scale(.72)}78%{transform:scale(1.07)}100%{transform:scale(1)}}
+.cell.conflict{outline:3px solid var(--danger);outline-offset:-3px}
+.boardArt.hintMode{filter:none;opacity:1}
+.board.hintMode .cell{opacity:1;transition:opacity .15s ease,box-shadow .15s ease}
+.board.hintMode .cell:not(.hintScope):not(.hint):not(.hintTest)::before{inset:1px;border-radius:6px;background:rgba(244,244,246,.72);box-shadow:none}
+.board.hintMode .cell:not(.hintScope):not(.hint):not(.hintTest).x .mark,.board.hintMode .cell:not(.hintScope):not(.hint):not(.hintTest).marker .mark{opacity:.28}
+.board.hintMode .cell.hintScope::before{background:transparent;box-shadow:inset 0 0 0 2px rgba(255,255,255,.96),0 0 0 2px rgba(79,82,108,.36)}
+.board.hintMode .cell.hintScope.x .mark,.board.hintMode .cell.hintScope.marker .mark{opacity:1}
+.cell.hint{z-index:4!important;opacity:1!important;animation:hintPulse 1s ease-in-out 3}
+.cell.hint::after{content:"?";position:absolute;right:5px;top:4px;z-index:3;font-size:calc(var(--cell)*.27);font-weight:950;color:#4f5270;line-height:1;text-shadow:0 1px 0 rgba(255,255,255,.8)}
+.cell.hint::before{background:var(--region)!important;box-shadow:inset 0 0 0 3px #fff,0 0 0 3px #595b79!important}
+.cell.hintTest{z-index:3!important}
+.cell.hintTest::before{background:var(--region)!important;box-shadow:inset 0 0 0 2px rgba(255,255,255,.96),0 0 0 3px rgba(91,94,132,.78)!important}
+@keyframes hintPulse{0%,100%{transform:scale(1)}50%{transform:scale(.94)}}
+.puzzleMeta{width:100%;display:flex;align-items:center;justify-content:center;gap:7px;margin:0;font-size:13px;color:var(--muted);flex:0 0 auto}
+.puzzleMeta .difficultyNow{font-size:16px;font-weight:850;color:#59627a;background:linear-gradient(180deg,#f3f2f7,#ebe7ef);border:1px solid #ddd8e4;border-radius:999px;padding:6px 12px;box-shadow:0 4px 10px rgba(101,96,117,.08)}
+.puzzleMeta .sizeNow{font-weight:750}
+.actions{width:100%;display:grid;gap:4px;flex:0 0 auto}.actionsTwo{grid-template-columns:repeat(2,1fr)}
+button{border:0;border-radius:14px;padding:11px 10px;background:#6c6878;color:white;font-weight:760;min-height:50px}
+button.secondary{background:#eceaf0;color:#4a5362}
+button.ghost{display:flex;align-items:center;justify-content:center;gap:9px;background:rgba(255,255,255,.91);color:#495369;border:1px solid #dddbe2;box-shadow:0 3px 10px rgba(82,81,96,.06)}
+button:disabled{opacity:.45}
+.message{min-height:0;max-height:none;overflow:visible;text-align:center;color:#606a7c;font-size:13px;line-height:1.38;padding:0;flex:0 0 auto}
+.message.error{color:var(--danger)} .message.good{color:var(--ok)}
+.message.hintMessage{width:min(100%,620px);text-align:left;background:rgba(255,255,255,.92);border:1px solid #dfdce4;border-radius:12px;padding:9px 12px;color:#586171;box-shadow:0 3px 10px rgba(80,78,96,.06)}
+.hintLine{display:block}
+.hintLine:first-child{font-weight:800;color:#4f5869}
+.hintLine+.hintLine{margin-top:4px;padding-top:4px;border-top:1px solid #ece9ef}
+
+.modal{position:fixed;inset:0;background:rgba(20,18,15,.42);display:none;align-items:flex-end;justify-content:center;padding:14px;z-index:20}
+.modal.show{display:flex}.sheet{width:min(100%,560px);background:var(--panel);border-radius:22px;padding:18px;border:1px solid var(--soft);box-shadow:0 10px 28px rgba(70,70,84,.18)}
+.sheet h2{margin:0 0 10px;font-size:22px}.sheet p{margin:7px 0;color:#514d46;line-height:1.45}.sheet .row{display:flex;gap:8px;margin-top:14px}.sheet .row button{flex:1}
+@media (max-width:420px){.app{padding-left:8px;padding-right:8px}.gameShell{padding:2px 0 0}.stats{gap:10px}.puzzleMeta .difficultyNow{font-size:16px}.actions button{font-size:14px;padding-left:6px;padding-right:6px;min-height:50px}.sheet{padding:16px}.recordsTable{font-size:11px}}
+@media (max-width:420px){
+ .app{padding-left:6px;padding-right:6px;gap:5px}
+ header{padding-top:4px;gap:5px}
+ .brandRow{gap:9px}
+ .title{font-size:26px}
+ .instructions{font-size:10.5px;line-height:1.22;padding-top:0}
+ .stats{font-size:10px}
+ .stat{padding:0 10px;gap:5px}
+ .stat strong{font-size:13px}
+ .gameShell{gap:0}.gameTop{gap:3px}.bottomControls{gap:6px}
+ .puzzleMeta .difficultyNow{font-size:14px;padding:4px 9px}
+ .actions button{font-size:14px;padding:11px 6px;min-height:50px}
+ .controls{padding:4px 6px 5px;border-radius:13px;gap:6px}
+ .control label{font-size:7.5px}
+ .wheelTrack{height:40px;padding:10px 3px}
+ .wheelOption{font-size:9.5px;flex-basis:20px;min-height:20px}
+ .message{font-size:12px;max-height:72px}
+}
+@media (max-height:700px){
+ .title{font-size:23px}
+ .instructions{font-size:9.5px}
+ .stats{font-size:9.5px}.stat strong{font-size:12px}
+ .gameShell{gap:0}.gameTop{gap:2px}.bottomControls{gap:5px}
+ .actions button{min-height:44px;padding:8px 6px}
+ .controls{padding-top:3px;padding-bottom:4px}
+ .wheelTrack{height:36px;padding:8px 3px}
+ .wheelOption{flex-basis:20px;min-height:20px}
+ .message{max-height:64px}
+}
+
+@media (max-width:420px){
+ .app{padding-left:7px;padding-right:7px;gap:6px}
+ header{padding:7px 5px 2px;gap:7px}
+ .brandRow{gap:12px}
+ .title{font-size:clamp(32px,9vw,38px)}
+ .instructions{font-size:clamp(10.6px,3.05vw,12.6px);line-height:1.27;padding-top:1px}
+ .stats{font-size:12px}
+ .stat{padding:0 12px;gap:6px}
+ .recordsBtn{padding:0 12px}
+ .stat strong{font-size:15.5px}
+ .statIcon{width:17px;height:17px}
+ .gameTop{gap:5px}
+ .puzzleMeta .difficultyNow{font-size:14px;padding:5px 10px}
+ .bottomControls{gap:7px}
+ .actions button{font-size:14px;padding:10px 6px;min-height:49px}
+ .btnIcon{width:20px;height:20px}
+ .controls{gap:8px}
+ .control{padding:5px 6px 6px}
+ .control label{font-size:8px}
+ .wheelTrack{height:48px;padding:14px 3px}
+ .wheelOption{font-size:10px;flex-basis:20px;min-height:20px}
+ .wheelOption.active{font-size:12px}
+ .message{font-size:12px;max-height:76px}
+ .message:not(:empty):not(.hintMessage){min-height:36px;padding:7px 9px}
+}
+@media (max-width:360px){
+ .brandRow{gap:9px}
+ .title{font-size:31px}
+ .instructions{font-size:10.4px}
+ .stat{padding:0 9px}
+ .recordsBtn{padding:0 9px}
+ .controls{gap:6px}
+}
+@media (max-height:700px){
+ header{padding-top:3px;gap:4px}
+ .title{font-size:30px}
+ .instructions{font-size:10px;line-height:1.2}
+ .stats{font-size:10.5px}.stat strong{font-size:13px}.statIcon{width:15px;height:15px}
+ .gameTop{gap:3px}.bottomControls{gap:5px}
+ .actions button{min-height:43px;padding:7px 5px}
+ .btnIcon{width:18px;height:18px}
+ .control{padding-top:4px;padding-bottom:4px}
+ .wheelTrack{height:42px;padding:11px 3px}
+ .message:not(:empty):not(.hintMessage){min-height:32px;padding:5px 8px}
+}
+
+/* compact layout refinement */
+@media (max-width:420px){
+  .app{padding-left:7px;padding-right:7px;gap:4px}
+  header{padding:6px 4px 1px}
+  .brandRow{gap:10px}
+  .title{font-size:clamp(31px,8.9vw,37px)}
+  .instructions{font-size:clamp(9.7px,2.66vw,11px);line-height:1.25}
+  .gameTop{gap:2px}
+  .puzzleMeta .difficultyNow{font-size:14px;padding:4px 9px}
+  .stats{font-size:10.5px}
+  .stat{padding:0 9px;gap:5px}
+  .recordsBtn{padding:0 9px}
+  .stat strong{font-size:13.5px}
+  .statIcon{width:15px;height:15px}
+  .boardStage{padding:2px 0}
+  .messageSlot{padding:0}
+  .bottomControls{gap:3px;padding-top:0}
+  .actions{gap:3px}
+  .controls{gap:3px;padding:0;background:transparent;border:0;box-shadow:none}
+  .control{padding:0!important;background:transparent;border:0;box-shadow:none}
+  .actions button,.control,.wheelTrack{min-height:48px;height:48px}
+  .actions button{padding:8px 5px}
+  .wheelTrack{padding:14px 3px}
+  .wheelOption{font-size:9.8px;flex-basis:20px;min-height:20px}
+  .wheelOption.active{font-size:12px}
+  .message{font-size:12px;max-height:none;overflow:visible}
+  .message:not(:empty):not(.hintMessage){min-height:34px;padding:6px 9px}
+  .message.hintMessage{padding:8px 10px}
+}
+@media (max-width:360px){
+  .title{font-size:30px}
+  .instructions{font-size:8.9px}
+  .brandRow{gap:8px}
+}
+@media (max-height:700px){
+  .app{gap:3px}
+  header{padding-top:3px}
+  .title{font-size:29px}
+  .instructions{font-size:9.2px}
+  .puzzleMeta .difficultyNow{padding:3px 8px}
+  .actions button,.control,.wheelTrack{min-height:43px;height:43px}
+  .wheelTrack{padding:11px 3px}
+  .bottomControls,.actions,.controls{gap:3px}
+  .controls{padding:0}
+  .control{padding:0!important}
+  .message{max-height:none;overflow:visible}
+}
+
+/* Final compact layout pass: keep status tight to the board and hints in normal flow. */
+header{padding:6px 6px 2px}
+.gameShell{flex:0 0 auto;min-height:0;overflow:visible}
+.gameTop{gap:1px;padding:0 0 3px;margin:0}
+.puzzleMeta{margin:0;line-height:1}
+.puzzleMeta .difficultyNow{font-size:14px;padding:5px 10px;box-shadow:0 2px 7px rgba(101,96,117,.06)}
+.stats{margin:0;padding:0;line-height:1;min-height:24px}
+.stat{padding:2px 12px;gap:5px}
+.stat strong{font-size:14px}
+.statIcon{width:16px;height:16px}
+.boardStage{flex:0 0 auto;min-height:0;height:auto;display:block;overflow:visible;padding:0;margin:0}
+.boardWrap{width:100%;height:auto;min-height:0;display:flex;align-items:flex-start;justify-content:center;overflow:visible;padding:0;flex:0 0 auto}
+.messageSlot{min-height:30px;padding:3px 7px 2px;display:flex;align-items:center;justify-content:center}
+.message{width:100%;min-height:0;max-height:none;overflow:visible;text-align:center;padding:0 5px;font-size:12.5px;line-height:1.32}
+.message.hintMessage{width:100%;text-align:center;background:transparent;border:0;border-radius:0;padding:0 5px;color:#596375;box-shadow:none}
+.hintLine{display:block}
+.hintLine:first-child{font-weight:800;color:#4f5869}
+.hintLine+.hintLine{margin-top:2px;padding-top:0;border-top:0}
+.bottomControls{gap:2px;padding-top:0}
+.actions,.controls{gap:2px}
+.controls{padding:0}
+.control{height:48px;min-height:48px;padding:0}
+.wheelTrack{height:48px;min-height:48px;padding:14px 3px;border-radius:14px}
+.actions button{min-height:48px;height:48px}
+@media (max-width:420px){
+  header{padding-top:5px;padding-bottom:1px}
+  .gameTop{padding-bottom:2px}
+  .puzzleMeta .difficultyNow{font-size:13.5px;padding:4px 9px}
+  .stats{min-height:22px;font-size:10.5px}
+  .stat{padding:1px 10px;gap:4px}
+  .stat strong{font-size:13.5px}
+  .statIcon{width:15px;height:15px}
+  .messageSlot{min-height:28px;padding:2px 6px 1px}
+  .message{font-size:12px}
+  .bottomControls,.actions,.controls{gap:2px}
+  .actions button,.control,.wheelTrack{height:46px;min-height:46px}
+  .wheelTrack{padding:13px 3px}
+}
+@media (max-height:700px){
+  .gameTop{padding-bottom:1px}
+  .messageSlot{min-height:24px;padding:1px 5px}
+  .actions button,.control,.wheelTrack{height:43px;min-height:43px}
+  .wheelTrack{padding:11px 3px}
+}
+
+/* Installed-layout correction: compact header at top, board in the middle, controls at the bottom. */
+.app{
+  height:100vh;height:100dvh;min-height:100dvh;
+  display:flex;flex-direction:column;overflow-x:hidden;overflow-y:auto;
+}
+header{margin-top:0!important;flex:0 0 auto}
+.gameShell{
+  flex:1 0 auto;min-height:0;display:flex;flex-direction:column;
+  overflow:visible;margin:0!important;
+}
+.gameTop{flex:0 0 auto;padding-top:0;padding-bottom:3px}
+.boardStage{
+  flex:1 1 auto;height:auto;min-height:min(calc(100vw - 14px),680px);
+  display:flex;align-items:center;justify-content:center;overflow:visible;padding:0;margin:0;
+}
+.boardWrap{
+  width:100%;height:100%;min-height:0;display:flex;align-items:center;justify-content:center;
+  overflow:visible;padding:0;flex:1 1 auto;
+}
+.messageSlot{flex:0 0 auto;min-height:28px;padding:3px 7px 2px}
+.bottomControls{flex:0 0 auto;margin-top:0;padding-top:0}
+
+@media (min-height:760px){
+  .app{gap:5px}
+  header{padding-top:7px;padding-bottom:2px}
+  .gameTop{padding-bottom:4px}
+  .messageSlot{min-height:32px;padding-top:4px;padding-bottom:3px}
+}
+@media (min-height:900px){
+  header{padding-top:9px;padding-bottom:3px}
+  .gameTop{padding-bottom:5px}
+  .messageSlot{min-height:36px;padding-top:5px;padding-bottom:4px}
+}
+
+
+/* 2026-09-02 UI balance + horizontal selector pass */
+.stat+.stat{border-left:0}
+.stats{gap:18px}
+.stat,.recordsBtn{padding:0 3px}
+.gameShell{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:visible}
+.gameTop{
+  flex:1 1 72px;min-height:64px;max-height:118px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:7px;padding:7px 0 9px;margin:0;
+}
+.puzzleMeta .difficultyNow{font-size:16px;padding:6px 13px;box-shadow:0 3px 9px rgba(101,96,117,.07)}
+.stats{font-size:12px;min-height:24px}
+.stat strong{font-size:16px}.statIcon{width:17px;height:17px}
+.boardStage{flex:0 0 auto!important;min-height:0!important;height:auto!important;display:block!important;padding:0!important;margin:0!important;overflow:visible!important}
+.boardWrap{width:100%!important;height:auto!important;min-height:0!important;display:flex!important;align-items:flex-start!important;justify-content:center!important;flex:0 0 auto!important}
+.messageSlot{flex:0 0 auto;min-height:48px;padding:7px 7px 6px;display:flex;align-items:center;justify-content:center}
+.message,.message.hintMessage{display:block;width:100%;text-align:center;padding:0 7px;line-height:1.34}
+.bottomControls{flex:0 0 auto;margin-top:0;padding-top:0;gap:3px}
+.actions,.controls{gap:3px}
+
+.wheelTrack{
+  height:48px!important;min-height:48px!important;width:100%;
+  display:flex!important;flex-direction:row!important;align-items:center!important;
+  overflow-x:auto!important;overflow-y:hidden!important;
+  scroll-snap-type:x mandatory!important;scroll-padding-inline:50%;scroll-behavior:smooth;
+  overscroll-behavior-x:contain;overscroll-behavior-y:none;
+  touch-action:pan-x!important;
+  padding:0 calc(50% - 42px)!important;
+  mask-image:linear-gradient(to right,rgba(0,0,0,.28),#000 24%,#000 76%,rgba(0,0,0,.28))!important;
+  -webkit-mask-image:linear-gradient(to right,rgba(0,0,0,.28),#000 24%,#000 76%,rgba(0,0,0,.28))!important;
+}
+.wheelOption{
+  scroll-snap-align:center;scroll-snap-stop:always;flex:0 0 84px!important;
+  width:84px;min-width:84px;min-height:38px!important;height:38px;
+  display:flex;align-items:center;justify-content:center;
+  padding:0 5px!important;line-height:1!important;font-size:11px!important;
+}
+.wheelOption.active{font-size:13px!important}
+
+@media (max-width:420px){
+  .gameTop{flex-basis:68px;min-height:60px;max-height:106px;gap:6px;padding:6px 0 8px}
+  .puzzleMeta .difficultyNow{font-size:15.5px;padding:6px 12px}
+  .stats{gap:15px;font-size:11.5px}.stat strong{font-size:15px}.statIcon{width:16px;height:16px}
+  .messageSlot{min-height:46px;padding:7px 6px 6px}
+  .wheelTrack{height:46px!important;min-height:46px!important;padding:0 calc(50% - 39px)!important}
+  .wheelOption{flex-basis:78px!important;width:78px;min-width:78px;height:36px;min-height:36px!important;font-size:10.5px!important}
+  .wheelOption.active{font-size:12.5px!important}
+}
+@media (max-height:700px){
+  .gameTop{flex-basis:56px;min-height:52px;max-height:78px;gap:4px;padding:3px 0 5px}
+  .puzzleMeta .difficultyNow{font-size:14px;padding:4px 9px}
+  .stats{font-size:10.5px;gap:12px}.stat strong{font-size:13.5px}.statIcon{width:15px;height:15px}
+  .messageSlot{min-height:38px;padding:4px 5px}
+  .wheelTrack{height:43px!important;min-height:43px!important}
+}
+
+
+/* 2026-09-02 control spacing tidy */
+.bottomControls{gap:6px!important}
+.actions{gap:7px!important}
+.controls{gap:7px!important}
+@media (max-height:700px){
+  .bottomControls{gap:5px!important}
+  .actions,.controls{gap:6px!important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brandRow">
+      <div class="title">Two Each</div>
+      <div class="instructions"><span>Find two 😎 in each row, column, and colour.</span><span>They're not next to each other.</span></div>
+    </div>
+  </header>
+
+  <section class="gameShell">
+    <div class="gameTop">
+      <div class="puzzleMeta"><span id="difficultyNow" class="difficultyNow" title="Difficulty is rated by the deduction system.">—</span></div>
+      <div class="stats">
+        <div class="stat"><svg class="statIcon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5l3 2"/></svg><span>Time</span><strong id="timer">0:00</strong></div>
+        <button id="recordsBtn" class="stat recordsBtn" type="button" aria-label="View best times"><svg class="statIcon" aria-hidden="true" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5v2a4 4 0 0 0 4 4M16 6h3v2a4 4 0 0 1-4 4M12 13v4M9 20h6M10 17h4"/></svg><span>Best time</span><strong id="bestTop">—</strong></button>
+      </div>
+    </div>
+
+    <div id="boardStage" class="boardStage">
+      <div class="boardWrap"><svg id="boardArt" class="boardArt" aria-hidden="true"></svg><div id="board" class="board" aria-label="Two Each puzzle board"></div></div>
+    </div>
+
+    <div class="messageSlot"><div id="message" class="message"></div></div>
+
+    <div class="bottomControls">
+      <div class="actions actionsTwo">
+        <button id="undoBtn" class="ghost" disabled><svg class="btnIcon" aria-hidden="true" viewBox="0 0 24 24"><path d="M9 8H4V3"/><path d="M4.5 8a8 8 0 1 1 .7 8.8"/></svg><span>Undo</span></button>
+        <button id="hintBtn" class="ghost"><svg class="btnIcon" aria-hidden="true" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M8.2 15.3A7 7 0 1 1 15.8 15.3C14.7 16.1 14 17 14 18h-4c0-1-.7-1.9-1.8-2.7z"/><path d="M12 1v2M4.2 4.2l1.4 1.4M19.8 4.2l-1.4 1.4M2 12h2M20 12h2"/></svg><span>Hint</span></button>
+      </div>
+
+      <section class="controls">
+        <div class="control">
+          <div id="difficultyWheel" class="wheelTrack" role="listbox" aria-label="Difficulty mix">
+            <button class="wheelOption" type="button" data-value="0">Medium</button>
+            <button class="wheelOption" type="button" data-value="1">Hard</button>
+            <button class="wheelOption" type="button" data-value="2">Expert</button>
+            <button class="wheelOption" type="button" data-value="3">Brutal</button>
+          </div>
+        </div>
+        <div class="control">
+          <div id="sizeWheel" class="wheelTrack sizeWheel" role="listbox" aria-label="Board size">
+            <button class="wheelOption" type="button" data-value="medium">Medium</button>
+            <button class="wheelOption" type="button" data-value="large">Large</button>
+            <button class="wheelOption" type="button" data-value="random">Random</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="actions actionsTwo">
+        <button id="restartBtn" class="ghost"><svg class="btnIcon" aria-hidden="true" viewBox="0 0 24 24"><path d="M19 7V3l-4 4 4 4V7a8 8 0 1 0 1 7"/></svg><span>Restart</span></button>
+        <button id="newGameBtn" class="ghost"><svg class="btnIcon" aria-hidden="true" viewBox="0 0 24 24"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>New game</span></button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="winModal" class="modal">
+  <div class="sheet">
+    <h2>Congratulations! 🎉</h2>
+    <p id="winText"></p>
+    <div class="row"><button id="nextBtn">Next puzzle</button></div>
+  </div>
+</div>
+
+<div id="recordsModal" class="modal" aria-hidden="true">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="recordsTitle">
+    <div class="sheetHead">
+      <h2 id="recordsTitle">Best times</h2>
+      <button id="closeRecordsBtn" class="iconBtn" type="button" aria-label="Close records">×</button>
+    </div>
+    <div class="recordsTableWrap">
+      <table id="recordsTable" class="recordsTable"></table>
+    </div>
+    <div class="row">
+      <button id="clearRecordsBtn" class="dangerBtn" type="button">Clear records</button>
+      <button id="doneRecordsBtn" type="button">Done</button>
+    </div>
+  </div>
+</div>
+
+<div id="clearConfirmModal" class="modal" aria-hidden="true">
+  <div class="sheet" role="alertdialog" aria-modal="true" aria-labelledby="clearRecordsTitle">
+    <h2 id="clearRecordsTitle">Clear all records?</h2>
+    <p class="confirmText">This removes every saved best time. Your current game and other local progress are not affected.</p>
+    <div class="row">
+      <button id="cancelClearBtn" class="ghost" type="button">Cancel</button>
+      <button id="confirmClearBtn" class="dangerBtn" type="button">Clear records</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const boardEl=document.getElementById('board'), boardArt=document.getElementById('boardArt'), boardWrap=document.querySelector('.boardWrap'), boardStage=document.getElementById('boardStage'), difficultyWheel=document.getElementById('difficultyWheel'), sizeWheel=document.getElementById('sizeWheel');
+const timerEl=document.getElementById('timer'), bestTop=document.getElementById('bestTop'), msg=document.getElementById('message');
+const undoBtn=document.getElementById('undoBtn'), hintBtn=document.getElementById('hintBtn'), restartBtn=document.getElementById('restartBtn'), newGameBtn=document.getElementById('newGameBtn');
+const difficultyNow=document.getElementById('difficultyNow');
+const winModal=document.getElementById('winModal'), winText=document.getElementById('winText'), nextBtn=document.getElementById('nextBtn');
+const recordsBtn=document.getElementById('recordsBtn'), recordsModal=document.getElementById('recordsModal'), recordsTable=document.getElementById('recordsTable'), closeRecordsBtn=document.getElementById('closeRecordsBtn'), doneRecordsBtn=document.getElementById('doneRecordsBtn'), clearRecordsBtn=document.getElementById('clearRecordsBtn');
+const clearConfirmModal=document.getElementById('clearConfirmModal'), cancelClearBtn=document.getElementById('cancelClearBtn'), confirmClearBtn=document.getElementById('confirmClearBtn');
+
+
+const COLOR_POOL=[
+ '#55d2f0', // aqua
+ '#e59abc', // dusty pink
+ '#ff878c', // coral
+ '#9f8fe3', // lavender violet
+ '#59c97f', // fresh green
+ '#74a2ee', // medium blue
+ '#e4c669', // warm yellow
+ '#e99b70', // peach orange
+ '#69c8b6', // teal
+ '#bc87d5', // orchid
+ '#a7c96d', // lime/sage
+ '#d68fa3', // rose
+ '#72b7ce', // blue teal
+ '#caa779', // sand
+ '#8dbd78', // green-sage
+ '#aa9bd4'  // soft lilac
+];
+const COLOR_NAMES={
+ '#55d2f0':'aqua',
+ '#e59abc':'pink',
+ '#ff878c':'coral',
+ '#9f8fe3':'purple',
+ '#59c97f':'green',
+ '#74a2ee':'blue',
+ '#e4c669':'yellow',
+ '#e99b70':'orange',
+ '#69c8b6':'teal',
+ '#bc87d5':'mauve',
+ '#a7c96d':'lime',
+ '#d68fa3':'rose',
+ '#72b7ce':'blue-green',
+ '#caa779':'tan',
+ '#8dbd78':'sage',
+ '#aa9bd4':'lilac'
+};
+let state=null, timerTick=null, hiddenAt=null;
+const LS='two_each_logic_v2';
+function loadStore(){
+ try{
+   const raw=localStorage.getItem(LS);
+   return JSON.parse(raw||'{}')
+ }catch{return {}}
+}
+function saveStore(s){try{localStorage.setItem(LS,JSON.stringify(s))}catch{}}
+function fmt(sec){sec=Math.max(0,Math.floor(sec));return `${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`}
+const RECORDS_VERSION=1;
+function keyBest(n,band){return `best_v${RECORDS_VERSION}_${n}_${band}`}
+const BANDS=['Medium','Hard','Expert','Brutal'];
+const DIFFICULTY_MIX={
+  0:[0.80,0.20,0.00,0.00],
+  1:[0.15,0.70,0.15,0.00],
+  2:[0.00,0.15,0.70,0.15],
+  3:[0.00,0.00,0.20,0.80]
+};
+const SIZE_MODES=['medium','large','random'];
+let difficultyBias=0,sizeMode='medium';
+function snapBias(v){return Math.max(0,Math.min(3,Math.round(+v||0)))}
+function difficultyMix(v){return DIFFICULTY_MIX[snapBias(v)]||DIFFICULTY_MIX[0]}
+function sampleBand(v){
+  const mix=difficultyMix(v);let x=Math.random();
+  for(let i=0;i<mix.length;i++){x-=mix[i];if(x<=0)return BANDS[i]}
+  return BANDS[mix.length-1];
+}
+function currentSettingsKey(){return `${difficultyBias}|${sizeMode}`}
+function centreWheelOption(wheel,button,smooth=true){
+  if(!wheel||!button)return;
+  const left=button.offsetLeft-(wheel.clientWidth-button.offsetWidth)/2;
+  wheel.scrollTo({left,behavior:smooth?'smooth':'auto'});
+}
+function markWheel(wheel,value,smooth=false){
+  const buttons=[...wheel.querySelectorAll('.wheelOption')];
+  for(const b of buttons){const active=String(b.dataset.value)===String(value);b.classList.toggle('active',active);b.setAttribute('aria-selected',active?'true':'false')}
+  centreWheelOption(wheel,buttons.find(b=>String(b.dataset.value)===String(value)),smooth);
+}
+function nearestWheelValue(wheel){
+  const box=wheel.getBoundingClientRect(),centre=box.left+box.width/2;
+  let best=null,dist=Infinity;
+  for(const b of wheel.querySelectorAll('.wheelOption')){
+    const r=b.getBoundingClientRect(),d=Math.abs((r.left+r.right)/2-centre);
+    if(d<dist){dist=d;best=b}
+  }
+  return best?.dataset.value;
+}
+function bindWheel(wheel,onValue){
+  let timer=null,programmatic=false;
+  const select=(button,smooth=true)=>{
+    if(!button)return;programmatic=true;onValue(button.dataset.value);markWheel(wheel,button.dataset.value,smooth);
+    clearTimeout(timer);timer=setTimeout(()=>{programmatic=false},180);
+  };
+  wheel.addEventListener('click',e=>select(e.target.closest('.wheelOption')));
+  wheel.addEventListener('scroll',()=>{
+    if(programmatic)return;clearTimeout(timer);timer=setTimeout(()=>{const v=nearestWheelValue(wheel);const b=wheel.querySelector(`.wheelOption[data-value="${v}"]`);select(b,true)},110)
+  },{passive:true});
+  wheel.addEventListener('wheel',e=>{
+    const delta=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;if(!delta)return;
+    e.preventDefault();
+    const buttons=[...wheel.querySelectorAll('.wheelOption')],active=buttons.findIndex(b=>b.classList.contains('active'));
+    const next=Math.max(0,Math.min(buttons.length-1,active+(delta>0?1:-1)));
+    if(next!==active)select(buttons[next],true);
+  },{passive:false});
+}
+function controlsChanged(){
+  const store=loadStore();store.bias=difficultyBias;store.sizeMode=sizeMode;saveStore(store);
+  resetPrefetch();
+}
+function setDifficulty(v,fromInit=false){difficultyBias=snapBias(v);markWheel(difficultyWheel,difficultyBias,!fromInit);if(!fromInit)controlsChanged()}
+function setSizeMode(v,fromInit=false){sizeMode=SIZE_MODES.includes(v)?v:'medium';markWheel(sizeWheel,sizeMode,!fromInit);if(!fromInit)controlsChanged()}
+const initialStore=loadStore();
+if(Number.isFinite(+initialStore.bias)&&+initialStore.bias>=0&&+initialStore.bias<=3)difficultyBias=snapBias(+initialStore.bias);
+if(SIZE_MODES.includes(initialStore.sizeMode))sizeMode=initialStore.sizeMode;
+bindWheel(difficultyWheel,v=>setDifficulty(+v));
+bindWheel(sizeWheel,v=>setSizeMode(v));
+requestAnimationFrame(()=>{setDifficulty(difficultyBias,true);setSizeMode(sizeMode,true)});
+function rngInt(n){return Math.floor(Math.random()*n)}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=rngInt(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
+function neighbors4(i,n){const r=Math.floor(i/n),c=i%n,a=[];if(r)a.push(i-n);if(r<n-1)a.push(i+n);if(c)a.push(i-1);if(c<n-1)a.push(i+1);return a}
+function touching(i,j,n){const dr=Math.abs(Math.floor(i/n)-Math.floor(j/n)),dc=Math.abs(i%n-j%n);return i!==j&&dr<=1&&dc<=1}
+function markerDouble(n,compact=false){
+  const pairs=[];for(let a=0;a<n;a++)for(let b=a+2;b<n;b++)pairs.push([a,b]);
+  const col=Array(n).fill(0),rows=Array(n);
+  function rec(r,prev){
+    if(r===n)return col.every(x=>x===2);
+    let opts=pairs.filter(([a,b])=>col[a]<2&&col[b]<2&&(!prev||prev.every(pc=>Math.abs(a-pc)>1&&Math.abs(b-pc)>1)));
+    shuffle(opts);opts.sort((p,q)=>{const load=(col[p[0]]+col[p[1]])-(col[q[0]]+col[q[1]]);return load*3+(compact?((p[1]-p[0])-(q[1]-q[0]))*8:0)});
+    for(const p of opts){const [a,b]=p;col[a]++;col[b]++;rows[r]=p;let ok=true,rem=n-r-1;
+      for(let c=0;c<n;c++)if(2-col[c]>rem){ok=false;break}
+      if(ok&&rec(r+1,p))return true;col[a]--;col[b]--;
+    }
+    return false;
+  }
+  if(!rec(0,null))return null;
+  const cells=[];for(let r=0;r<n;r++)for(const c of rows[r])cells.push(r*n+c);return cells;
+}
+function regionCounts(n,reg){const a=Array(n).fill(0);for(const g of reg)if(g>=0&&g<n)a[g]++;return a}
+function visuallyBalanced(n,reg){const a=regionCounts(n,reg),mx=Math.max(...a),mn=Math.min(...a);return mn>=2&&mx<=Math.ceil(n*2.05)}
+function growFromSeeds(n,reg,style='mixed'){
+  const total=n*n,front=Array.from({length:n},()=>[]),counts=regionCounts(n,reg);const styles=['balanced','compact','tendril'];if(style==='mixed')style=styles[rngInt(styles.length)];
+  for(let g=0;g<n;g++)for(let i=0;i<total;i++)if(reg[i]===g)for(const nb of neighbors4(i,n))if(reg[nb]<0)front[g].push(nb);
+  let left=reg.filter(x=>x<0).length,guard=0;const bias=Array.from({length:n},()=>.82+Math.random()*.36);
+  while(left&&guard++<40000){const ids=shuffle([...Array(n).keys()]).sort((a,b)=>counts[a]/bias[a]-counts[b]/bias[b]+(Math.random()-.5)*.3);let did=false;
+    for(const g of ids){const choices=[...new Set(front[g])].filter(i=>reg[i]<0);if(!choices.length)continue;let i;
+      if(style==='balanced')i=choices[rngInt(choices.length)];
+      else{let best=[],bs=style==='compact'?-Infinity:Infinity;for(const cell of choices){const same=neighbors4(cell,n).filter(nb=>reg[nb]===g).length,score=same+(Math.random()-.5)*.85;if((style==='compact'&&score>bs)||(style==='tendril'&&score<bs)){bs=score;best=[cell]}else if(Math.abs(score-bs)<.08)best.push(cell)}i=best[rngInt(best.length)]}
+      reg[i]=g;counts[g]++;left--;did=true;front[g]=front[g].filter(x=>x!==i);for(const nb of neighbors4(i,n))if(reg[nb]<0)front[g].push(nb);if(Math.random()<.78)break;
+    }
+    if(!did)return null;
+  }
+  return left?null:reg;
+}
+function segmentRegions(n,sol,orientation='row',style='mixed'){
+  const reg=Array(n*n).fill(-1);
+  if(orientation==='row')for(let r=0;r<n;r++){const cs=sol.filter(i=>Math.floor(i/n)===r).map(i=>i%n).sort((a,b)=>a-b);for(let c=cs[0];c<=cs[1];c++)reg[r*n+c]=r}
+  else for(let c=0;c<n;c++){const rs=sol.filter(i=>i%n===c).map(i=>Math.floor(i/n)).sort((a,b)=>a-b);for(let r=rs[0];r<=rs[1];r++)reg[r*n+c]=c}
+  return growFromSeeds(n,reg,style);
+}
+function pairedPathRegions(n,sol,style='mixed',tries=30){
+  const markerSet=new Set(sol);
+  for(let attempt=0;attempt<tries;attempt++){
+    const order=shuffle(sol.slice()),pairs=[];for(let g=0;g<n;g++)pairs.push([order[2*g],order[2*g+1]]);
+    // Prefer non-row/non-column pairings; retry if too many aligned.
+    const aligned=pairs.filter(([a,b])=>Math.floor(a/n)===Math.floor(b/n)||a%n===b%n).length;if(aligned>Math.ceil(n*.45)&&attempt<tries/2)continue;
+    const reg=Array(n*n).fill(-1),routeOrder=shuffle([...Array(n).keys()]);let failed=false;
+    for(const g of routeOrder){const [start,goal]=pairs[g];const blocked=new Set();for(const m of sol)if(m!==start&&m!==goal)blocked.add(m);for(let i=0;i<reg.length;i++)if(reg[i]>=0&&i!==start&&i!==goal)blocked.add(i);
+      const prev=new Int32Array(n*n);prev.fill(-2);prev[start]=-1;const q=[start];let qi=0;
+      while(qi<q.length&&prev[goal]===-2){const x=q[qi++],nb=shuffle(neighbors4(x,n));for(const y of nb){if(prev[y]!==-2||blocked.has(y))continue;prev[y]=x;q.push(y);if(y===goal)break}}
+      if(prev[goal]===-2){failed=true;break}
+      let x=goal;while(x>=0){reg[x]=g;x=prev[x]}
+    }
+    if(failed)continue;const grown=growFromSeeds(n,reg,style);if(grown&&visuallyBalanced(n,grown))return grown;
+  }
+  return null;
+}
+function connectedAfterRemove(reg,n,src,rem){let start=-1,count=0;for(let i=0;i<reg.length;i++)if(reg[i]===src&&i!==rem){count++;if(start<0)start=i}if(start<0)return false;const seen=new Set([start]),q=[start];while(q.length){const x=q.pop();for(const nb of neighbors4(x,n))if(nb!==rem&&reg[nb]===src&&!seen.has(nb)){seen.add(nb);q.push(nb)}}return seen.size===count}
+function allMoves(n,sol,reg){const seeds=new Set(sol),out=[];for(let i=0;i<reg.length;i++){if(seeds.has(i))continue;const src=reg[i],dsts=[...new Set(neighbors4(i,n).map(j=>reg[j]).filter(x=>x!==src))];if(!dsts.length||!connectedAfterRemove(reg,n,src,i))continue;for(const dst of dsts)out.push([i,src,dst])}return out}
+function scrambleRegions(n,sol,reg,steps=40){for(let step=0;step<steps;step++){const moves=allMoves(n,sol,reg);if(!moves.length)break;shuffle(moves);const counts=regionCounts(n,reg);let chosen=null;for(const mv of moves.slice(0,100)){const [i,src,dst]=mv;if(counts[src]<=2||counts[dst]>=Math.ceil(n*2.0))continue;chosen=mv;break}if(!chosen)chosen=moves[0];reg[chosen[0]]=chosen[2]}return reg}
+function logicAnalyse(n,regions){
+ const total=n*n,units=[[],[],[]];for(let r=0;r<n;r++)units[0][r]=Array.from({length:n},(_,c)=>r*n+c);for(let c=0;c<n;c++)units[1][c]=Array.from({length:n},(_,r)=>r*n+c);for(let g=0;g<n;g++){const a=[];for(let i=0;i<total;i++)if(regions[i]===g)a.push(i);units[2][g]=a}
+ function makeState(){return {cand:new Uint8Array(total).fill(1),fixed:new Uint8Array(total),bad:false}}
+ function clone(s){return {cand:s.cand.slice(),fixed:s.fixed.slice(),bad:s.bad}}
+ function remove(s,i){if(!s.cand[i])return false;if(s.fixed[i]){s.bad=true;return false}s.cand[i]=0;return true}
+ function fixedCount(s,k,u){let x=0;for(const i of units[k][u])x+=s.fixed[i];return x}
+ function candCells(s,k,u){return units[k][u].filter(i=>s.cand[i])}
+ function place(s,i){if(s.bad||!s.cand[i]){s.bad=true;return false}if(s.fixed[i])return false;s.fixed[i]=1;const r=Math.floor(i/n),c=i%n;for(let rr=Math.max(0,r-1);rr<=Math.min(n-1,r+1);rr++)for(let cc=Math.max(0,c-1);cc<=Math.min(n-1,c+1);cc++){const j=rr*n+cc;if(j!==i)remove(s,j)}for(const [k,u] of [[0,r],[1,c],[2,regions[i]]])if(fixedCount(s,k,u)>2){s.bad=true;break}return true}
+ function completions(s,k,u){const fixed=units[k][u].filter(i=>s.fixed[i]),open=units[k][u].filter(i=>s.cand[i]&&!s.fixed[i]),need=2-fixed.length;if(need<0)return[];if(need===0)return[fixed];if(need===1)return open.map(i=>fixed.concat(i));const out=[];for(let a=0;a<open.length;a++)for(let b=a+1;b<open.length;b++)if(!touching(open[a],open[b],n))out.push([open[a],open[b]]);return out}
+ function simpleCheck(s){if(s.bad)return false;for(let k=0;k<3;k++)for(let u=0;u<n;u++)if(fixedCount(s,k,u)>2||candCells(s,k,u).length<2)return false;return true} function pairCheck(s){if(s.bad)return false;for(let k=0;k<3;k++)for(let u=0;u<n;u++)if(completions(s,k,u).length===0)return false;return true} function check(s){if(!simpleCheck(s)||!pairCheck(s)){s.bad=true;return false}return true}
+ function basicStep(s){for(const k of [2,0,1])for(let u=0;u<n;u++){const f=fixedCount(s,k,u),a=candCells(s,k,u);if(f===2){const rem=a.filter(i=>!s.fixed[i]);if(rem.length){for(const i of rem)remove(s,i);return true}}if(a.length===2){const p=a.filter(i=>!s.fixed[i]);if(p.length){for(const i of p)place(s,i);return true}}}return false}
+ function localStep(s){for(const k of [2,0,1])for(let u=0;u<n;u++){const co=completions(s,k,u);if(!co.length)continue;const open=units[k][u].filter(i=>s.cand[i]&&!s.fixed[i]);for(const i of open){let used=0;for(const x of co)if(x.includes(i))used++;if(used===co.length){place(s,i);return true}if(used===0){remove(s,i);return true}}}return false}
+ function lockedStep(s){for(let ka=0;ka<3;ka++)for(let ua=0;ua<n;ua++){const needA=2-fixedCount(s,ka,ua),remA=candCells(s,ka,ua).filter(i=>!s.fixed[i]);if(needA<=0||remA.length<=needA)continue;for(let kb=0;kb<3;kb++)if(kb!==ka)for(let ub=0;ub<n;ub++){const needB=2-fixedCount(s,kb,ub);if(needB!==needA||needB<=0)continue;const B=new Set(units[kb][ub]);if(!remA.every(i=>B.has(i)))continue;const A=new Set(units[ka][ua]),targets=candCells(s,kb,ub).filter(i=>!s.fixed[i]&&!A.has(i));if(targets.length){for(const i of targets)remove(s,i);return true}}}return false}
+ function simpleFailureInfo(s){for(let k=0;k<3;k++)for(let u=0;u<n;u++)if(fixedCount(s,k,u)>2||candCells(s,k,u).length<2)return [k,u];return null} function simpleBlockStep(s){for(let i=0;i<total;i++)if(s.cand[i]&&!s.fixed[i]){const t=clone(s),r=Math.floor(i/n),c=i%n,g=regions[i];place(t,i);const fail=t.bad?[-1,-1]:simpleFailureInfo(t);if(fail){remove(s,i);const [k,u]=fail;return (k===0&&u===r)||(k===1&&u===c)||(k===2&&u===g)?1:2}}return 0} function compoundBlockStep(s){for(let i=0;i<total;i++)if(s.cand[i]&&!s.fixed[i]){const t=clone(s);place(t,i);if(t.bad||!simpleCheck(t))continue;if(!pairCheck(t)){remove(s,i);return true}}return false}
+ function compatibleSets(a,b){for(const i of a)for(const j of b)if(touching(i,j,n))return false;return true}
+ function adjacentStep(s){for(const k of [0,1])for(let u=0;u<n-1;u++){const A=completions(s,k,u),B=completions(s,k,u+1);if(!A.length||!B.length)continue;const openA=units[k][u].filter(i=>s.cand[i]&&!s.fixed[i]),openB=units[k][u+1].filter(i=>s.cand[i]&&!s.fixed[i]);for(const [open,own,other] of [[openA,A,B],[openB,B,A]])for(const i of open){let ok=false;for(const x of own)if(x.includes(i)){for(const y of other)if(compatibleSets(x,y)){ok=true;break}if(ok)break}if(!ok){remove(s,i);return true}}}return false}
+ function windowStep(s,len){
+   function rowPairs(r){const fixed=units[0][r].filter(i=>s.fixed[i]).map(i=>i%n),out=[];for(let a=0;a<n;a++)for(let b=a+2;b<n;b++){const ia=r*n+a,ib=r*n+b;if(!s.cand[ia]||!s.cand[ib])continue;if(fixed.some(c=>c!==a&&c!==b))continue;out.push([a,b])}return out}
+   const compat=(p,q)=>p.every(a=>q.every(b=>Math.abs(a-b)>1));
+   for(let start=0;start<=n-len;start++){
+     const dom=Array.from({length:len},(_,k)=>rowPairs(start+k));if(dom.some(d=>!d.length)){s.bad=true;return false}
+     const combos=[];const picks=Array(len);const colBase=Array(n).fill(0),regBase=Array(n).fill(0);
+     for(let i=0;i<total;i++)if(s.fixed[i]){const r=Math.floor(i/n);if(r<start||r>=start+len){colBase[i%n]++;regBase[regions[i]]++}}
+     function rec(k,cols,regs){if(combos.length>25000)return;if(k===len){combos.push(picks.map(p=>p.slice()));return}const r=start+k;for(const p of dom[k]){if(k&& !compat(picks[k-1],p))continue;let ok=true;const nc=cols.slice(),nr=regs.slice();for(const c of p){nc[c]++;nr[regions[r*n+c]]++;if(nc[c]>2||nr[regions[r*n+c]]>2){ok=false;break}}if(!ok)continue;picks[k]=p;rec(k+1,nc,nr)}}
+     rec(0,colBase.slice(),regBase.slice());if(!combos.length){s.bad=true;return false}
+     for(let k=0;k<len;k++){const r=start+k,open=units[0][r].filter(i=>s.cand[i]&&!s.fixed[i]);for(const i of open){const c=i%n,used=combos.filter(co=>co[k].includes(c)).length;if(used===0){remove(s,i);return true}if(used===combos.length){place(s,i);return true}}}
+   }
+   return false;
+ }
+
+ function pairOfDir(i,dir){const r=Math.floor(i/n),c=i%n,g=regions[i];switch(dir){case 0:return[r,c];case 1:return[c,r];case 2:return[r,g];case 3:return[g,r];case 4:return[c,g];default:return[g,c]}}
+ function groupStep(s,minSize=2,maxSize=n){for(let wanted=minSize;wanted<=Math.min(n,maxSize);wanted++)for(let dir=0;dir<6;dir++){const lk=dir===0||dir===2?0:dir===1||dir===4?1:2,rk=dir===0||dir===1?1:dir===2||dir===3?2:1,leftNeed=Array(n),rightNeed=Array(n),neigh=Array(n).fill(0);for(let u=0;u<n;u++){leftNeed[u]=2-fixedCount(s,lk,u);rightNeed[u]=2-fixedCount(s,rk,u)}for(let i=0;i<total;i++)if(s.cand[i]&&!s.fixed[i]){const [a,b]=pairOfDir(i,dir);neigh[a]|=1<<b}const active=[];for(let a=0;a<n;a++)if(leftNeed[a]>0)active.push(a);if(wanted>active.length)continue;const lim=1<<active.length;for(let mask=1;mask<lim;mask++){let bits=0;for(let x=mask;x;x&=x-1)bits++;if(bits!==wanted)continue;let demand=0,rights=0,leftMask=0;for(let x=0;x<active.length;x++)if(mask&(1<<x)){const a=active[x];leftMask|=1<<a;demand+=leftNeed[a];rights|=neigh[a]}let cap=0;for(let b=0;b<n;b++)if(rights&(1<<b))cap+=Math.max(0,rightNeed[b]);if(cap<demand){s.bad=true;return 0}if(cap!==demand)continue;const targets=[];for(let i=0;i<total;i++)if(s.cand[i]&&!s.fixed[i]){const [a,b]=pairOfDir(i,dir);if(!(leftMask&(1<<a))&&(rights&(1<<b)))targets.push(i)}if(targets.length){for(const i of targets)remove(s,i);return wanted}}}return 0}
+
+ function solved(s){if(s.bad)return false;for(let k=0;k<3;k++)for(let u=0;u<n;u++)if(fixedCount(s,k,u)!==2)return false;return true}
+ const s=makeState(),stats={medium:0,hard:0,expert:0,group2:0,group3:0,adjacent:0,directBlock:0};let guard=0,tier=0;
+ while(!s.bad&&guard++<5000){if(!check(s))break;if(basicStep(s)){stats.medium++;continue}if(localStep(s)){stats.medium++;continue}if(lockedStep(s)){stats.medium++;continue}const sb=simpleBlockStep(s);if(sb){stats.directBlock++;if(sb===1){stats.medium++}else{stats.hard++;tier=Math.max(tier,1)}continue}if(adjacentStep(s)){stats.hard++;stats.adjacent++;tier=Math.max(tier,1);continue}const g2=groupStep(s,2,2);if(s.bad)break;if(g2){stats.hard++;stats.group2++;tier=Math.max(tier,1);continue}if(compoundBlockStep(s)){stats.hard++;tier=Math.max(tier,1);continue}if(windowStep(s,3)){stats.expert++;tier=2;continue}if(s.bad)break;if(windowStep(s,4)){stats.expert++;tier=2;continue}if(s.bad)break;const gx=groupStep(s,3,n);if(s.bad)break;if(gx){stats.expert++;stats.group3++;tier=2;continue}break}
+ const isSolved=solved(s),band=isSolved?(tier===0?'Medium':tier===1?'Hard':'Expert'):'Brutal',solution=isSolved?[...Array(total).keys()].filter(i=>s.fixed[i]):null;return {solved:isSolved,status:isSolved?'solved':s.bad?'bad':'stuck',band,solution,...stats};
+}
+
+function sameSolution(a,b){if(!a||!b||a.length!==b.length)return false;const A=a.slice().sort((x,y)=>x-y),B=b.slice().sort((x,y)=>x-y);return A.every((v,i)=>v===B[i])}
+function regionShapeOkay(n,reg,maxFactor=3.6){const a=regionCounts(n,reg),mx=Math.max(...a),mn=Math.min(...a);return mn>=3&&mx<=Math.ceil(n*maxFactor)}
+function clueRegions(n,sol,freezeCount){
+  const reg=Array(n*n).fill(-1),eligible=[];
+  for(let r=0;r<n;r++){
+    const cs=sol.filter(i=>Math.floor(i/n)===r).map(i=>i%n).sort((a,b)=>a-b);
+    if(cs.length!==2)return null;
+    if(cs[1]-cs[0]===2)eligible.push(r);
+    for(let c=cs[0];c<=cs[1];c++)reg[r*n+c]=r;
+  }
+  if(eligible.length<freezeCount)return null;shuffle(eligible);const frozen=new Set(eligible.slice(0,freezeCount));
+  const front=Array.from({length:n},()=>[]),counts=regionCounts(n,reg),bias=Array.from({length:n},()=>.9+Math.random()*.2);
+  for(let g=0;g<n;g++)for(let i=0;i<n*n;i++)if(reg[i]===g)for(const nb of neighbors4(i,n))if(reg[nb]<0)front[g].push(nb);
+  let left=reg.filter(x=>x<0).length,guard=0;
+  while(left&&guard++<50000){
+    const ids=shuffle([...Array(n).keys()].filter(g=>!frozen.has(g))).sort((a,b)=>counts[a]/bias[a]-counts[b]/bias[b]+(Math.random()-.5)*.22);let did=false;
+    for(const g of ids){const choices=[...new Set(front[g])].filter(i=>reg[i]<0);if(!choices.length)continue;let best=[],bestScore=-Infinity;
+      for(const cell of choices){const same=neighbors4(cell,n).filter(nb=>reg[nb]===g).length,score=same*.45+Math.random();if(score>bestScore){bestScore=score;best=[cell]}else if(Math.abs(score-bestScore)<.05)best.push(cell)}
+      const i=best[rngInt(best.length)];reg[i]=g;counts[g]++;left--;did=true;front[g]=front[g].filter(x=>x!==i);for(const nb of neighbors4(i,n))if(reg[nb]<0)front[g].push(nb);if(Math.random()<.8)break;
+    }
+    if(!did)return null;
+  }
+  return left?null:reg;
+}
+function findSolutionsTwo(n,regions,limit=2,nodeLimit=900000){
+  const pairs=[];for(let a=0;a<n;a++)for(let b=a+2;b<n;b++)pairs.push([a,b]);
+  const col=Array(n).fill(0),rg=Array(n).fill(0),rows=Array(n),sols=[];let nodes=0,truncated=false;
+  function rec(r,prev){
+    if(sols.length>=limit||truncated)return;if(++nodes>nodeLimit){truncated=true;return}
+    if(r===n){if(col.every(x=>x===2)&&rg.every(x=>x===2)){const out=[];for(let rr=0;rr<n;rr++)for(const c of rows[rr])out.push(rr*n+c);sols.push(out)}return}
+    const opts=[];
+    for(const p of pairs){const [a,b]=p;if(col[a]>=2||col[b]>=2)continue;if(prev&&!prev.every(pc=>Math.abs(a-pc)>1&&Math.abs(b-pc)>1))continue;const g1=regions[r*n+a],g2=regions[r*n+b];if(g1===g2){if(rg[g1]>0)continue}else if(rg[g1]>=2||rg[g2]>=2)continue;opts.push(p)}
+    opts.sort((p,q)=>(col[p[0]]+col[p[1]])-(col[q[0]]+col[q[1]]));
+    for(const p of opts){const [a,b]=p,g1=regions[r*n+a],g2=regions[r*n+b];rows[r]=p;col[a]++;col[b]++;rg[g1]++;rg[g2]++;let ok=true,rem=n-r-1;for(let c=0;c<n;c++)if(2-col[c]>rem){ok=false;break}if(ok)rec(r+1,p);rg[g1]--;rg[g2]--;col[a]--;col[b]--;if(sols.length>=limit||truncated)return}
+  }
+  rec(0,null);return {solutions:sols,nodes,truncated};
+}
+function repairUniqueTwo(n,sol,reg,maxSteps=180,maxMs=2600){
+  const started=Date.now(),history=new Set([reg.join(',')]);
+  for(let step=0;step<maxSteps&&Date.now()-started<maxMs;step++){
+    const check=findSolutionsTwo(n,reg,3,n>=12?1200000:n>=11?850000:650000),alts=check.solutions.filter(x=>!sameSolution(x,sol));
+    if(!check.truncated&&check.solutions.length===1&&sameSolution(check.solutions[0],sol))return {ok:true,reg};
+    const moves=allMoves(n,sol,reg);if(!moves.length)return {ok:false};const scored=[];
+    for(const mv of moves){let score=Math.random()*.25;for(const alt of alts)if(alt.includes(mv[0]))score++;scored.push([score,mv])}scored.sort((a,b)=>b[0]-a[0]);let chosen=null;
+    for(const [,mv] of scored.slice(0,100)){const [i,src,dst]=mv;reg[i]=dst;const sig=reg.join(','),shape=regionShapeOkay(n,reg,3.2);reg[i]=src;if(shape&&!history.has(sig)){chosen=mv;history.add(sig);break}}
+    if(!chosen)chosen=moves[rngInt(moves.length)];reg[chosen[0]]=chosen[2];
+  }
+  return {ok:false};
+}
+function mapGrid(n,regions,t){const reg=Array(n*n);function map(r,c){switch(t){case 0:return[r,c];case 1:return[c,n-1-r];case 2:return[n-1-r,n-1-c];case 3:return[n-1-c,r];case 4:return[r,n-1-c];case 5:return[n-1-r,c];case 6:return[c,r];default:return[n-1-c,n-1-r]}}for(let r=0;r<n;r++)for(let c=0;c<n;c++){const [rr,cc]=map(r,c);reg[rr*n+cc]=regions[r*n+c]}return reg}
+function boundaryBitsW(n,regions){let s='';for(let r=0;r<n;r++)for(let c=0;c<n-1;c++)s+=regions[r*n+c]===regions[r*n+c+1]?'0':'1';for(let r=0;r<n-1;r++)for(let c=0;c<n;c++)s+=regions[r*n+c]===regions[(r+1)*n+c]?'0':'1';return s}
+function fingerprints(n,regions){const out=[];for(let t=0;t<8;t++)out.push(boundaryBitsW(n,mapGrid(n,regions,t)));return out}
+function similarity(a,b){if(a.length!==b.length)return 0;let same=0;for(let i=0;i<a.length;i++)if(a[i]===b[i])same++;return same/a.length}
+function tooSimilar(n,regions,recent,threshold){const fps=fingerprints(n,regions);for(const old of recent){if(old.n!==n||typeof old.sig!=='string')continue;for(const fp of fps)if(similarity(fp,old.sig)>=threshold)return true}return false}
+function bandRank(b){return BANDS.indexOf(b)}
+function chooseSize(targetBand,mode){
+  const weighted=arr=>{let total=arr.reduce((s,x)=>s+x[1],0),p=Math.random()*total;for(const x of arr){p-=x[1];if(p<=0)return x[0]}return arr[0][0]};
+  if(mode==='medium')return targetBand==='Medium'?(Math.random()<.78?8:9):(Math.random()<.52?8:9);
+  if(mode==='large'){if(targetBand==='Medium')return weighted([[10,.85],[11,.12],[12,.03]]);if(targetBand==='Hard')return weighted([[10,.70],[11,.22],[12,.08]]);if(targetBand==='Expert')return weighted([[10,.72],[11,.20],[12,.08]]);return weighted([[10,.90],[11,.09],[12,.01]])};
+  if(targetBand==='Medium')return weighted([[8,.50],[9,.30],[10,.12],[11,.06],[12,.02]]);
+  if(targetBand==='Hard')return weighted([[8,.22],[9,.25],[10,.25],[11,.17],[12,.11]]);
+  if(targetBand==='Expert')return weighted([[8,.18],[9,.24],[10,.30],[11,.18],[12,.10]]);
+  return weighted([[8,.15],[9,.35],[10,.40],[11,.08],[12,.02]]);
+}
+function freezeCountFor(n,targetBand){
+  let lo,hi;if(targetBand==='Medium'){lo=Math.max(3,n-4);hi=Math.max(lo,n-2)}else if(targetBand==='Hard'){lo=Math.max(2,n-6);hi=Math.max(lo,n-3)}else{lo=Math.max(1,n-7);hi=Math.max(lo,n-3)}
+  return lo+rngInt(hi-lo+1);
+}
+function packageSolved(n,regions,a,sol){const shapeFactor=2.4;if(!a.solved||!a.solution||a.solution.length!==2*n||!sameSolution(a.solution,sol)||!regionShapeOkay(n,regions,shapeFactor))return null;return {n,solution:a.solution,regions,band:a.band,logicVersion:2,source:'generated',stats:{medium:a.medium,hard:a.hard,expert:a.expert,group2:a.group2,group3:a.group3,adjacent:a.adjacent,directBlock:a.directBlock}}}
+function generatePuzzle(targetBand,sizeMode,recent,threshold){
+  const targetRank=bandRank(targetBand),started=Date.now(),budget=sizeMode==='large'?18000:12000;let closest=null,closestDistance=99,attempt=0;
+  function consider(p){if(!p||tooSimilar(p.n,p.regions,recent,threshold))return null;const d=Math.abs(bandRank(p.band)-targetRank);if(d<closestDistance){closest=p;closestDistance=d}if(p.band===targetBand)return p;return null}
+  while(Date.now()-started<budget){attempt++;const n=chooseSize(targetBand,sizeMode),compact=targetBand!=='Brutal'||Math.random()<.55,sol=markerDouble(n,compact);if(!sol)continue;let reg=null;
+    if(targetBand!=='Brutal'&&Math.random()<.78){reg=clueRegions(n,sol,freezeCountFor(n,targetBand));if(reg)reg=scrambleRegions(n,sol,reg,targetBand==='Medium'?rngInt(n+1):targetBand==='Hard'?n+rngInt(n*2+1):n*2+rngInt(n*3+1))}
+    if(!reg){const method=Math.random();if(method<.18)reg=pairedPathRegions(n,sol,'mixed',12);else reg=segmentRegions(n,sol,Math.random()<.5?'row':'col',Math.random()<.34?'balanced':'mixed');if(reg)reg=scrambleRegions(n,sol,reg,targetBand==='Brutal'?n*3+rngInt(n*4):rngInt(n*3+1))}
+    if(!reg||!regionShapeOkay(n,reg,2.5))continue;
+    const a=logicAnalyse(n,reg);
+    if(a.solved){const p=packageSolved(n,reg,a,sol),hit=consider(p);if(hit)return {puzzle:hit,exact:true};continue}
+    if(targetBand!=='Brutal')continue;
+    // A Brutal board must be genuinely stuck under all supported deductions AND unique.
+    let q=findSolutionsTwo(n,reg,2,n>=12?1200000:n>=11?900000:700000);
+    if(!q.truncated&&q.solutions.length===1&&sameSolution(q.solutions[0],sol)&&!tooSimilar(n,reg,recent,threshold))return {puzzle:{n,solution:sol,regions:reg,band:'Brutal',logicVersion:2,source:'generated',stats:{}},exact:true};
+    if(attempt%2===0){const fixed=repairUniqueTwo(n,sol,reg.slice(),n>=11?130:220,n>=11?3600:4200);if(fixed.ok){const aa=logicAnalyse(n,fixed.reg);q=findSolutionsTwo(n,fixed.reg,2,n>=12?1200000:n>=11?900000:700000);if(!aa.solved&&!q.truncated&&q.solutions.length===1&&sameSolution(q.solutions[0],sol)&&!tooSimilar(n,fixed.reg,recent,threshold))return {puzzle:{n,solution:sol,regions:fixed.reg,band:'Brutal',logicVersion:2,source:'generated',stats:{}},exact:true}}}
+  }
+  return {puzzle:closest,exact:false};
+}
+
+
+let generatorWorker=null,generatorBusy=false,cachedPuzzle=null,pendingNew=false,generationToken=0;
+const RECENT_LIMIT=220,NEAR_DUPLICATE_SIMILARITY=.92;
+function puzzleTransforms(n,regions){const out=[];for(let t=0;t<8;t++)out.push(mapGrid(n,regions,t));return out}
+function boundaryBits(n,regions){return boundaryBitsW(n,regions)}
+function puzzleFingerprints(n,regions){return puzzleTransforms(n,regions).map(reg=>boundaryBits(n,reg))}
+function canonicalFingerprint(n,regions){return puzzleFingerprints(n,regions).sort()[0]}
+function recentPuzzleRecords(){const a=loadStore().recentPuzzles;return Array.isArray(a)?a.filter(x=>x&&Number.isInteger(x.n)&&typeof x.sig==='string').slice(-RECENT_LIMIT):[]}
+function rememberPuzzle(p){const store=loadStore(),a=Array.isArray(store.recentPuzzles)?store.recentPuzzles.filter(x=>x&&x.sig):[];a.push({n:p.n,sig:canonicalFingerprint(p.n,p.regions)});store.recentPuzzles=a.slice(-RECENT_LIMIT);saveStore(store)}
+function startPuzzle(p){rememberPuzzle(p);const turned=transformed({...p,regions:p.regions.slice(),solution:p.solution.slice()},rngInt(8));state={...turned,colors:paletteFor(turned.n,turned.regions),marks:Array(turned.n*turned.n).fill(0),elapsed:0,startedAt:Date.now(),complete:false,failed:false,transform:0,history:[],hintUsed:false,hintCount:0,activeHint:null};render();startTimer();setMessage('');newGameBtn.disabled=false;hintBtn.disabled=false;prefetchNext()}
+function resetPrefetch(){cachedPuzzle=null;pendingNew=false;generationToken++;if(generatorWorker){generatorWorker.terminate();generatorWorker=null}generatorBusy=false;if(state&&!state.complete)prefetchNext()}
+function makeWorker(){
+  if(!('Worker' in window)||!('Blob' in window))return null;
+  const fns=[rngInt,shuffle,neighbors4,touching,markerDouble,regionCounts,visuallyBalanced,growFromSeeds,segmentRegions,pairedPathRegions,connectedAfterRemove,allMoves,scrambleRegions,logicAnalyse,sameSolution,regionShapeOkay,clueRegions,findSolutionsTwo,repairUniqueTwo,mapGrid,boundaryBitsW,fingerprints,similarity,tooSimilar,bandRank,chooseSize,freezeCountFor,packageSolved,generatePuzzle];
+  const workerSource="'use strict';\nconst BANDS="+JSON.stringify(BANDS)+";\n"+fns.map(fn=>fn.toString()).join('\n')+"\nonmessage=function(e){const d=e.data||{};if(d.type!=='generate')return;try{const result=generatePuzzle(d.targetBand,d.sizeMode,d.recent||[],d.threshold||.92);postMessage({ok:!!(result&&result.puzzle),result,token:d.token,settingsKey:d.settingsKey,purpose:d.purpose,targetBand:d.targetBand})}catch(err){postMessage({ok:false,error:String(err&&err.message||err),token:d.token,settingsKey:d.settingsKey,purpose:d.purpose,targetBand:d.targetBand})}};";
+  const blob=new Blob([workerSource],{type:'application/javascript'}),url=URL.createObjectURL(blob),w=new Worker(url);URL.revokeObjectURL(url);return w;
+}
+function ensureWorker(){if(generatorWorker)return generatorWorker;generatorWorker=makeWorker();if(!generatorWorker)return null;generatorWorker.onmessage=e=>{generatorBusy=false;const d=e.data||{};if(d.token!==generationToken){prefetchNext();return}if(!d.ok||!d.result?.puzzle){if(d.purpose==='new'){newGameBtn.disabled=false;hintBtn.disabled=false;setMessage('Could not generate that combination. Try New game again.','error');pendingNew=false}return}const p=d.result.puzzle;if(!d.result.exact&&Math.abs(BANDS.indexOf(p.band)-BANDS.indexOf(d.targetBand))>1){if(d.purpose==='new'){newGameBtn.disabled=false;hintBtn.disabled=false;setMessage(`Couldn't make a suitable ${d.targetBand.toLowerCase()} board this time. Try New game again.`,'error');pendingNew=false}else setTimeout(prefetchNext,300);return}if(d.settingsKey!==currentSettingsKey()){prefetchNext();return}if(d.purpose==='new'||pendingNew){pendingNew=false;cachedPuzzle=null;startPuzzle(p)}else cachedPuzzle={puzzle:p,settingsKey:d.settingsKey};};generatorWorker.onerror=()=>{generatorBusy=false;generatorWorker?.terminate();generatorWorker=null;if(pendingNew){pendingNew=false;newGameBtn.disabled=false;hintBtn.disabled=false;setMessage('Puzzle generation failed. Try New game again.','error')}};return generatorWorker}
+function requestGenerated(purpose){if(generatorBusy)return false;const worker=ensureWorker();if(!worker)return false;generatorBusy=true;const targetBand=sampleBand(difficultyBias),settingsKey=currentSettingsKey(),token=generationToken,avoid=recentPuzzleRecords();if(cachedPuzzle?.puzzle)avoid.push({n:cachedPuzzle.puzzle.n,sig:canonicalFingerprint(cachedPuzzle.puzzle.n,cachedPuzzle.puzzle.regions)});worker.postMessage({type:'generate',purpose,targetBand,sizeMode,recent:avoid,threshold:NEAR_DUPLICATE_SIMILARITY,settingsKey,token});return true}
+function prefetchNext(){if(!state||state.complete||generatorBusy||cachedPuzzle)return;requestGenerated('prefetch')}
+
+function transformed(p,t){const n=p.n;function map(r,c){switch(t){case 0:return[r,c];case 1:return[c,n-1-r];case 2:return[n-1-r,n-1-c];case 3:return[n-1-c,r];case 4:return[r,n-1-c];case 5:return[n-1-r,c];case 6:return[c,r];default:return[n-1-c,n-1-r]}}const reg=Array(n*n);for(let r=0;r<n;r++)for(let c=0;c<n;c++){const [rr,cc]=map(r,c);reg[rr*n+cc]=p.regions[r*n+c]}const sol=p.solution.map(i=>{const r=Math.floor(i/n),c=i%n,[rr,cc]=map(r,c);return rr*n+cc}).sort((a,b)=>a-b);return {...p,regions:reg,solution:sol}}
+function hexRgb(hex){const x=parseInt(hex.slice(1),16);return[(x>>16)&255,(x>>8)&255,x&255]}
+function shadeHex(hex,m){const x=parseInt(hex.slice(1),16),r=(x>>16)&255,g=(x>>8)&255,b=x&255;const adj=v=>Math.max(0,Math.min(255,Math.round(v*m)));return '#'+[adj(r),adj(g),adj(b)].map(v=>v.toString(16).padStart(2,'0')).join('')}
+function colorDistance(a,b){
+ const A=hexRgb(a),B=hexRgb(b);
+ // Weighted RGB distance: good enough for this curated mid-lightness palette.
+ const rmean=(A[0]+B[0])/2,dr=A[0]-B[0],dg=A[1]-B[1],db=A[2]-B[2];
+ return Math.sqrt((2+rmean/256)*dr*dr+4*dg*dg+(2+(255-rmean)/256)*db*db);
+}
+function selectedPalette(n){
+ const pool=COLOR_POOL.slice(),chosen=[];
+ // Start from a random colour so consecutive games do not always look alike,
+ // then greedily maximise the minimum distance from colours already chosen.
+ chosen.push(pool.splice(rngInt(pool.length),1)[0]);
+ while(chosen.length<n){
+   let bestI=0,best=-1;
+   for(let i=0;i<pool.length;i++){
+     const d=Math.min(...chosen.map(c=>colorDistance(pool[i],c)));
+     if(d>best){best=d;bestI=i}
+   }
+   chosen.push(pool.splice(bestI,1)[0]);
+ }
+ return chosen;
+}
+function paletteFor(n,regions){
+ const colours=selectedPalette(n);
+ const neighbours=Array.from({length:n},()=>new Set());
+ for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+   const i=r*n+c,a=regions[i];
+   if(c<n-1){const b=regions[i+1];if(a!==b){neighbours[a].add(b);neighbours[b].add(a)}}
+   if(r<n-1){const b=regions[i+n];if(a!==b){neighbours[a].add(b);neighbours[b].add(a)}}
+ }
+ const order=[...Array(n).keys()].sort((a,b)=>neighbours[b].size-neighbours[a].size);
+ const assigned=Array(n).fill(null),available=colours.slice();
+ for(const rg of order){
+   let bestI=0,bestScore=-1;
+   const adjacent=[...neighbours[rg]].map(x=>assigned[x]).filter(Boolean);
+   for(let i=0;i<available.length;i++){
+     const score=adjacent.length?Math.min(...adjacent.map(c=>colorDistance(available[i],c))):
+       Math.min(...assigned.filter(Boolean).map(c=>colorDistance(available[i],c)),9999);
+     if(score>bestScore){bestScore=score;bestI=i}
+   }
+   assigned[rg]=available.splice(bestI,1)[0];
+ }
+ return assigned;
+}
+function fitCells(n){
+ const stageW=Math.max(180,boardStage?.clientWidth||window.innerWidth-12);
+ const maxBoardW=Math.min(stageW-4,680);
+ const viewportCap=Math.max(180,(window.visualViewport?.height||window.innerHeight)-150);
+ const s=Math.max(18,Math.min(64,Math.floor(Math.min(maxBoardW/n,viewportCap/n))));
+ document.documentElement.style.setProperty('--cell',`${s}px`);
+ return s;
+}
+function drawBoardArt(cellPx){
+ const n=state.n;
+ const slate='#696678';
+ const seamW=.040;       // same-region seam
+ const boundaryW=.054;   // true colour-region boundary
+ const outerW=.060;      // outer frame
+ const radius=.060;
+ const parts=[];
+
+ boardArt.setAttribute('viewBox',`0 0 ${n} ${n}`);
+ boardArt.setAttribute('width',n*cellPx);
+ boardArt.setAttribute('height',n*cellPx);
+ boardArt.style.width=`${n*cellPx}px`;
+ boardArt.style.height=`${n*cellPx}px`;
+
+ // Start with flat colour cells. They deliberately overlap the eventual seam area;
+ // the seam/boundary network is drawn over them afterwards.
+ for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+   const fill=state.colors[state.regions[r*n+c]];
+   parts.push(
+     `<rect x="${c}" y="${r}" width="1" height="1" fill="${fill}"/>`
+   );
+ }
+
+ // Same-region seams first. They are square-ended and run right into grid junctions.
+ // If a true region boundary also reaches that junction it is drawn later and masks
+ // this seam cleanly, exactly as in the reference.
+ for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+   const i=r*n+c,rg=state.regions[i],seam=shadeHex(state.colors[rg],.78);
+   if(c<n-1 && state.regions[i+1]===rg){
+     parts.push(
+       `<rect x="${c+1-seamW/2}" y="${r}" width="${seamW}" height="1" fill="${seam}"/>`
+     );
+   }
+   if(r<n-1 && state.regions[i+n]===rg){
+     parts.push(
+       `<rect x="${c}" y="${r+1-seamW/2}" width="1" height="${seamW}" fill="${seam}"/>`
+     );
+   }
+ }
+
+ // True region boundaries second. Because they sit above the coloured seams they
+ // remain continuous and authoritative at T-junctions and crossings.
+ for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+   const i=r*n+c,rg=state.regions[i];
+   if(c<n-1 && state.regions[i+1]!==rg){
+     parts.push(
+       `<rect x="${c+1-boundaryW/2}" y="${r}" width="${boundaryW}" height="1" fill="${slate}"/>`
+     );
+   }
+   if(r<n-1 && state.regions[i+n]!==rg){
+     parts.push(
+       `<rect x="${c}" y="${r+1-boundaryW/2}" width="1" height="${boundaryW}" fill="${slate}"/>`
+     );
+   }
+ }
+
+ // Rounded colour faces last. Every cell is inset according to the seam on each
+ // edge; this creates the soft corner treatment visible in the reference without
+ // allowing the internal seam to punch through a region boundary.
+ for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+   const i=r*n+c,rg=state.regions[i],fill=state.colors[rg];
+
+   function edgeInset(kind,outer){
+     if(outer)return outerW;
+     return kind ? seamW/2 : boundaryW/2;
+   }
+
+   const sameL=c>0   && state.regions[i-1]===rg;
+   const sameR=c<n-1 && state.regions[i+1]===rg;
+   const sameT=r>0   && state.regions[i-n]===rg;
+   const sameB=r<n-1 && state.regions[i+n]===rg;
+
+   const left   = c===0   ? outerW : (sameL ? seamW/2 : boundaryW/2);
+   const right  = c===n-1 ? outerW : (sameR ? seamW/2 : boundaryW/2);
+   const top    = r===0   ? outerW : (sameT ? seamW/2 : boundaryW/2);
+   const bottom = r===n-1 ? outerW : (sameB ? seamW/2 : boundaryW/2);
+
+   parts.push(
+     `<rect x="${c+left}" y="${r+top}" width="${1-left-right}" height="${1-top-bottom}" `+
+     `rx="${radius}" ry="${radius}" fill="${fill}"/>`
+   );
+ }
+
+ // Outer frame last so it is equally clean at every edge.
+ parts.push(
+   `<rect x="${outerW/2}" y="${outerW/2}" width="${n-outerW}" height="${n-outerW}" `+
+   `rx=".095" ry=".095" fill="none" stroke="${slate}" stroke-width="${outerW}"/>`
+ );
+
+ boardArt.innerHTML=parts.join('');
+}
+function paintCell(i){
+ const c=boardEl.children[i];if(!c)return;const m=c.querySelector('.mark'),v=state.marks[i];c.classList.remove('x','marker','conflict');m.textContent='';
+ if(v===1){c.classList.add('x')}else if(v===2){c.classList.add('marker');m.innerHTML='<span class="coolMarker" aria-hidden="true">😎</span>'}
+}
+function updatePuzzleMeta(){
+ difficultyNow.textContent=`${state.band} · ${state.n}×${state.n}`;
+}
+function render(){
+ const cellPx=fitCells(state.n);boardEl.innerHTML='';boardEl.style.gridTemplateColumns=`repeat(${state.n}, var(--cell))`;boardEl.style.gridTemplateRows=`repeat(${state.n}, var(--cell))`;
+ drawBoardArt(cellPx);
+ for(let i=0;i<state.n*state.n;i++){
+   const rg=state.regions[i],c=document.createElement('div');c.className='cell';c.dataset.i=i;c.style.setProperty('--region',state.colors[rg]);
+   const m=document.createElement('span');m.className='mark';c.appendChild(m);boardEl.appendChild(c);paintCell(i)
+ }
+ updatePuzzleMeta();updateBest();updateUndo();scheduleSave();requestAnimationFrame(refitBoard);
+}
+function setMessage(t,cls=''){msg.textContent=t;msg.className='message'+(cls?' '+cls:'')}
+function setHintMessage(clue,stage){
+  const lines=[clue.intro];
+  if(stage>=2&&clue.detail&&clue.detail!==clue.intro)lines.push(clue.detail);
+  if(stage>=3&&clue.reveal&&clue.reveal!==clue.detail&&clue.reveal!==clue.intro)lines.push(clue.reveal);
+  msg.textContent='';msg.className='message hintMessage';
+  for(const line of lines){const el=document.createElement('span');el.className='hintLine';el.textContent=line;msg.appendChild(el)}
+}
+function elapsed(){return state.elapsed+Math.max(0,Math.floor((Date.now()-state.startedAt)/1000))}
+function updateTimer(){if(!state||state.complete||document.hidden)return;timerEl.textContent=fmt(elapsed())}
+function startTimer(){clearInterval(timerTick);if(!state||state.complete||document.hidden)return;state.startedAt=Date.now();timerTick=setInterval(updateTimer,500);updateTimer()}
+function pauseTimer(){if(!state||state.complete)return;if(timerTick){state.elapsed=elapsed();clearInterval(timerTick);timerTick=null}state.startedAt=Date.now()}
+function resumeTimer(){if(!state||state.complete||state.failed||document.hidden)return;state.startedAt=Date.now();startTimer()}
+document.addEventListener('visibilitychange',()=>{if(document.hidden){pauseTimer();saveProgress()}else resumeTimer()});
+window.addEventListener('pagehide',()=>{pauseTimer();saveProgress()});
+window.addEventListener('pageshow',()=>{if(!document.hidden)resumeTimer()});
+function improvementDuration(sec){
+ sec=Math.max(0,Math.round(sec));
+ if(sec<60)return `${sec} second${sec===1?'':'s'}`;
+ return fmt(sec);
+}
+function checkComplete(){
+ if(state.complete)return;const n=state.n,markers=[];for(let i=0;i<n*n;i++)if(state.marks[i]===2)markers.push(i);if(markers.length!==2*n)return;
+ const rows=Array(n).fill(0),cols=Array(n).fill(0),regs=Array(n).fill(0);for(const i of markers){rows[Math.floor(i/n)]++;cols[i%n]++;regs[state.regions[i]]++}
+ if(rows.some(x=>x!==2)||cols.some(x=>x!==2)||regs.some(x=>x!==2))return;
+ for(let x=0;x<markers.length;x++)for(let y=x+1;y<markers.length;y++)if(touching(markers[x],markers[y],n))return;
+ state.complete=true;state.elapsed=elapsed();clearInterval(timerTick);timerEl.textContent=fmt(state.elapsed);
+ const store=loadStore(),k=keyBest(n,state.band),previousBest=Number(store[k])||0;let isBest=false,improvement=0;
+ if(!state.hintUsed&&(!previousBest||state.elapsed<previousBest)){improvement=previousBest?previousBest-state.elapsed:0;store[k]=state.elapsed;isBest=true}
+ delete store.progress;saveStore(store);updateBest();let resultNote='';
+ if(state.hintUsed)resultNote=' Hints were used, so this one won’t count as a record.';
+ else if(isBest&&previousBest)resultNote=` New best — ${improvementDuration(improvement)} faster than your previous best! 🏆`;
+ else if(isBest)resultNote=' First recorded time — new best! 🏆';
+ winText.textContent=`You solved this ${n}×${n} ${state.band} puzzle in ${fmt(state.elapsed)}.${resultNote}`;winModal.classList.add('show');setMessage(isBest?(previousBest?`${improvementDuration(improvement)} faster — new best! 🏆`:'New best time! 🏆'):'Nice work — puzzle solved! 🎉','good')
+}
+function updateBest(){const store=loadStore(),v=store[keyBest(state.n,state.band)];bestTop.textContent=v?fmt(v):'—'}
+
+function renderRecords(){
+ const store=loadStore();
+ let html='<thead><tr><th>Size</th>'+BANDS.map(b=>`<th>${b==='Medium'?'Med':b}</th>`).join('')+'</tr></thead><tbody>';
+ for(let n=8;n<=12;n++){
+   html+=`<tr><td>${n}×${n}</td>`;
+   for(const band of BANDS){const v=store[keyBest(n,band)];html+=`<td>${v?fmt(v):'—'}</td>`}
+   html+='</tr>';
+ }
+ recordsTable.innerHTML=html+'</tbody>';
+}
+function showModal(el){el.classList.add('show');el.setAttribute('aria-hidden','false')}
+function hideModal(el){el.classList.remove('show');el.setAttribute('aria-hidden','true')}
+function openRecords(){renderRecords();showModal(recordsModal)}
+function clearAllRecords(){
+ const store=loadStore();
+ for(const k of Object.keys(store))if(/^best_v\d+_\d+_(Medium|Hard|Expert|Brutal)$/.test(k))delete store[k];
+ saveStore(store);renderRecords();if(state)updateBest();hideModal(clearConfirmModal);
+}
+let saveTimer=null;
+function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(saveProgress,120)}
+function saveProgress(){if(!state||state.complete)return;const store=loadStore();const clean={...state,elapsed:elapsed(),startedAt:Date.now()};delete clean.history;store.progress=clean;saveStore(store)}
+function loadProgress(){
+ const saved=loadStore().progress;if(!saved||saved.logicVersion!==2)return false;
+ state={...saved,history:[],hintUsed:!!saved.hintUsed,hintCount:saved.hintCount||0,activeHint:null};
+ try{const a=logicAnalyse(state.n,state.regions);state.band=a.band}catch{}
+ state.startedAt=Date.now();state.complete=false;render();
+ if(state.failed){pauseTimer();hintBtn.disabled=true;setMessage('This puzzle is paused after a failed move. Review the board, then Restart when you’re ready.','error')}
+ else{hintBtn.disabled=false;startTimer()}
+ return true
+}
+
+function updateUndo(){if(undoBtn)undoBtn.disabled=!state||!state.history||!state.history.length||state.complete||state.failed}
+function pushHistory(changes,kind='action',meta={}){
+ if(!changes.length)return null;const action={changes:changes.map(x=>({...x})),kind,...meta};state.history.push(action);if(state.history.length>200)state.history.shift();updateUndo();return action;
+}
+
+function clearHint(){boardEl.classList.remove('hintMode');boardArt.classList.remove('hintMode');for(const c of boardEl.querySelectorAll('.cell.hint,.cell.hintScope,.cell.hintTest'))c.classList.remove('hint','hintScope','hintTest')}
+function resetHintFlow(){if(state)state.activeHint=null}
+function highlightCells(cells,cls){if(cls==='hintScope'){boardEl.classList.add('hintMode');boardArt.classList.add('hintMode')}for(const i of cells||[]){const c=boardEl.children[i];if(c)c.classList.add(cls)}}
+function applyChange(i,to){clearHint();resetHintFlow();const from=state.marks[i];if(from===to)return null;state.marks[i]=to;paintCell(i);return {i,from,to}}
+function undo(){
+ if(!state||state.complete||!state.history.length)return;clearHint();resetHintFlow();const action=state.history.pop();for(let j=action.changes.length-1;j>=0;j--){const ch=action.changes[j];state.marks[ch.i]=ch.from;paintCell(ch.i)}
+ lastTap={i:-1,t:0,action:null};updateUndo();scheduleSave();setMessage('Undone.');
+}
+function conflictReason(){
+ const n=state.n,markers=[];for(let i=0;i<n*n;i++)if(state.marks[i]===2)markers.push(i);
+ const rows=Array(n).fill(0),cols=Array(n).fill(0),regs=Array(n).fill(0);for(const i of markers){rows[Math.floor(i/n)]++;cols[i%n]++;regs[state.regions[i]]++}
+ if(rows.some(x=>x>2))return 'Only two markers are allowed in each row.';
+ if(cols.some(x=>x>2))return 'Only two markers are allowed in each column.';
+ if(regs.some(x=>x>2))return 'Only two markers are allowed in each colour.';
+ for(let a=0;a<markers.length;a++)for(let b=a+1;b<markers.length;b++)if(touching(markers[a],markers[b],n))return 'The markers may not be next to each other.';
+ return '';
+}
+function failPuzzle(reason){
+ if(!state||state.complete||state.failed)return;
+ pauseTimer();
+ state.failed=true;
+ updateUndo();
+ hintBtn.disabled=true;
+ scheduleSave();
+ setMessage(`Oops! ${reason} The puzzle is paused so you can review the board. Restart when you’re ready.`,'error');
+}
+function afterMarker(){
+ const reason=conflictReason();
+ if(reason){failPuzzle(reason);return false}
+ checkComplete();scheduleSave();return true
+}
+
+let lastTap={i:-1,t:0,action:null},swipe=false,swipeMode=false,swipeSeen=new Set(),swipeChanges=[];
+const DOUBLE_TAP_MS=300;
+function singleImmediateTap(i,now){
+ if(!state||state.complete||state.failed)return;
+ if(lastTap.i===i&&now-lastTap.t<DOUBLE_TAP_MS){
+   const oldAction=lastTap.action;
+   const from=oldAction&&oldAction.changes&&oldAction.changes.length===1?oldAction.changes[0].from:state.marks[i];
+   const ch=applyChange(i,2);
+   if(oldAction&&state.history[state.history.length-1]===oldAction){
+     oldAction.changes=[{i,from,to:2}];
+   }else if(ch){
+     pushHistory([ch],'marker');
+   }
+   lastTap={i:-1,t:0,action:null};
+   updateUndo();
+   if(afterMarker())setMessage('');
+   return;
+ }
+ const to=state.marks[i]===1?0:1;
+ const ch=applyChange(i,to);
+ const action=ch?pushHistory([ch],'tap',{i}):null;
+ lastTap={i,t:now,action};
+ scheduleSave();
+}
+function pointerCell(e){
+ const el=document.elementFromPoint(e.clientX,e.clientY)?.closest('.cell');
+ return el?+el.dataset.i:null;
+}
+boardEl.addEventListener('pointerdown',e=>{
+ if(!state||state.complete||state.failed)return;
+ if(!state||state.complete)return;
+ const cell=e.target.closest('.cell');if(!cell)return;
+ e.preventDefault();
+ swipe=true;swipeMode=false;swipeSeen=new Set([+cell.dataset.i]);swipeChanges=[];
+ boardEl.setPointerCapture?.(e.pointerId);
+});
+boardEl.addEventListener('pointermove',e=>{
+ if(!swipe||!state||state.complete)return;
+ e.preventDefault();
+ const i=pointerCell(e);if(i===null||swipeSeen.has(i))return;
+ swipeMode=true;swipeSeen.add(i);
+ if(swipeSeen.size===2){
+   const first=[...swipeSeen][0];
+   if(state.marks[first]!==2){const ch=applyChange(first,1);if(ch)swipeChanges.push(ch)}
+ }
+ if(state.marks[i]!==2){const ch=applyChange(i,1);if(ch)swipeChanges.push(ch)}
+});
+boardEl.addEventListener('pointerup',e=>{
+ if(!swipe)return;
+ e.preventDefault();swipe=false;
+ if(swipeMode){
+   if(swipeChanges.length)pushHistory(swipeChanges,'swipe');
+   swipeChanges=[];swipeSeen.clear();lastTap={i:-1,t:0,action:null};scheduleSave();return;
+ }
+ const i=[...swipeSeen][0];swipeSeen.clear();
+ if(i==null)return;
+ singleImmediateTap(i,performance.now());
+});
+boardEl.addEventListener('pointercancel',()=>{
+ if(swipeChanges.length)pushHistory(swipeChanges,'swipe');
+ swipe=false;swipeMode=false;swipeSeen.clear();swipeChanges=[];scheduleSave();
+});
+
+function restartCurrent(){
+ if(!state)return;
+ pauseTimer();
+ const t=1+rngInt(7),p=transformed(state,t);
+ state={...p,colors:state.colors.slice(),marks:Array(state.n*state.n).fill(0),elapsed:0,startedAt:Date.now(),complete:false,failed:false,transform:t,history:[],hintUsed:false,hintCount:0,activeHint:null};
+ hintBtn.disabled=false;
+ render();startTimer();setMessage('Fresh start — same puzzle, new angle. ✨');
+}
+
+function makeNew(){
+  pauseTimer();clearHint();resetHintFlow();
+  if(cachedPuzzle&&cachedPuzzle.settingsKey===currentSettingsKey()){
+    const p=cachedPuzzle.puzzle;cachedPuzzle=null;startPuzzle(p);return;
+  }
+  pendingNew=true;newGameBtn.disabled=true;hintBtn.disabled=true;
+  setMessage(`Generating ${BANDS[difficultyBias].toLowerCase()} mix · ${sizeMode} size…`);
+  if(generatorBusy)return;
+  if(!requestGenerated('new')){
+    pendingNew=false;newGameBtn.disabled=false;hintBtn.disabled=false;setMessage('Puzzle generation is not available in this browser.','error');
+  }
+}
+
+function cellsInRow(r,n){const out=[];for(let c=0;c<n;c++)out.push(r*n+c);return out}
+function cellsInCol(c,n){const out=[];for(let r=0;r<n;r++)out.push(r*n+c);return out}
+function cellsInRegion(rg,n){const out=[];for(let i=0;i<n*n;i++)if(state.regions[i]===rg)out.push(i);return out}
+function uniqueCells(arr){return [...new Set(arr)]}
+function regionColourName(rg){return COLOR_NAMES[(state.colors?.[rg]||'').toLowerCase()]||`colour ${rg+1}`}
+function cellRef(i){return `row ${Math.floor(i/state.n)+1}, column ${i%state.n+1}`}
+function cellRefs(cells){
+ const a=uniqueCells(cells||[]);
+ if(!a.length)return '';
+ if(a.length===1)return cellRef(a[0]);
+ if(a.length===2)return `${cellRef(a[0])} and ${cellRef(a[1])}`;
+ return `${a.slice(0,-1).map(cellRef).join('; ')}; and ${cellRef(a[a.length-1])}`;
+}
+function colourNames(rgs){
+ const a=[...new Set(rgs||[])].map(regionColourName);
+ if(!a.length)return '';
+ if(a.length===1)return a[0];
+ if(a.length===2)return `${a[0]} and ${a[1]}`;
+ return `${a.slice(0,-1).join(', ')}, and ${a[a.length-1]}`;
+}
+function unitName(kind,u){return kind===0?`row ${u+1}`:kind===1?`column ${u+1}`:`the ${regionColourName(u)} region`}
+
+function logicHintClue(){
+ const n=state.n,total=n*n,regions=state.regions,units=[[],[],[]];
+ for(let r=0;r<n;r++)units[0][r]=cellsInRow(r,n);for(let c=0;c<n;c++)units[1][c]=cellsInCol(c,n);for(let g=0;g<n;g++)units[2][g]=cellsInRegion(g,n);
+ function makeState(){return {cand:new Uint8Array(total).fill(1),fixed:new Uint8Array(total),bad:false,reason:'',reasonCells:[]}}
+ function clone(s){return {cand:s.cand.slice(),fixed:s.fixed.slice(),bad:s.bad,reason:s.reason,reasonCells:(s.reasonCells||[]).slice()}}
+ function setBad(s,reason,cells=[]){s.bad=true;if(!s.reason){s.reason=reason;s.reasonCells=cells}}
+ function remove(s,i){if(!s.cand[i])return false;if(s.fixed[i]){setBad(s,'a placed 😎 would have to be removed',[i]);return false}s.cand[i]=0;return true}
+ function fixedCount(s,k,u){let x=0;for(const i of units[k][u])x+=s.fixed[i];return x}
+ function candCells(s,k,u){return units[k][u].filter(i=>s.cand[i])}
+ function place(s,i){if(s.bad||!s.cand[i]){setBad(s,'that square is already impossible',[i]);return false}if(s.fixed[i])return false;s.fixed[i]=1;const r=Math.floor(i/n),c=i%n;for(let rr=Math.max(0,r-1);rr<=Math.min(n-1,r+1);rr++)for(let cc=Math.max(0,c-1);cc<=Math.min(n-1,c+1);cc++){const j=rr*n+cc;if(j!==i)remove(s,j)}for(const [k,u] of [[0,r],[1,c],[2,regions[i]]])if(fixedCount(s,k,u)>2){setBad(s,`${unitName(k,u)} would contain more than two 😎`,units[k][u]);break}return true}
+ function completions(s,k,u){const fixed=units[k][u].filter(i=>s.fixed[i]),open=units[k][u].filter(i=>s.cand[i]&&!s.fixed[i]),need=2-fixed.length;if(need<0)return[];if(need===0)return[fixed];if(need===1)return open.map(i=>fixed.concat(i));const out=[];for(let a=0;a<open.length;a++)for(let b=a+1;b<open.length;b++)if(!touching(open[a],open[b],n))out.push([open[a],open[b]]);return out}
+ function simpleFailure(s){for(let k=0;k<3;k++)for(let u=0;u<n;u++){if(fixedCount(s,k,u)>2)return {k,u,reason:`${unitName(k,u)} would have more than two 😎`};if(candCells(s,k,u).length<2)return {k,u,reason:`${unitName(k,u)} would have fewer than two possible squares`}}return null}
+ function pairFailure(s){for(let k=0;k<3;k++)for(let u=0;u<n;u++)if(completions(s,k,u).length===0)return {k,u,reason:`the remaining squares in ${unitName(k,u)} cannot form a non-touching pair`};return null}
+ function label(k,u){return unitName(k,u)}
+ const s=makeState();for(let i=0;i<total;i++)if(state.marks[i]===1)s.cand[i]=0;for(let i=0;i<total;i++)if(state.marks[i]===2)place(s,i);
+ const sf=simpleFailure(s),pf=!sf?pairFailure(s):null;if(s.bad||sf||pf)return {key:'current-contradiction',type:'contradiction',targetCells:[],scopeCells:(sf||pf)?.k!=null?units[(sf||pf).k][(sf||pf).u]:[],intro:'Your current marks have made the puzzle impossible.',detail:`Specifically, ${(sf||pf)?.reason||s.reason||'the remaining markers cannot all fit'}.`,reveal:'Undo or reconsider one of your recent marks.'};
+ // MEDIUM — quota, local pair and locked-overlap deductions.
+ for(const k of [2,0,1])for(let u=0;u<n;u++){
+   const f=fixedCount(s,k,u),a=candCells(s,k,u),open=a.filter(i=>!s.fixed[i]);
+   if(f===2&&open.length)return {key:`full-${k}-${u}`,type:'quota',targetCells:open,scopeCells:units[k][u],intro:`${label(k,u)[0].toUpperCase()+label(k,u).slice(1)} already has its two 😎.`,detail:'Every other square in it can be crossed out.',reveal:`Cross ${cellRefs(open)}.`};
+   if(a.length===2&&open.length)return {key:`need-${k}-${u}`,type:'quota',targetCells:open,scopeCells:units[k][u],intro:`Only enough possible squares remain in ${label(k,u)} to complete its two 😎.`,detail:`There are exactly two candidate squares left in total, including any 😎 already placed.`,reveal:`Place 😎 in ${cellRefs(open)}.`};
+ }
+ for(const k of [2,0,1])for(let u=0;u<n;u++){
+   const co=completions(s,k,u);if(!co.length)continue;const open=units[k][u].filter(i=>s.cand[i]&&!s.fixed[i]);
+   for(const i of open){const used=co.filter(x=>x.includes(i)).length;if(used===0)return {key:`local-out-${k}-${u}-${i}`,type:'pair',targetCells:[i],scopeCells:units[k][u],intro:`Look at the possible pairs in ${label(k,u)}.`,detail:`${cellRef(i)} is not part of any pair that can supply the two 😎 without them touching.`,reveal:`Cross ${cellRef(i)}.`};if(used===co.length)return {key:`local-in-${k}-${u}-${i}`,type:'pair',targetCells:[i],scopeCells:units[k][u],intro:`Look at the possible pairs in ${label(k,u)}.`,detail:`Every possible pair for ${label(k,u)} includes ${cellRef(i)}.`,reveal:`Place 😎 in ${cellRef(i)}.`}}
+ }
+ for(let ka=0;ka<3;ka++)for(let ua=0;ua<n;ua++){
+   const needA=2-fixedCount(s,ka,ua),remA=candCells(s,ka,ua).filter(i=>!s.fixed[i]);if(needA<=0||remA.length<=needA)continue;
+   for(let kb=0;kb<3;kb++)if(kb!==ka)for(let ub=0;ub<n;ub++){const needB=2-fixedCount(s,kb,ub);if(needB!==needA||needB<=0)continue;const B=new Set(units[kb][ub]);if(!remA.every(i=>B.has(i)))continue;const A=new Set(units[ka][ua]),targets=candCells(s,kb,ub).filter(i=>!s.fixed[i]&&!A.has(i));if(targets.length)return {key:`lock-${ka}-${ua}-${kb}-${ub}`,type:'locked',targetCells:targets,scopeCells:uniqueCells([...units[ka][ua],...units[kb][ub]]),intro:`All the remaining 😎 for ${label(ka,ua)} have to come from ${label(kb,ub)}.`,detail:`Both units need the same number of remaining 😎, so ${label(kb,ub)} cannot spend any of its remaining quota outside ${label(ka,ua)}.`,reveal:`Cross ${cellRefs(targets)}.`}}
+ }
+ // MEDIUM — direct blocking: an immediate quota contradiction.
+ for(let i=0;i<total;i++)if(s.cand[i]&&!s.fixed[i]){const t=clone(s);place(t,i);const fail=t.bad?{reason:t.reason||'it would touch an existing 😎'}:simpleFailure(t);if(fail)return {key:`block-${i}`,type:'blocking',targetCells:[i],scopeCells:uniqueCells([i,...(t.reasonCells||[])]),intro:`One square cannot contain 😎 because it immediately leaves another quota impossible.`,detail:`If ${cellRef(i)} contained 😎, ${fail.reason}.`,reveal:`Cross ${cellRef(i)}.`}}
+ // HARD — adjacent-unit compatibility, pair-level blocking, and two-unit capacity groups.
+ function compatibleSets(a,b){for(const i of a)for(const j of b)if(touching(i,j,n))return false;return true}
+ for(const k of [0,1])for(let u=0;u<n-1;u++){
+   const A=completions(s,k,u),B=completions(s,k,u+1);if(!A.length||!B.length)continue;
+   for(const [which,own,other] of [[u,A,B],[u+1,B,A]])for(const i of units[k][which].filter(i=>s.cand[i]&&!s.fixed[i])){let ok=false;for(const x of own)if(x.includes(i)){for(const y of other)if(compatibleSets(x,y)){ok=true;break}if(ok)break}if(!ok){const kind=k===0?'rows':'columns';return {key:`adj-${k}-${u}-${i}`,type:'adjacent',targetCells:[i],scopeCells:uniqueCells([...units[k][u],...units[k][u+1]]),intro:`These two adjacent ${kind} have to fit their pairs together.`,detail:`Every pair using ${cellRef(i)} would put at least one 😎 next to every possible pair in the neighbouring ${k===0?'row':'column'}.`,reveal:`Cross ${cellRef(i)}.`}};}
+ }
+ function groupClue(minSize,maxSize){
+   function pairOfDir(i,dir){const r=Math.floor(i/n),c=i%n,g=regions[i];switch(dir){case 0:return[r,c];case 1:return[c,r];case 2:return[r,g];case 3:return[g,r];case 4:return[c,g];default:return[g,c]}}
+   function kindForLeft(dir){return dir===0||dir===2?0:dir===1||dir===4?1:2}function kindForRight(dir){return dir===0||dir===1?1:dir===2||dir===3?2:1}
+   for(let wanted=minSize;wanted<=Math.min(n,maxSize);wanted++)for(let dir=0;dir<6;dir++){const lk=kindForLeft(dir),rk=kindForRight(dir),leftNeed=Array(n),rightNeed=Array(n),neigh=Array(n).fill(0);for(let u=0;u<n;u++){leftNeed[u]=2-fixedCount(s,lk,u);rightNeed[u]=2-fixedCount(s,rk,u)}for(let i=0;i<total;i++)if(s.cand[i]&&!s.fixed[i]){const [aa,bb]=pairOfDir(i,dir);neigh[aa]|=1<<bb}const active=[];for(let aa=0;aa<n;aa++)if(leftNeed[aa]>0)active.push(aa);if(wanted>active.length)continue;const lim=1<<active.length;for(let mask=1;mask<lim;mask++){let bits=0;for(let x=mask;x;x&=x-1)bits++;if(bits!==wanted)continue;let demand=0,rights=0,leftMask=0;for(let x=0;x<active.length;x++)if(mask&(1<<x)){const aa=active[x];leftMask|=1<<aa;demand+=leftNeed[aa];rights|=neigh[aa]}let cap=0;for(let bb=0;bb<n;bb++)if(rights&(1<<bb))cap+=Math.max(0,rightNeed[bb]);if(cap!==demand)continue;const targets=[];for(let i=0;i<total;i++)if(s.cand[i]&&!s.fixed[i]){const [aa,bb]=pairOfDir(i,dir);if(!(leftMask&(1<<aa))&&(rights&(1<<bb)))targets.push(i)}if(targets.length){const left=[...Array(n).keys()].filter(aa=>leftMask&(1<<aa)),right=[...Array(n).keys()].filter(bb=>rights&(1<<bb));const names=(kind,arr)=>kind===0?`rows ${arr.map(x=>x+1).join(', ')}`:kind===1?`columns ${arr.map(x=>x+1).join(', ')}`:`${colourNames(arr)} regions`;return {key:`group-${dir}-${left.join('-')}-${right.join('-')}`,type:'group',complexity:wanted,targetCells:targets,scopeCells:uniqueCells([...targets,...left.flatMap(x=>units[lk][x]),...right.flatMap(x=>units[rk][x])]),intro:`${wanted===2?'Two units':'A group of '+wanted+' units'} have exactly enough shared capacity left.`,detail:`${names(lk,left)} must use all the remaining capacity available in ${names(rk,right)}. No other unit can use those same slots.`,reveal:`Cross ${cellRefs(targets)}.`}}}}
+   return null;
+ }
+ for(let i=0;i<total;i++)if(s.cand[i]&&!s.fixed[i]){const t=clone(s);place(t,i);if(t.bad||simpleFailure(t))continue;const fail=pairFailure(t);if(fail)return {key:`compound-${i}`,type:'compound',targetCells:[i],scopeCells:uniqueCells([i,...units[fail.k][fail.u]]),intro:`This square looks possible at first, but it breaks the way another unit can make its pair.`,detail:`If ${cellRef(i)} contained 😎, ${fail.reason}.`,reveal:`Cross ${cellRef(i)}.`}}
+ let gc=groupClue(2,2);if(gc)return gc;
+ // EXPERT — three/four adjacent rows together or larger capacity groups.
+ function windowClue(len){
+   for(let start=0;start<=n-len;start++){
+     const dom=[];for(let k=0;k<len;k++){const r=start+k,fixed=units[0][r].filter(i=>s.fixed[i]).map(i=>i%n),opts=[];for(let a=0;a<n;a++)for(let b=a+2;b<n;b++){const ia=r*n+a,ib=r*n+b;if(!s.cand[ia]||!s.cand[ib])continue;if(fixed.some(c=>c!==a&&c!==b))continue;opts.push([a,b])}if(!opts.length)continue;dom[k]=opts}if(dom.length!==len)continue;
+     const combos=[],pick=Array(len),colBase=Array(n).fill(0),regBase=Array(n).fill(0);for(let i=0;i<total;i++)if(s.fixed[i]){const r=Math.floor(i/n);if(r<start||r>=start+len){colBase[i%n]++;regBase[regions[i]]++}}
+     function rec(k,cols,regs){if(combos.length>25000)return;if(k===len){combos.push(pick.map(p=>p.slice()));return}const r=start+k;for(const p of dom[k]){if(k&&!p.every(a=>pick[k-1].every(b=>Math.abs(a-b)>1)))continue;const nc=cols.slice(),nr=regs.slice();let ok=true;for(const c of p){nc[c]++;const g=regions[r*n+c];nr[g]++;if(nc[c]>2||nr[g]>2){ok=false;break}}if(ok){pick[k]=p;rec(k+1,nc,nr)}}}
+     rec(0,colBase,regBase);if(!combos.length)continue;
+     for(let k=0;k<len;k++){const r=start+k;for(const i of units[0][r].filter(i=>s.cand[i]&&!s.fixed[i])){const c=i%n,used=combos.filter(co=>co[k].includes(c)).length;if(used===0)return {key:`window-out-${len}-${start}-${i}`,type:'window',targetCells:[i],scopeCells:uniqueCells(Array.from({length:len},(_,x)=>units[0][start+x]).flat()),intro:`These ${len} neighbouring rows have to fit together as a group.`,detail:`Across every arrangement that gives each of these rows two non-touching 😎 without overfilling a column or colour, ${cellRef(i)} is never used.`,reveal:`Cross ${cellRef(i)}.`};if(used===combos.length)return {key:`window-in-${len}-${start}-${i}`,type:'window',targetCells:[i],scopeCells:uniqueCells(Array.from({length:len},(_,x)=>units[0][start+x]).flat()),intro:`These ${len} neighbouring rows have to fit together as a group.`,detail:`Every arrangement that keeps those rows compatible uses ${cellRef(i)}.`,reveal:`Place 😎 in ${cellRef(i)}.`}}}
+   }
+   return null;
+ }
+ let wc=windowClue(3);if(wc)return wc;wc=windowClue(4);if(wc)return wc;
+ gc=groupClue(3,n);if(gc)return gc;
+ return {key:'trial-required',type:'trial',targetCells:[],scopeCells:[],intro:'No simpler deduction is available — you’re going to have to move forward with trial and error.',detail:'No simpler deduction is available — you’re going to have to move forward with trial and error.',reveal:'No simpler deduction is available — you’re going to have to move forward with trial and error.'};
+}
+function hint(){
+ if(!state||state.complete||state.failed)return;
+ state.hintUsed=true;state.hintCount=(state.hintCount||0)+1;updatePuzzleMeta();scheduleSave();clearHint();
+ const clue=logicHintClue();
+ if(!clue){setMessage('No further deduction was found from the current marks.');state.activeHint=null;return}
+ if(clue.type==='trial'){
+   state.activeHint=null;
+   setMessage('No simpler deduction is available — you’re going to have to move forward with trial and error.','hintMessage');
+   return;
+ }
+ let stage=1;
+ if(state.activeHint&&state.activeHint.key===clue.key)stage=Math.min((state.activeHint.stage||1)+1,3);
+ state.activeHint={key:clue.key,stage};
+ setHintMessage(clue,stage);
+}
+
+undoBtn.addEventListener('click',undo);
+hintBtn.addEventListener('click',hint);
+restartBtn.addEventListener('click',restartCurrent);
+newGameBtn.addEventListener('click',()=>{winModal.classList.remove('show');makeNew()});
+nextBtn.addEventListener('click',()=>{winModal.classList.remove('show');makeNew()});
+recordsBtn.addEventListener('click',openRecords);
+closeRecordsBtn.addEventListener('click',()=>hideModal(recordsModal));
+doneRecordsBtn.addEventListener('click',()=>hideModal(recordsModal));
+clearRecordsBtn.addEventListener('click',()=>showModal(clearConfirmModal));
+cancelClearBtn.addEventListener('click',()=>hideModal(clearConfirmModal));
+confirmClearBtn.addEventListener('click',clearAllRecords);
+recordsModal.addEventListener('click',e=>{if(e.target===recordsModal)hideModal(recordsModal)});
+clearConfirmModal.addEventListener('click',e=>{if(e.target===clearConfirmModal)hideModal(clearConfirmModal)});
+function refitBoard(){if(!state)return;const s=fitCells(state.n);boardArt.style.width=`${state.n*s}px`;boardArt.style.height=`${state.n*s}px`;boardArt.setAttribute('width',state.n*s);boardArt.setAttribute('height',state.n*s)}
+window.addEventListener('resize',refitBoard);
+window.visualViewport?.addEventListener('resize',refitBoard);
+
+
+ensureWorker();
+if(!loadProgress())makeNew();else prefetchNext();
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{})}
+
+
+})();
+</script>
+</body>
+</html>
