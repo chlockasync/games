@@ -433,6 +433,113 @@ header{
   .messageSlot{min-height:34px!important;padding:4px 6px!important}
 }
 
+
+/* 2026-09-02 final centred-zones + modal pass */
+/* The header and controls stay anchored; the status and hint zones share the
+   spare vertical room so the board sits roughly at the visual centre. */
+.app{
+  padding-bottom:max(18px,calc(env(safe-area-inset-bottom) + 8px))!important;
+}
+.gameShell{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+}
+.gameTop{
+  flex:1 1 0!important;
+  min-height:54px!important;
+  max-height:none!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:5px 0!important;
+  gap:7px!important;
+}
+.boardStage{
+  flex:0 0 auto!important;
+  height:auto!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+}
+.messageSlot{
+  flex:1 1 0!important;
+  min-height:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:5px 7px!important;
+  overflow:visible!important;
+}
+.message,.message.hintMessage{
+  width:100%!important;
+  text-align:center!important;
+  margin:0!important;
+}
+.bottomControls{
+  flex:0 0 auto!important;
+  margin-top:0!important;
+  padding-bottom:0!important;
+}
+
+/* Dialogs should read as overlays, not bottom sheets. */
+.modal{
+  align-items:center!important;
+  justify-content:center!important;
+  padding:max(16px,env(safe-area-inset-top)) 14px max(18px,calc(env(safe-area-inset-bottom) + 8px))!important;
+}
+.sheet{
+  margin:auto!important;
+}
+
+/* Best-times table: fit the complete board in one phone screen. */
+#recordsModal .sheet{
+  width:min(100%,520px)!important;
+  max-height:calc(100dvh - 52px)!important;
+  overflow:hidden!important;
+  padding:13px 12px 11px!important;
+  border-radius:18px!important;
+}
+#recordsModal .sheetHead{gap:8px!important}
+#recordsModal .sheet h2{font-size:20px!important;margin:0!important}
+#recordsModal .iconBtn{width:34px!important;min-height:34px!important;font-size:20px!important}
+#recordsModal .recordsTableWrap{
+  overflow:visible!important;
+  margin:6px 0 3px!important;
+  padding:0!important;
+}
+#recordsModal .recordsTable{
+  width:100%!important;
+  min-width:0!important;
+  table-layout:fixed!important;
+  font-size:10.5px!important;
+}
+#recordsModal .recordsTable th,#recordsModal .recordsTable td{
+  padding:5px 2px!important;
+  line-height:1.05!important;
+}
+#recordsModal .recordsTable th{
+  font-size:8.5px!important;
+  letter-spacing:.025em!important;
+}
+#recordsModal .recordsTable th:first-child,#recordsModal .recordsTable td:first-child{
+  position:static!important;
+  width:18%!important;
+}
+#recordsModal .row{gap:7px!important;margin-top:7px!important}
+#recordsModal .row button{min-height:42px!important;padding:8px 7px!important;font-size:13px!important}
+
+@media (max-height:760px){
+  .app{padding-bottom:max(12px,calc(env(safe-area-inset-bottom) + 5px))!important}
+  .gameTop{min-height:46px!important;padding:3px 0!important;gap:4px!important}
+  .messageSlot{padding:3px 6px!important}
+  #recordsModal .sheet{max-height:calc(100dvh - 32px)!important;padding:10px 10px 9px!important}
+  #recordsModal .recordsTable th,#recordsModal .recordsTable td{padding:4px 2px!important}
+  #recordsModal .row button{min-height:38px!important;padding:6px!important}
+}
+
 </style>
 </head>
 <body>
@@ -440,7 +547,7 @@ header{
   <header>
     <div class="brandRow">
       <div id="modeTitle" class="title modeTitle" role="button" tabindex="0" aria-label="Switch to Two Each" title="Switch to Two Each">One Each</div>
-      <div class="instructions"><span>Find one 😎 in each row, column, and colour.</span><span>They're not next to each other.</span></div>
+      <div class="instructions"><span>Find one 😎 in each row, column, & colour.</span><span>They're not next to each other.</span></div>
     </div>
   </header>
 
