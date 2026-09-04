@@ -770,10 +770,25 @@ bindWheel(sizeWheel,v=>setSizeMode(v));
 requestAnimationFrame(()=>{setDifficulty(difficultyBias,true);setSizeMode(sizeMode,true)});
 function rngInt(n){return Math.floor(Math.random()*n)}
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=rngInt(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
-function markerPermutation(n){
- const cols=[...Array(n).keys()];
- function rec(r){if(r===n)return true;for(const c of shuffle(cols.filter(c=>!used.has(c)))){if(r>0&&Math.abs(c-pos[r-1])===1)continue;pos[r]=c;used.add(c);if(rec(r+1))return true;used.delete(c)}return false}
- const pos=Array(n).fill(-1),used=new Set(); return rec(0)?pos:null;
+function markerPermutation(n,style='random'){
+ const cols=[...Array(n).keys()],pos=Array(n).fill(-1),used=new Set(),centre=(n-1)/2;
+ function score(c,r){
+   if(r===0){if(style==='edge')return Math.min(c,n-1-c);if(style==='centre')return Math.abs(c-centre);return Math.random()*2}
+   const prev=pos[r-1],jump=Math.abs(c-prev);
+   if(style==='long-jump')return -jump*2+Math.random();
+   if(style==='steady')return Math.abs(jump-Math.max(2,Math.round(n*.34)))+Math.random()*.6;
+   if(style==='edge')return Math.min(c,n-1-c)*1.2-Math.min(jump,4)*.12+Math.random()*.5;
+   if(style==='centre')return Math.abs(c-centre)*1.15-Math.min(jump,4)*.10+Math.random()*.5;
+   if(style==='alternating'){const wantLeft=r%2===0;return (wantLeft?c:n-1-c)*.75-jump*.18+Math.random()*.7}
+   return Math.random()*2;
+ }
+ function rec(r){
+   if(r===n)return true;
+   const opts=cols.filter(c=>!used.has(c)&&(r===0||Math.abs(c-pos[r-1])!==1)).map(c=>[score(c,r),c]).sort((a,b)=>a[0]-b[0]);
+   for(const [,c] of opts){pos[r]=c;used.add(c);if(rec(r+1))return true;used.delete(c);pos[r]=-1}
+   return false;
+ }
+ return rec(0)?pos:null;
 }
 function neighbors4(i,n){const r=Math.floor(i/n),c=i%n,a=[];if(r)a.push(i-n);if(r<n-1)a.push(i+n);if(c)a.push(i-1);if(c<n-1)a.push(i+1);return a}
 function growRegions(n,sol,style='mixed'){
@@ -980,7 +995,7 @@ function recentPuzzleRecords(){
 }
 function rememberPuzzle(p){
   const store=loadStore(),a=Array.isArray(store.recentPuzzles)?store.recentPuzzles.filter(x=>x&&x.sig):[];
-  a.push({n:p.n,sig:canonicalFingerprint(p.n,p.regions)});
+  a.push({n:p.n,sig:canonicalFingerprint(p.n,p.regions),family:p.family||'unknown',solutionStyle:p.solutionStyle||'random',texture:p.texture||'unknown'});
   store.recentPuzzles=a.slice(-RECENT_LIMIT);saveStore(store);
 }
 function startPuzzle(p){
@@ -1021,7 +1036,7 @@ function findSolutions(n,regions,limit=60){
 function same(a,b){return a.every((v,i)=>v===b[i])}
 function connectedAfterRemove(reg,n,src,rem){let start=-1,count=0;for(let i=0;i<reg.length;i++)if(reg[i]===src&&i!==rem){count++;if(start<0)start=i}if(start<0)return false;const seen=new Set([start]),q=[start];while(q.length){const x=q.pop();for(const nb of neighbors4(x,n))if(nb!==rem&&reg[nb]===src&&!seen.has(nb)){seen.add(nb);q.push(nb)}}return seen.size===count}
 function allMoves(n,sol,reg){const seeds=new Set(sol.map((c,r)=>r*n+c)),out=[];for(let i=0;i<reg.length;i++){if(seeds.has(i))continue;const src=reg[i],dsts=[...new Set(neighbors4(i,n).map(j=>reg[j]).filter(x=>x!==src))];if(!dsts.length||!connectedAfterRemove(reg,n,src,i))continue;for(const dst of dsts)out.push([i,src,dst])}return out}
-function repair(n,sol,reg,maxSteps=420){const history=new Set([reg.join(',')]);for(let step=0;step<maxSteps;step++){const sols=findSolutions(n,reg,12),alts=sols.filter(s=>!same(s,sol));if(!alts.length)return {ok:true,reg};const moves=allMoves(n,sol,reg);if(!moves.length)return {ok:false};let best=[],bestScore=-1;for(const mv of moves){const i=mv[0],r=Math.floor(i/n),c=i%n;let score=0;for(const a of alts)if(a[r]===c)score++;if(score>bestScore){bestScore=score;best=[mv]}else if(score===bestScore)best.push(mv)}shuffle(best);let chosen=null;for(const mv of best){reg[mv[0]]=mv[2];const sig=reg.join(',');reg[mv[0]]=mv[1];if(!history.has(sig)){chosen=mv;history.add(sig);break}}if(!chosen)chosen=moves[rngInt(moves.length)];reg[chosen[0]]=chosen[2]}return {ok:false}}
+function repair(n,sol,reg,maxSteps=420){const history=new Set([reg.join(',')]);for(let step=0;step<maxSteps;step++){const sols=findSolutions(n,reg,12),alts=sols.filter(s=>!same(s,sol));if(!alts.length)return {ok:true,reg};const moves=allMoves(n,sol,reg);if(!moves.length)return {ok:false};let best=[],bestScore=-1;for(const mv of moves){const i=mv[0],r=Math.floor(i/n),c=i%n;let score=0;for(const a of alts)if(a[r]===c)score++;if(score>bestScore){bestScore=score;best=[mv]}else if(score===bestScore)best.push(mv)}shuffle(best);let chosen=null;for(const mv of [...best,...shuffle(moves.slice())]){const i=mv[0],src=mv[1];reg[i]=mv[2];const sig=reg.join(','),shape=visuallyBalanced(n,reg);reg[i]=src;if(shape&&!history.has(sig)){chosen=mv;history.add(sig);break}}if(!chosen)return {ok:false};reg[chosen[0]]=chosen[2]}return {ok:false}}
 function regionCounts(n,reg){const counts=Array(n).fill(0);for(const x of reg)if(x>=0&&x<n)counts[x]++;return counts}
 function visuallyBalanced(n,reg){
   const counts=regionCounts(n,reg),max=Math.max(...counts),min=Math.min(...counts);
@@ -1032,7 +1047,111 @@ function visuallyBalanced(n,reg){
   const tiny=counts.filter(x=>x<Math.max(2,Math.floor(n*.42))).length;
   return max<=cap&&singles<=2&&tiny<=Math.max(2,Math.floor(n*.30))&&min>=1;
 }
-function generateEasyRegions(n,sol){
+function recentValueCount(recent,key,value,limit=7){let count=0;for(const x of recent.slice(-limit))if(x&&x[key]===value)count++;return count}
+function weightedChoice(items){let total=items.reduce((s,x)=>s+x[1],0),pick=Math.random()*total;for(const x of items){pick-=x[1];if(pick<=0)return x[0]}return items[items.length-1][0]}
+function chooseSolutionStyle(recent){
+  const base=[['random',.24],['long-jump',.18],['steady',.18],['edge',.14],['centre',.12],['alternating',.14]];
+  return weightedChoice(base.map(([v,w])=>[v,w*Math.pow(.24,recentValueCount(recent,'solutionStyle',v,6))]));
+}
+function chooseFamily(targetBand,recent){
+  // These are deliberately different geometric ancestries, not just parameter
+  // tweaks to one region-growth routine. Background generation lets us be choosy.
+  let base=[
+    ['frontier-balanced',.11],['frontier-compact',.08],['frontier-tendril',.08],
+    ['horizontal-ribbons',.075],['vertical-ribbons',.075],
+    ['diagonal-down',.065],['diagonal-up',.065],['staircase',.075],
+    ['patchwork',.09],['asymmetric',.075],
+    ['skeleton-straight',.07],['skeleton-wander',.075],['skeleton-hook',.065],['burst-lobes',.075]
+  ];
+  if(targetBand==='Easy')base=base.map(([v,w])=>[v,w*(v.startsWith('skeleton')?.72:v==='asymmetric'?.65:1)]);
+  if(targetBand==='Brutal')base=base.map(([v,w])=>[v,w*(v==='patchwork'||v.includes('tendril')||v.includes('skeleton')?1.25:.9)]);
+  return weightedChoice(base.map(([v,w])=>[v,w*Math.pow(.20,recentValueCount(recent,'family',v,7))]));
+}
+function seedRegions(n,sol){const reg=Array(n*n).fill(-1);for(let r=0;r<n;r++)reg[r*n+sol[r]]=r;return reg}
+function fillSeededRegions(n,sol,profile='balanced',partial=null){
+  const total=n*n,reg=partial?partial.slice():seedRegions(n,sol),front=Array.from({length:n},()=>[]),counts=regionCounts(n,reg);
+  for(let r=0;r<n;r++){const seed=r*n+sol[r];if(reg[seed]<0)reg[seed]=r;else if(reg[seed]!==r)return null}
+  for(let g=0;g<n;g++)for(let i=0;i<total;i++)if(reg[i]===g)for(const nb of neighbors4(i,n))if(reg[nb]<0)front[g].push(nb);
+  const bias=Array.from({length:n},(_,g)=>profile==='asymmetric'?.80+Math.random()*.40:.94+Math.random()*.12);
+  const slope=Array.from({length:n},()=>Math.random()<.5?-1:1);let left=reg.filter(x=>x<0).length,guard=0;
+  function cellScore(g,i){
+    const r=Math.floor(i/n),c=i%n,sr=g,sc=sol[g],dr=r-sr,dc=c-sc,same=neighbors4(i,n).filter(nb=>reg[nb]===g).length,dist=Math.abs(dr)+Math.abs(dc),noise=Math.random()*1.15;
+    if(profile==='compact')return same*1.45-dist*.045+noise;
+    if(profile==='tendril')return (2-same)*1.20+dist*.055+noise;
+    if(profile==='horizontal')return -Math.abs(dr)*1.30+Math.abs(dc)*.10+same*.18+noise;
+    if(profile==='vertical')return -Math.abs(dc)*1.30+Math.abs(dr)*.10+same*.18+noise;
+    if(profile==='diag-down')return -Math.abs(dr-dc)*.78+dist*.04+same*.15+noise;
+    if(profile==='diag-up')return -Math.abs(dr+dc)*.78+dist*.04+same*.15+noise;
+    if(profile==='staircase'){const horizontal=(g%2)===0;return (horizontal?-Math.abs(dr): -Math.abs(dc))*.92+(horizontal?Math.abs(dc):Math.abs(dr))*.07+same*.24+noise}
+    if(profile==='patchwork')return same*.12+noise*1.55;
+    if(profile==='asymmetric')return same*.38-dist*.015+noise;
+    return same*.30-dist*.02+noise;
+  }
+  while(left&&guard++<50000){
+    const ids=shuffle([...Array(n).keys()]).sort((a,b)=>(counts[a]/bias[a])-(counts[b]/bias[b])+(Math.random()-.5)*.38);let did=false;
+    for(const g of ids){const choices=[...new Set(front[g])].filter(i=>reg[i]<0);if(!choices.length)continue;const ranked=choices.map(i=>[cellScore(g,i),i]).sort((a,b)=>b[0]-a[0]);const i=ranked[0][1];reg[i]=g;counts[g]++;left--;did=true;front[g]=front[g].filter(x=>x!==i);for(const nb of neighbors4(i,n))if(reg[nb]<0)front[g].push(nb);if(Math.random()<.72)break}
+    if(!did)return null;
+  }
+  return left?null:reg;
+}
+function skeletonRegions(n,sol,mode='wander'){
+  const total=n*n,reg=seedRegions(n,sol),heads=sol.map((c,r)=>r*n+c),dirs=Array(n).fill(null),rounds=Math.max(1,Math.floor(n*.24)+rngInt(2));
+  for(let round=0;round<rounds;round++)for(const g of shuffle([...Array(n).keys()])){
+    const head=heads[g],hr=Math.floor(head/n),hc=head%n;let choices=neighbors4(head,n).filter(i=>reg[i]<0);
+    if(!choices.length){const frontier=[];for(let i=0;i<total;i++)if(reg[i]===g)for(const nb of neighbors4(i,n))if(reg[nb]<0)frontier.push([i,nb]);if(!frontier.length)continue;const [from,to]=frontier[rngInt(frontier.length)];heads[g]=from;choices=[to]}
+    let ranked=choices.map(i=>{const r=Math.floor(i/n),c=i%n,dr=r-hr,dc=c-hc,prev=dirs[g];let score=Math.random();if(prev){const same=prev[0]===dr&&prev[1]===dc;if(mode==='straight')score+=same?2.4:0;if(mode==='hook')score+=same?-.2:1.5}else if(mode==='wander')score+=Math.random()*1.2;return[score,i,dr,dc]}).sort((a,b)=>b[0]-a[0]);
+    const [,i,dr,dc]=ranked[0];reg[i]=g;heads[g]=i;dirs[g]=[dr,dc];
+  }
+  const fill=mode==='straight'?'patchwork':mode==='hook'?'compact':'balanced';return fillSeededRegions(n,sol,fill,reg);
+}
+function burstRegions(n,sol){
+  const reg=seedRegions(n,sol),total=n*n;
+  for(const g of shuffle([...Array(n).keys()])){const seed=g*n+sol[g],arms=1+rngInt(3),opts=shuffle(neighbors4(seed,n).filter(i=>reg[i]<0));for(const i of opts.slice(0,arms))reg[i]=g}
+  return fillSeededRegions(n,sol,Math.random()<.5?'compact':'patchwork',reg);
+}
+function buildFamilyRegions(n,sol,family){
+  if(family==='frontier-balanced')return growRegions(n,sol,'balanced');
+  if(family==='frontier-compact')return growRegions(n,sol,'compact');
+  if(family==='frontier-tendril')return growRegions(n,sol,'tendril');
+  if(family==='horizontal-ribbons')return fillSeededRegions(n,sol,'horizontal');
+  if(family==='vertical-ribbons')return fillSeededRegions(n,sol,'vertical');
+  if(family==='diagonal-down')return fillSeededRegions(n,sol,'diag-down');
+  if(family==='diagonal-up')return fillSeededRegions(n,sol,'diag-up');
+  if(family==='staircase')return fillSeededRegions(n,sol,'staircase');
+  if(family==='patchwork')return fillSeededRegions(n,sol,'patchwork');
+  if(family==='asymmetric')return fillSeededRegions(n,sol,'asymmetric');
+  if(family==='skeleton-straight')return skeletonRegions(n,sol,'straight');
+  if(family==='skeleton-hook')return skeletonRegions(n,sol,'hook');
+  if(family==='skeleton-wander')return skeletonRegions(n,sol,'wander');
+  if(family==='burst-lobes')return burstRegions(n,sol);
+  return growRegions(n,sol,'mixed');
+}
+function textureOf(a){
+  if((a.force||0)>0){if((a.match||0)>0)return 'forcing-after-reservations';if((a.compoundBlock||0)+(a.arc||0)>0)return 'forcing-after-blocking';if((a.regionLine||0)+(a.block||0)>0)return 'forcing-after-lines';return 'forcing-early'}
+  if((a.maxMatchGroup||0)>=3)return (a.match||0)>=3?'large-reservations':'single-large-reservation';
+  if((a.maxMatchGroup||0)===2){if((a.compoundBlock||0)+(a.arc||0)>0)return 'mixed-hard';return 'reserved-pair'}
+  if((a.compoundBlock||0)>0&&(a.arc||0)>0)return 'compound-and-adjacent';
+  if((a.compoundBlock||0)>0)return 'compound-block';
+  if((a.arc||0)>0)return 'adjacent-row';
+  if((a.regionLine||0)>0&&(a.block||0)>0)return 'line-and-block';
+  if((a.block||0)>0)return 'direct-block';
+  if((a.regionLine||0)>0)return 'line-lock';
+  return 'singles';
+}
+function candidateTextureFresh(p,recent,targetBand){
+  if(!p)return false;const fc=recentValueCount(recent,'family',p.family,6),sc=recentValueCount(recent,'solutionStyle',p.solutionStyle,6),tc=recentValueCount(recent,'texture',p.texture,6);
+  if(fc>=3&&Math.random()<.88)return false;if(sc>=4&&Math.random()<.72)return false;
+  if(targetBand!=='Easy'&&targetBand!=='Expert'&&tc>=3&&Math.random()<.72)return false;
+  return true;
+}
+function solveTextureOkay(p,targetBand){
+  if(!p)return false;
+  if(targetBand==='Medium'){const a=p.regionLine||0,b=p.block||0,total=a+b;if(total>=10&&Math.max(a,b)/Math.max(1,total)>.88)return false}
+  if(targetBand==='Hard'){const vals=[p.compoundBlock||0,p.arc||0,(p.maxMatchGroup||0)===2?(p.match||0):0],total=vals.reduce((x,y)=>x+y,0);if(total>=9&&Math.max(...vals)/Math.max(1,total)>.90)return false}
+  return true;
+}
+function boundaryMoveDelta(n,reg,i,dst){const src=reg[i],nb=neighbors4(i,n);let before=0,after=0;for(const j of nb){if(reg[j]!==src)before++;if(reg[j]!==dst)after++}return after-before}
+function generateEasyRegions(n,sol,forcedProfile=null){
   const total=n*n,order=shuffle([...Array(n).keys()]),stepOfRow=Array(n);
   for(let k=0;k<n;k++)stepOfRow[order[k]]=k;
   const stepOfCol=Array(n);for(let r=0;r<n;r++)stepOfCol[sol[r]]=stepOfRow[r];
@@ -1052,96 +1171,79 @@ function generateEasyRegions(n,sol){
   }
   if(!connectedLast())return null;
 
-  // All three profiles preserve exactly the same forced-single solve order,
-  // but deliberately make different region shapes.
-  const profiles=['balanced','compact','branchy'],profile=profiles[rngInt(profiles.length)];
+  // Easy puzzles all use singles, but their geography should not all come from
+  // the same shape grammar. These profiles preserve the forced-single order while
+  // making regions compact, branched, ribbon-like, diagonal, noisy, or edgeward.
+  const profiles=['balanced','compact','branchy','horizontal','vertical','diagonal','patchwork','edgeward'],profile=forcedProfile||profiles[rngInt(profiles.length)];
   const targetCap=Math.max(n+1,Math.ceil(n*1.34)),targets=Array(n).fill(1);
-  for(let k=1;k<last;k++){
-    const t=k/last;
-    const base=n*(.72+.36*t); // late regions are only mildly larger, not 1.6x n
-    targets[k]=Math.min(targetCap,Math.max(2,Math.round(base*(.88+Math.random()*.24))));
-  }
-  const ids=[...Array(last).keys()].filter(k=>k>0);
-  let guard=0,moved=true;
+  for(let k=1;k<last;k++){const t=k/last,base=n*(.72+.36*t);targets[k]=Math.min(targetCap,Math.max(2,Math.round(base*(.88+Math.random()*.24))))}
+  const ids=[...Array(last).keys()].filter(k=>k>0);let guard=0,moved=true;
   while(moved&&guard++<total*36){
     moved=false;
     for(const k of shuffle(ids.slice())){
-      let count=0;for(const x of reg)if(x===k)count++;
-      if(count>=targets[k])continue;
-      const candidates=[];
-      for(let i=0;i<total;i++)if(reg[i]===last&&!seeds.has(i)&&elim[i]<k&&neighbors4(i,n).some(nb=>reg[nb]===k))candidates.push(i);
+      let count=0;for(const x of reg)if(x===k)count++;if(count>=targets[k])continue;
+      const candidates=[];for(let i=0;i<total;i++)if(reg[i]===last&&!seeds.has(i)&&elim[i]<k&&neighbors4(i,n).some(nb=>reg[nb]===k))candidates.push(i);
       if(!candidates.length)continue;
-      let ranked=candidates.map(i=>{
-        const same=neighbors4(i,n).filter(nb=>reg[nb]===k).length;
-        const r=Math.floor(i/n),c=i%n,seedRow=order[k],seedCol=sol[seedRow];
-        const dist=Math.abs(r-seedRow)+Math.abs(c-seedCol);
-        let score=Math.random()*.45;
+      const seedRow=order[k],seedCol=sol[seedRow],diagSlope=k%2?1:-1;
+      const ranked=candidates.map(i=>{const same=neighbors4(i,n).filter(nb=>reg[nb]===k).length,r=Math.floor(i/n),c=i%n,dr=r-seedRow,dc=c-seedCol,dist=Math.abs(dr)+Math.abs(dc);let score=Math.random()*.55;
         if(profile==='compact')score+=same*1.25-dist*.08;
         else if(profile==='branchy')score+=(2-same)*1.15+dist*.05;
+        else if(profile==='horizontal')score+=-Math.abs(dr)*1.05+Math.abs(dc)*.08+same*.12;
+        else if(profile==='vertical')score+=-Math.abs(dc)*1.05+Math.abs(dr)*.08+same*.12;
+        else if(profile==='diagonal')score+=-Math.abs(dr-diagSlope*dc)*.68+dist*.035+same*.10;
+        else if(profile==='patchwork')score+=Math.random()*1.25+same*.04;
+        else if(profile==='edgeward'){const edge=Math.min(r,c,n-1-r,n-1-c);score+=dist*.08-edge*.12+same*.14}
         else score+=same*.28-dist*.025;
-        return [score,i];
-      }).sort((a,b)=>b[0]-a[0]);
+        return [score,i]}).sort((a,b)=>b[0]-a[0]);
       for(const [,i] of ranked){if(!connectedLast(i))continue;reg[i]=k;moved=true;break}
     }
   }
-
-  // Keep draining the residual region into any legal neighbour until every
-  // colour is within the visual size cap. Choice policy follows the profile so
-  // these are genuinely different board families, not recolours of one shape.
   const cap=Math.max(n+2,Math.ceil(n*1.32));
   for(let pass=0;pass<total*14;pass++){
-    const counts=regionCounts(n,reg);if(counts[last]<=cap)break;
-    const options=[];
-    for(let i=0;i<total;i++)if(reg[i]===last&&!seeds.has(i)&&connectedLast(i)){
-      for(const k of [...new Set(neighbors4(i,n).map(nb=>reg[nb]).filter(k=>k>=1&&k<last))]){
-        if(elim[i]>=k||counts[k]>=targetCap)continue;
-        const same=neighbors4(i,n).filter(nb=>reg[nb]===k).length;
-        let score=counts[k]+Math.random()*.5;
-        if(profile==='compact')score-=same*.65;
-        else if(profile==='branchy')score+=same*.55;
-        options.push([score,i,k]);
-      }
+    const counts=regionCounts(n,reg);if(counts[last]<=cap)break;const options=[];
+    for(let i=0;i<total;i++)if(reg[i]===last&&!seeds.has(i)&&connectedLast(i))for(const k of [...new Set(neighbors4(i,n).map(nb=>reg[nb]).filter(k=>k>=1&&k<last))]){
+      if(elim[i]>=k||counts[k]>=targetCap)continue;const same=neighbors4(i,n).filter(nb=>reg[nb]===k).length,r=Math.floor(i/n),c=i%n,seedRow=order[k],seedCol=sol[seedRow],dr=r-seedRow,dc=c-seedCol;let score=counts[k]+Math.random()*.55;
+      if(profile==='compact')score-=same*.65;else if(profile==='branchy')score+=same*.55;else if(profile==='horizontal')score+=Math.abs(dr)*.28;else if(profile==='vertical')score+=Math.abs(dc)*.28;else if(profile==='diagonal')score+=Math.abs(dr-(k%2?1:-1)*dc)*.18;else if(profile==='patchwork')score+=Math.random()*.8;
+      options.push([score,i,k]);
     }
     if(!options.length)break;options.sort((a,b)=>a[0]-b[0]);const [,i,k]=options[0];reg[i]=k;
   }
   return visuallyBalanced(n,reg)?reg:null;
 }
-function generateMediumRegions(n,sol,maxSteps=220){
-  let reg=generateEasyRegions(n,sol);if(!reg)return null;
+function generateMediumRegions(n,sol,maxSteps=220,profile=null){
+  let reg=generateEasyRegions(n,sol,profile);if(!reg)return null;
   for(let step=0;step<maxSteps;step++){
     const moves=allMoves(n,sol,reg);shuffle(moves);let kept=false;
     for(const mv of moves.slice(0,Math.min(70,moves.length))){
-      const i=mv[0],src=mv[1],dst=mv[2];reg[i]=dst;
-      const a=logicAnalyse(n,reg,1);
-      if(a.solved&&a.band==='Medium')return reg;
-      if(a.solved&&a.band==='Easy'&&Math.random()<.24){kept=true;break}
+      const i=mv[0],src=mv[1],dst=mv[2];reg[i]=dst;const a=logicAnalyse(n,reg,1);
+      if(a.solved&&a.band==='Medium'&&visuallyBalanced(n,reg))return reg;
+      if(a.solved&&a.band==='Easy'&&visuallyBalanced(n,reg)&&Math.random()<.24){kept=true;break}
       reg[i]=src;
     }
-    if(!kept&&step%12===11){const fresh=generateEasyRegions(n,sol);if(fresh)reg=fresh}
+    if(!kept&&step%12===11){const fresh=generateEasyRegions(n,sol,profile);if(fresh)reg=fresh}
   }
   return null;
 }
-function randomWalkToBand(n,sol,startReg,targetBand,maxSteps){
+function randomWalkToBand(n,sol,startReg,targetBand,maxSteps,walkStyle='random'){
   const rank={Easy:0,Medium:1,Hard:2,Expert:3,Brutal:4},target=rank[targetBand];let reg=startReg.slice();
   for(let step=0;step<maxSteps;step++){
     const moves=allMoves(n,sol,reg);if(!moves.length)return null;
-    const mv=moves[rngInt(moves.length)],i=mv[0],src=mv[1],dst=mv[2];reg[i]=dst;
+    const sample=shuffle(moves.slice()).slice(0,Math.min(18,moves.length));
+    let ranked=sample.map(mv=>{const d=boundaryMoveDelta(n,reg,mv[0],mv[2]);let score=Math.random();if(walkStyle==='roughen')score+=d*1.1;else if(walkStyle==='smooth')score-=d*1.1;else if(walkStyle==='balance'){const counts=regionCounts(n,reg);score+=(counts[mv[1]]-counts[mv[2]])*.28}else if(walkStyle==='pulse')score+=Math.abs(d)*.65;return[score,mv]}).sort((a,b)=>b[0]-a[0]);
+    const mv=ranked[0][1],i=mv[0],src=mv[1],dst=mv[2];reg[i]=dst;
     const a=logicAnalyse(n,reg,1);
-    if(a.solved&&a.band===targetBand)return reg;
+    if(a.solved&&a.band===targetBand&&visuallyBalanced(n,reg))return reg;
     const ar=rank[a.band]??99;
-    if(!(a.solved&&ar<target))reg[i]=src;
+    if(!(a.solved&&ar<target)&&visuallyBalanced(n,reg)){}else reg[i]=src;
   }
   return null;
 }
-function generateConstructedRegions(n,sol,targetBand){
-  if(targetBand==='Easy')return generateEasyRegions(n,sol);
-  let reg=generateMediumRegions(n,sol);if(!reg)return null;
-  if(targetBand==='Medium')return reg;
-  reg=randomWalkToBand(n,sol,reg,'Hard',2200);if(!reg)return null;
-  if(targetBand==='Hard')return reg;
-  reg=randomWalkToBand(n,sol,reg,'Expert',3200);if(!reg)return null;
-  if(targetBand==='Expert')return reg;
-  return randomWalkToBand(n,sol,reg,'Brutal',4800);
+function generateConstructedRegions(n,sol,targetBand,profile=null,walkStyle='random'){
+  if(targetBand==='Easy')return generateEasyRegions(n,sol,profile);
+  let reg=generateMediumRegions(n,sol,220,profile);if(!reg)return null;if(targetBand==='Medium')return reg;
+  reg=randomWalkToBand(n,sol,reg,'Hard',2200,walkStyle);if(!reg)return null;if(targetBand==='Hard')return reg;
+  reg=randomWalkToBand(n,sol,reg,'Expert',3200,walkStyle);if(!reg)return null;if(targetBand==='Expert')return reg;
+  return randomWalkToBand(n,sol,reg,'Brutal',4800,walkStyle);
 }
 function mapGrid(n,regions,t){const reg=Array(n*n);function map(r,c){switch(t){case 0:return[r,c];case 1:return[c,n-1-r];case 2:return[n-1-r,n-1-c];case 3:return[n-1-c,r];case 4:return[r,n-1-c];case 5:return[n-1-r,c];case 6:return[c,r];default:return[n-1-c,n-1-r]}}for(let r=0;r<n;r++)for(let c=0;c<n;c++){const [rr,cc]=map(r,c);reg[rr*n+cc]=regions[r*n+c]}return reg}
 function boundaryBits(n,regions){let s='';for(let r=0;r<n;r++)for(let c=0;c<n-1;c++)s+=regions[r*n+c]===regions[r*n+c+1]?'0':'1';for(let r=0;r<n-1;r++)for(let c=0;c<n;c++)s+=regions[r*n+c]===regions[(r+1)*n+c]?'0':'1';return s}
@@ -1162,11 +1264,11 @@ function chooseSize(targetBand,sizeMode){
   let p=Math.random()*total;for(const [n,w] of vals){p-=w;if(p<=0)return n}return centre;
 }
 function bandRank(b){return ['Easy','Medium','Hard','Expert','Brutal'].indexOf(b)}
-function packagePuzzle(n,solution,regions){
+function packagePuzzle(n,solution,regions,family='unknown',solutionStyle='random'){
   if(!visuallyBalanced(n,regions))return null;
   const verify=findSolutions(n,regions,2);if(verify.length!==1||!same(verify[0],solution))return null;
   const a=logicAnalyse(n,regions,1);if(!a.solved)return null;
-  return {n,solution,regions,band:a.band,force:a.force,maxForce:a.maxForce,regionLine:a.regionLine,block:a.block,compoundBlock:a.compoundBlock,arc:a.arc,match:a.match,maxMatchGroup:a.maxMatchGroup,logicVersion:7,source:'generated'};
+  return {n,solution,regions,band:a.band,force:a.force,maxForce:a.maxForce,regionLine:a.regionLine,block:a.block,compoundBlock:a.compoundBlock,arc:a.arc,match:a.match,maxMatchGroup:a.maxMatchGroup,logicVersion:8,source:'generated',family,solutionStyle,texture:textureOf(a)};
 }
 function generate(targetBand,sizeMode,recent,threshold){
   let similarExact=null,closest=null,closestDistance=99;
@@ -1175,46 +1277,54 @@ function generate(targetBand,sizeMode,recent,threshold){
     if(!p)return null;
     const d=Math.abs(bandRank(p.band)-rank);if(d<closestDistance){closest=p;closestDistance=d}
     if(p.band!==targetBand)return null;
+    if(!solveTextureOkay(p,targetBand))return null;
+    if(!candidateTextureFresh(p,recent,targetBand))return null;
     if(!tooSimilar(p.n,p.regions,recent,threshold))return {puzzle:p,exact:true};
     if(!similarExact)similarExact=p;
     return null;
   };
 
-  // Method 1: naturally grow connected regions. growRegions itself randomly
-  // alternates balanced, compact and tendril-like growth, giving genuinely
-  // different-looking board families instead of one construction recipe.
-  const naturalStart=Date.now();
-  const baseBudget=targetBand==='Easy'?420:targetBand==='Medium'?520:targetBand==='Hard'?650:targetBand==='Expert'?760:880;
-  const naturalBudget=baseBudget+(sizeMode==='large'?180:0);
-  while(Date.now()-naturalStart<naturalBudget){
-    const n=chooseSize(targetBand,sizeMode),solution=markerPermutation(n);if(!solution)continue;
-    const regions=growRegions(n,solution,'mixed');if(!regions)continue;
-    const fixed=repair(n,solution,regions);if(!fixed.ok)continue;
-    const hit=consider(packagePuzzle(n,solution,fixed.reg));if(hit)return hit;
+  // Broad search: fourteen board families x six solution-placement styles.
+  // This is deliberately the primary generator, not a cosmetic variation pass.
+  // Every candidate is still repaired, uniqueness-checked and classified by the
+  // same logical solver before it is allowed into the bank.
+  const broadStart=Date.now();
+  const baseBudget=targetBand==='Easy'?820:targetBand==='Medium'?1050:targetBand==='Hard'?1300:targetBand==='Expert'?1500:1750;
+  const broadBudget=baseBudget+(sizeMode==='large'?360:0);
+  while(Date.now()-broadStart<broadBudget){
+    const n=chooseSize(targetBand,sizeMode),solutionStyle=chooseSolutionStyle(recent),solution=markerPermutation(n,solutionStyle);if(!solution)continue;
+    const family=chooseFamily(targetBand,recent),regions=buildFamilyRegions(n,solution,family);if(!regions||!visuallyBalanced(n,regions))continue;
+    const fixed=repair(n,solution,regions,targetBand==='Easy'?300:460);if(!fixed.ok)continue;
+    const hit=consider(packagePuzzle(n,solution,fixed.reg,family,solutionStyle));if(hit)return hit;
   }
 
-  // Method 2: targeted construction. This guarantees practical generation at
-  // awkward difficulty/size combinations, but the easy constructor now actively
-  // balances region areas instead of leaving one huge residual colour.
-  const attempts=targetBand==='Easy'?90:targetBand==='Medium'?70:16;
+  // Constructed fallback. It exists to keep rare difficulty/size queues supplied,
+  // but it is no longer allowed to define the overall visual flavour of the game.
+  const attempts=targetBand==='Easy'?72:targetBand==='Medium'?58:16;
+  const constructedProfiles=['balanced','compact','branchy','horizontal','vertical','diagonal','patchwork','edgeward'];
+  const walkStyles=['random','roughen','smooth','balance','pulse'];
   for(let attempt=0;attempt<attempts;attempt++){
-    const n=chooseSize(targetBand,sizeMode),solution=markerPermutation(n);if(!solution)continue;
-    const regions=generateConstructedRegions(n,solution,targetBand);if(!regions)continue;
-    const hit=consider(packagePuzzle(n,solution,regions));if(hit)return hit;
+    const n=chooseSize(targetBand,sizeMode),solutionStyle=chooseSolutionStyle(recent),solution=markerPermutation(n,solutionStyle);if(!solution)continue;
+    const profile=constructedProfiles[rngInt(constructedProfiles.length)],walkStyle=walkStyles[rngInt(walkStyles.length)];
+    const regions=generateConstructedRegions(n,solution,targetBand,profile,walkStyle);if(!regions)continue;
+    const family='constructed-'+profile+(targetBand==='Easy'||targetBand==='Medium'?'':'-'+walkStyle);
+    const hit=consider(packagePuzzle(n,solution,regions,family,solutionStyle));if(hit)return hit;
   }
 
-  // Method 3 for harder levels: start from another naturally-shaped board and
-  // walk its boundaries toward the requested solve type. This preserves a very
-  // different visual ancestry from the direct constructor.
+  // Boundary-evolution families for harder puzzles. Start from a broad geometric
+  // family, then approach the requested deduction tier through four different
+  // mutation policies. The starting ancestry remains visible in the final board.
   if(targetBand==='Hard'||targetBand==='Expert'||targetBand==='Brutal'){
-    for(let attempt=0;attempt<10;attempt++){
-      const n=chooseSize(targetBand,sizeMode),solution=markerPermutation(n);if(!solution)continue;
-      let regions=growRegions(n,solution,'mixed');if(!regions)continue;
-      const fixed=repair(n,solution,regions);if(!fixed.ok)continue;regions=fixed.reg;
+    const walks=['random','roughen','smooth','balance','pulse'];
+    for(let attempt=0;attempt<14;attempt++){
+      const n=chooseSize(targetBand,sizeMode),solutionStyle=chooseSolutionStyle(recent),solution=markerPermutation(n,solutionStyle);if(!solution)continue;
+      const baseFamily=chooseFamily(targetBand,recent);let regions=buildFamilyRegions(n,solution,baseFamily);if(!regions||!visuallyBalanced(n,regions))continue;
+      const fixed=repair(n,solution,regions,460);if(!fixed.ok)continue;regions=fixed.reg;
       const start=logicAnalyse(n,regions,1);if(!start.solved)continue;
-      if(start.band!==targetBand){regions=randomWalkToBand(n,solution,regions,targetBand,targetBand==='Hard'?1800:targetBand==='Expert'?2600:3800)}
+      const walkStyle=walks[rngInt(walks.length)];
+      if(start.band!==targetBand)regions=randomWalkToBand(n,solution,regions,targetBand,targetBand==='Hard'?2100:targetBand==='Expert'?3000:4300,walkStyle);
       if(!regions)continue;
-      const hit=consider(packagePuzzle(n,solution,regions));if(hit)return hit;
+      const hit=consider(packagePuzzle(n,solution,regions,baseFamily+'+walk-'+walkStyle,solutionStyle));if(hit)return hit;
     }
   }
 
@@ -1235,7 +1345,7 @@ function desiredDepth(band,mode){
 }
 function bankAvoidRecords(){
   const out=recentPuzzleRecords().slice();
-  for(const q of puzzleBank.values())for(const p of q)out.push({n:p.n,sig:canonicalFingerprint(p.n,p.regions)});
+  for(const q of puzzleBank.values())for(const p of q)out.push({n:p.n,sig:canonicalFingerprint(p.n,p.regions),family:p.family||'unknown',solutionStyle:p.solutionStyle||'random',texture:p.texture||'unknown'});
   return out;
 }
 function weightedBandFromAvailable(available){

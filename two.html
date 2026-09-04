@@ -10,7 +10,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<link rel="manifest" href="./manifest.webmanifest?v=16" />
+<link rel="manifest" href="./manifest.webmanifest?v=17" />
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png?v=16" />
 <link rel="icon" type="image/x-icon" href="./icons/favicon.ico?v=16" />
 <link rel="shortcut icon" type="image/x-icon" href="./icons/favicon.ico?v=16" />
@@ -763,13 +763,22 @@ function rngInt(n){return Math.floor(Math.random()*n)}
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=rngInt(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
 function neighbors4(i,n){const r=Math.floor(i/n),c=i%n,a=[];if(r)a.push(i-n);if(r<n-1)a.push(i+n);if(c)a.push(i-1);if(c<n-1)a.push(i+1);return a}
 function touching(i,j,n){const dr=Math.abs(Math.floor(i/n)-Math.floor(j/n)),dc=Math.abs(i%n-j%n);return i!==j&&dr<=1&&dc<=1}
-function markerDouble(n,compact=false){
+function markerDouble(n,style='mixed'){
   const pairs=[];for(let a=0;a<n;a++)for(let b=a+2;b<n;b++)pairs.push([a,b]);
   const col=Array(n).fill(0),rows=Array(n);
   function rec(r,prev){
     if(r===n)return col.every(x=>x===2);
     let opts=pairs.filter(([a,b])=>col[a]<2&&col[b]<2&&(!prev||prev.every(pc=>Math.abs(a-pc)>1&&Math.abs(b-pc)>1)));
-    shuffle(opts);opts.sort((p,q)=>{const load=(col[p[0]]+col[p[1]])-(col[q[0]]+col[q[1]]);return load*3+(compact?((p[1]-p[0])-(q[1]-q[0]))*8:0)});
+    const prevGap=prev?prev[1]-prev[0]:null,prevMid=prev?(prev[0]+prev[1])/2:null,targetGap=2+rngInt(Math.max(1,n-2));
+    opts=opts.map(p=>{const gap=p[1]-p[0],mid=(p[0]+p[1])/2;let score=(col[p[0]]+col[p[1]])*3+Math.random()*.8;
+      if(style==='compact')score+=gap*3;
+      else if(style==='spread')score-=gap*1.7;
+      else if(style==='edge')score+=Math.min(p[0],n-1-p[0])+Math.min(p[1],n-1-p[1]);
+      else if(style==='centre')score-=Math.min(p[0],n-1-p[0])+Math.min(p[1],n-1-p[1]);
+      else if(style==='alternating'){const target=r%2?Math.max(0,n-3):1;score+=Math.abs(mid-target)*.8}
+      else if(style==='varied'){score+=Math.abs(gap-targetGap)*.45;if(prev){if(gap===prevGap)score+=4.5;if(Math.abs(mid-prevMid)<1.5)score+=2.2}}
+      else score+=(gap===2?1.0:0);
+      return [score,p]}).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
     for(const p of opts){const [a,b]=p;col[a]++;col[b]++;rows[r]=p;let ok=true,rem=n-r-1;
       for(let c=0;c<n;c++)if(2-col[c]>rem){ok=false;break}
       if(ok&&rec(r+1,p))return true;col[a]--;col[b]--;
@@ -779,21 +788,44 @@ function markerDouble(n,compact=false){
   if(!rec(0,null))return null;
   const cells=[];for(let r=0;r<n;r++)for(const c of rows[r])cells.push(r*n+c);return cells;
 }
+function solutionCycleLengths(n,sol){
+  const rows=Array.from({length:n},()=>[]),cols=Array.from({length:n},()=>[]);for(const i of sol){const r=Math.floor(i/n),c=i%n;rows[r].push(c);cols[c].push(r)}const seenR=new Uint8Array(n),seenC=new Uint8Array(n),lens=[];
+  for(let r=0;r<n;r++)if(!seenR[r]){const qR=[r],qC=[];let ri=0,ci=0,count=0;seenR[r]=1;while(ri<qR.length||ci<qC.length){while(ri<qR.length){const rr=qR[ri++];count++;for(const c of rows[rr])if(!seenC[c]){seenC[c]=1;qC.push(c)}}while(ci<qC.length){const c=qC[ci++];for(const rr of cols[c])if(!seenR[rr]){seenR[rr]=1;qR.push(rr)}}}lens.push(count)}return lens.sort((a,b)=>b-a)
+}
+function markerDoubleTopology(n,topology='mixed'){
+  // 8x8 is unusually constrained and naturally decomposes into paired row/column
+  // cycles. From 9x9 upward there is a broad range of 2-regular graph topologies.
+  let best=null,bestScore=Infinity;const sourceStyles=['varied','mixed','alternating','centre','edge','spread'];
+  for(let attempt=0;attempt<(n===8?16:90);attempt++){const sol=markerDouble(n,sourceStyles[rngInt(sourceStyles.length)]);if(!sol)continue;const lens=solutionCycleLengths(n,sol),cycles=lens.length,largest=lens[0]||0;let score;
+    if(topology==='long')score=(cycles-1)*16+(n-largest);else if(topology==='many')score=-cycles*9+largest*.7;else if(topology==='mixed')score=Math.abs(cycles-Math.max(2,Math.round(n/4)))*5+Math.abs(largest-n*.5);else score=Math.random()*3+Math.abs(largest-n*.68);
+    if(score<bestScore){bestScore=score;best=sol}if(n>8&&topology==='long'&&cycles===1)return sol;if(n>9&&topology==='many'&&cycles>=Math.floor(n/3))return sol}
+  return best;
+}
+function recentValueCount(recent,key,value,limit=7){let count=0;for(const x of recent.slice(-limit))if(x&&x[key]===value)count++;return count}
+function weightedChoice(items){let total=items.reduce((s,x)=>s+x[1],0);if(total<=0)return items[0]?.[0];let p=Math.random()*total;for(const x of items){p-=x[1];if(p<=0)return x[0]}return items.at(-1)[0]}
+function chooseSolutionStyle(recent){
+  const base=[['row-varied',.13],['row-spread',.09],['row-edge',.07],['row-centre',.07],['row-alternating',.08],['cycle-long',.18],['cycle-many',.14],['cycle-mixed',.16],['cycle-random',.08]];
+  return weightedChoice(base.map(([v,w])=>[v,w*Math.pow(.18,recentValueCount(recent,'solutionStyle',v,7))]));
+}
+function makeDoubleSolution(n,style){
+  if(style==='row-varied')return markerDouble(n,'varied');if(style==='row-spread')return markerDouble(n,'spread');if(style==='row-edge')return markerDouble(n,'edge');if(style==='row-centre')return markerDouble(n,'centre');if(style==='row-alternating')return markerDouble(n,'alternating');if(style==='cycle-long')return markerDoubleTopology(n,'long');if(style==='cycle-many')return markerDoubleTopology(n,'many');if(style==='cycle-mixed')return markerDoubleTopology(n,'mixed');if(style==='cycle-random')return markerDoubleTopology(n,'random');return markerDouble(n,'varied');
+}
 function regionCounts(n,reg){const a=Array(n).fill(0);for(const g of reg)if(g>=0&&g<n)a[g]++;return a}
 function visuallyBalanced(n,reg){const a=regionCounts(n,reg),mx=Math.max(...a),mn=Math.min(...a);return mn>=2&&mx<=Math.ceil(n*2.05)}
 function growFromSeeds(n,reg,style='mixed'){
-  const total=n*n,front=Array.from({length:n},()=>[]),counts=regionCounts(n,reg);const styles=['balanced','compact','tendril'];if(style==='mixed')style=styles[rngInt(styles.length)];
+  const total=n*n,front=Array.from({length:n},()=>[]),counts=regionCounts(n,reg),styles=['balanced','compact','tendril','horizontal','vertical','diag-down','diag-up','patchwork','edgeward','centreward','lobed','asymmetric'];if(style==='mixed')style=styles[rngInt(styles.length)];
+  const seedR=Array(n).fill(0),seedC=Array(n).fill(0),seedN=Array(n).fill(0);for(let i=0;i<total;i++)if(reg[i]>=0){const g=reg[i];seedR[g]+=Math.floor(i/n);seedC[g]+=i%n;seedN[g]++}
+  const bias=Array.from({length:n},()=>style==='asymmetric'?.68+Math.random()*.72:.88+Math.random()*.24);
   for(let g=0;g<n;g++)for(let i=0;i<total;i++)if(reg[i]===g)for(const nb of neighbors4(i,n))if(reg[nb]<0)front[g].push(nb);
-  let left=reg.filter(x=>x<0).length,guard=0;const bias=Array.from({length:n},()=>.82+Math.random()*.36);
-  while(left&&guard++<40000){const ids=shuffle([...Array(n).keys()]).sort((a,b)=>counts[a]/bias[a]-counts[b]/bias[b]+(Math.random()-.5)*.3);let did=false;
-    for(const g of ids){const choices=[...new Set(front[g])].filter(i=>reg[i]<0);if(!choices.length)continue;let i;
-      if(style==='balanced')i=choices[rngInt(choices.length)];
-      else{let best=[],bs=style==='compact'?-Infinity:Infinity;for(const cell of choices){const same=neighbors4(cell,n).filter(nb=>reg[nb]===g).length,score=same+(Math.random()-.5)*.85;if((style==='compact'&&score>bs)||(style==='tendril'&&score<bs)){bs=score;best=[cell]}else if(Math.abs(score-bs)<.08)best.push(cell)}i=best[rngInt(best.length)]}
-      reg[i]=g;counts[g]++;left--;did=true;front[g]=front[g].filter(x=>x!==i);for(const nb of neighbors4(i,n))if(reg[nb]<0)front[g].push(nb);if(Math.random()<.78)break;
-    }
-    if(!did)return null;
-  }
-  return left?null:reg;
+  let left=reg.filter(x=>x<0).length,guard=0;
+  while(left&&guard++<50000){const ids=shuffle([...Array(n).keys()]).sort((a,b)=>counts[a]/bias[a]-counts[b]/bias[b]+(Math.random()-.5)*.35);let did=false;
+    for(const g of ids){const choices=[...new Set(front[g])].filter(i=>reg[i]<0);if(!choices.length)continue;let best=[],bs=-Infinity;
+      for(const cell of choices){const r=Math.floor(cell/n),c=cell%n,nb=neighbors4(cell,n),same=nb.filter(x=>reg[x]===g).length,h=(c>0&&reg[cell-1]===g?1:0)+(c<n-1&&reg[cell+1]===g?1:0),v=(r>0&&reg[cell-n]===g?1:0)+(r<n-1&&reg[cell+n]===g?1:0),edge=Math.min(r,c,n-1-r,n-1-c),centre=Math.abs(r-(n-1)/2)+Math.abs(c-(n-1)/2),sr=seedN[g]?seedR[g]/seedN[g]:r,sc=seedN[g]?seedC[g]/seedN[g]:c;let score=Math.random()*1.2;
+        if(style==='compact')score+=same*2.2;else if(style==='tendril')score-=same*1.8;else if(style==='horizontal')score+=h*2.2-v*.35;else if(style==='vertical')score+=v*2.2-h*.35;else if(style==='diag-down')score-=Math.abs((r-c)-(sr-sc))*.42;else if(style==='diag-up')score-=Math.abs((r+c)-(sr+sc))*.42;else if(style==='patchwork')score-=same*.35+Math.random()*.15;else if(style==='edgeward')score-=edge*.32;else if(style==='centreward')score-=centre*.16;else if(style==='lobed')score+=same*.75-Math.abs(Math.hypot(r-sr,c-sc)-Math.sqrt(Math.max(2,counts[g])))*.18;else if(style==='asymmetric')score+=same*.35+Math.sin((r+1)*(g+2)+(c+1)*.7)*.5;else score+=same*.15;
+        if(score>bs){bs=score;best=[cell]}else if(Math.abs(score-bs)<.06)best.push(cell)}
+      const i=best[rngInt(best.length)];reg[i]=g;counts[g]++;left--;did=true;front[g]=front[g].filter(x=>x!==i);for(const nb of neighbors4(i,n))if(reg[nb]<0)front[g].push(nb);if(Math.random()<.76)break;
+    }if(!did)return null;
+  }return left?null:reg;
 }
 function segmentRegions(n,sol,orientation='row',style='mixed'){
   const reg=Array(n*n).fill(-1);
@@ -818,6 +850,121 @@ function pairedPathRegions(n,sol,style='mixed',tries=30){
   }
   return null;
 }
+function growFromSeedsFrozen(n,reg,style='mixed',frozenIds=[]){
+  const total=n*n,front=Array.from({length:n},()=>[]),counts=regionCounts(n,reg),frozen=new Set(frozenIds);const styles=['balanced','compact','tendril'];if(style==='mixed')style=styles[rngInt(styles.length)];
+  for(let g=0;g<n;g++)for(let i=0;i<total;i++)if(reg[i]===g)for(const nb of neighbors4(i,n))if(reg[nb]<0)front[g].push(nb);
+  let left=reg.filter(x=>x<0).length,guard=0;const bias=Array.from({length:n},()=>.82+Math.random()*.36);
+  while(left&&guard++<40000){const ids=shuffle([...Array(n).keys()].filter(g=>!frozen.has(g))).sort((a,b)=>counts[a]/bias[a]-counts[b]/bias[b]+(Math.random()-.5)*.3);let did=false;
+    for(const g of ids){const choices=[...new Set(front[g])].filter(i=>reg[i]<0);if(!choices.length)continue;let i;if(style==='balanced')i=choices[rngInt(choices.length)];else{let best=[],bs=style==='compact'?-Infinity:Infinity;for(const cell of choices){const same=neighbors4(cell,n).filter(nb=>reg[nb]===g).length,score=same+(Math.random()-.5)*.85;if((style==='compact'&&score>bs)||(style==='tendril'&&score<bs)){bs=score;best=[cell]}else if(Math.abs(score-bs)<.08)best.push(cell)}i=best[rngInt(best.length)]}reg[i]=g;counts[g]++;left--;did=true;front[g]=front[g].filter(x=>x!==i);for(const nb of neighbors4(i,n))if(reg[nb]<0)front[g].push(nb);if(Math.random()<.78)break;}if(!did)return null;}return left?null:reg;
+}
+function cluePathRegions(n,sol,freezeCount=2,style='mixed',tries=30){
+  const rows=[];for(let r=0;r<n;r++){const cells=sol.filter(i=>Math.floor(i/n)===r).sort((a,b)=>a-b);if(cells.length===2&&cells[1]-cells[0]===2)rows.push([r,cells])}
+  if(rows.length<freezeCount)return null;
+  for(let attempt=0;attempt<tries;attempt++){
+    const chosen=shuffle(rows.slice()).slice(0,freezeCount),used=new Set(),pairs=[];for(const [,cells] of chosen){pairs.push(cells.slice());for(const x of cells)used.add(x)}
+    const rem=shuffle(sol.filter(i=>!used.has(i)));for(let i=0;i<rem.length;i+=2)pairs.push([rem[i],rem[i+1]]);if(pairs.length!==n)continue;
+    const aligned=pairs.slice(freezeCount).filter(([x,y])=>Math.floor(x/n)===Math.floor(y/n)||x%n===y%n).length;if(aligned>Math.ceil((n-freezeCount)*.4))continue;
+    const reg=Array(n*n).fill(-1),frozen=[];let failed=false;
+    for(let g=0;g<n;g++){const [start,goal]=pairs[g];if(g<freezeCount){const r=Math.floor(start/n),c1=start%n,c2=goal%n;if(Math.floor(goal/n)!==r||Math.abs(c1-c2)!==2){failed=true;break}const lo=Math.min(c1,c2);for(let c=lo;c<=lo+2;c++){const x=r*n+c;if(reg[x]>=0&&reg[x]!==g){failed=true;break}reg[x]=g}if(failed)break;frozen.push(g);continue}
+      const blocked=new Set();for(const m of sol)if(m!==start&&m!==goal)blocked.add(m);for(let i=0;i<reg.length;i++)if(reg[i]>=0&&i!==start&&i!==goal)blocked.add(i);
+      const prev=new Int32Array(n*n);prev.fill(-2);prev[start]=-1;const q=[start];let qi=0;while(qi<q.length&&prev[goal]===-2){const x=q[qi++],nb=shuffle(neighbors4(x,n));for(const y of nb){if(prev[y]!==-2||blocked.has(y))continue;prev[y]=x;q.push(y);if(y===goal)break}}
+      if(prev[goal]===-2){failed=true;break}let x=goal;while(x>=0){reg[x]=g;x=prev[x]}
+    }
+    if(failed)continue;const grown=growFromSeedsFrozen(n,reg,style,frozen);if(grown&&regionShapeOkay(n,grown,2.5))return grown;
+  }
+  return null;
+}
+function mixedCluePathRegions(n,sol,freezeCount=2,style='mixed',tries=36){
+  const markerSet=new Set(sol),gadgets=[];
+  for(let r=0;r<n;r++){
+    const cells=sol.filter(i=>Math.floor(i/n)===r).sort((a,b)=>a-b);
+    if(cells.length===2&&cells[1]%n-cells[0]%n===2)gadgets.push({kind:'row',cells});
+  }
+  for(let c=0;c<n;c++){
+    const cells=sol.filter(i=>i%n===c).sort((a,b)=>a-b);
+    if(cells.length===2&&Math.floor(cells[1]/n)-Math.floor(cells[0]/n)===2)gadgets.push({kind:'col',cells});
+  }
+  if(gadgets.length<freezeCount)return null;
+  for(let attempt=0;attempt<tries;attempt++){
+    const chosen=[],usedMarkers=new Set();
+    for(const g of shuffle(gadgets.slice())){
+      if(g.cells.some(x=>usedMarkers.has(x)))continue;
+      chosen.push(g);for(const x of g.cells)usedMarkers.add(x);
+      if(chosen.length===freezeCount)break;
+    }
+    if(chosen.length<freezeCount)continue;
+    const pairs=chosen.map(g=>g.cells.slice()),rem=shuffle(sol.filter(i=>!usedMarkers.has(i)));
+    for(let i=0;i<rem.length;i+=2)pairs.push([rem[i],rem[i+1]]);if(pairs.length!==n)continue;
+    const reg=Array(n*n).fill(-1),frozen=[];let failed=false;
+    for(let g=0;g<n;g++){
+      const [start,goal]=pairs[g];
+      if(g<freezeCount){
+        const gadget=chosen[g],base=[];
+        if(gadget.kind==='row'){
+          const r=Math.floor(start/n),lo=Math.min(start%n,goal%n);for(let c=lo;c<=lo+2;c++)base.push(r*n+c);
+        }else{
+          const c=start%n,lo=Math.min(Math.floor(start/n),Math.floor(goal/n));for(let r=lo;r<=lo+2;r++)base.push(r*n+c);
+        }
+        for(const x of base){if(reg[x]>=0&&reg[x]!==g){failed=true;break}reg[x]=g}if(failed)break;
+        // About half the clues become a 4-cell T rather than a bare three-cell strip.
+        if(Math.random()<.58){
+          const mid=base[1],mr=Math.floor(mid/n),mc=mid%n,branches=gadget.kind==='row'?[[mr-1,mc],[mr+1,mc]]:[[mr,mc-1],[mr,mc+1]];
+          shuffle(branches);for(const [rr,cc] of branches){if(rr<0||rr>=n||cc<0||cc>=n)continue;const x=rr*n+cc;if(markerSet.has(x)||reg[x]>=0)continue;reg[x]=g;break}
+        }
+        frozen.push(g);continue;
+      }
+      const blocked=new Set();for(const m of sol)if(m!==start&&m!==goal)blocked.add(m);for(let i=0;i<reg.length;i++)if(reg[i]>=0&&i!==start&&i!==goal)blocked.add(i);
+      const prev=new Int32Array(n*n);prev.fill(-2);prev[start]=-1;const q=[start];let qi=0;
+      while(qi<q.length&&prev[goal]===-2){const x=q[qi++],nb=shuffle(neighbors4(x,n));for(const y of nb){if(prev[y]!==-2||blocked.has(y))continue;prev[y]=x;q.push(y);if(y===goal)break}}
+      if(prev[goal]===-2){failed=true;break}let x=goal;while(x>=0){reg[x]=g;x=prev[x]}
+    }
+    if(failed)continue;const grown=growFromSeedsFrozen(n,reg,style,frozen);if(grown&&regionShapeOkay(n,grown,2.5))return grown;
+  }
+  return null;
+}
+function pairSolutionMarkers(n,sol,style='mixed'){
+  const left=sol.slice(),pairs=[];while(left.length){const ai=rngInt(left.length),a=left.splice(ai,1)[0],ar=Math.floor(a/n),ac=a%n;let bestI=0,best=Infinity;
+    for(let j=0;j<left.length;j++){const b=left[j],br=Math.floor(b/n),bc=b%n,man=Math.abs(ar-br)+Math.abs(ac-bc),sameRow=ar===br,sameCol=ac===bc,edgeA=Math.min(ar,ac,n-1-ar,n-1-ac),edgeB=Math.min(br,bc,n-1-br,n-1-bc);let score=Math.random()*1.7;
+      if(style==='near')score+=man*1.5;else if(style==='far')score-=man*1.4;else if(style==='cross')score+=(sameRow||sameCol?8:0)+Math.abs(man-n*.8)*.35;else if(style==='row-mix')score+=(sameRow?-5:0)+Math.abs(man-n*.5)*.2;else if(style==='col-mix')score+=(sameCol?-5:0)+Math.abs(man-n*.5)*.2;else if(style==='edge-cross')score-=Math.abs(edgeA-edgeB)*.3+man*.5;else if(style==='mid-distance')score+=Math.abs(man-n*.65)*.65;else score+=Math.abs(man-(2+rngInt(Math.max(2,n-2))))*.25;
+      if(score<best){best=score;bestI=j}}
+    pairs.push([a,left.splice(bestI,1)[0]])}
+  return pairs;
+}
+function routePath(n,start,goal,blocked,style='random'){
+  const total=n*n,dist=new Float64Array(total),prev=new Int32Array(total),done=new Uint8Array(total),noise=new Float64Array(total);dist.fill(Infinity);prev.fill(-1);for(let i=0;i<total;i++)noise[i]=Math.random();dist[start]=0;
+  const sr=Math.floor(start/n),sc=start%n,gr=Math.floor(goal/n),gc=goal%n,centre=(n-1)/2,hookFirst=Math.random()<.5;
+  function segDist(r,c,r1,c1,r2,c2){if(r1===r2){const lo=Math.min(c1,c2),hi=Math.max(c1,c2);return Math.abs(r-r1)+(c<lo?lo-c:c>hi?c-hi:0)}const lo=Math.min(r1,r2),hi=Math.max(r1,r2);return Math.abs(c-c1)+(r<lo?lo-r:r>hi?r-hi:0)}
+  function hookDistance(r,c){if(hookFirst)return Math.min(segDist(r,c,sr,sc,sr,gc),segDist(r,c,sr,gc,gr,gc));return Math.min(segDist(r,c,sr,sc,gr,sc),segDist(r,c,gr,sc,gr,gc))}
+  for(let step=0;step<total;step++){let x=-1,bd=Infinity;for(let i=0;i<total;i++)if(!done[i]&&dist[i]<bd){bd=dist[i];x=i}if(x<0)break;if(x===goal)break;done[x]=1;const xr=Math.floor(x/n),xc=x%n;
+    for(const y of neighbors4(x,n)){if(done[y]||(blocked.has(y)&&y!==goal))continue;const r=Math.floor(y/n),c=y%n,vertical=r!==xr;let w=1+.15*noise[y];
+      if(style==='wander')w=.65+noise[y]*2.4;else if(style==='horizontal')w*=vertical?1.75:.72;else if(style==='vertical')w*=vertical?.72:1.75;else if(style==='edge')w+=Math.min(r,c,n-1-r,n-1-c)*.20;else if(style==='centre')w+=(Math.abs(r-centre)+Math.abs(c-centre))*.09;else if(style==='diag-down')w+=Math.abs((r-c)-((sr-sc+gr-gc)/2))*.09;else if(style==='diag-up')w+=Math.abs((r+c)-((sr+sc+gr+gc)/2))*.09;else if(style==='hook')w+=hookDistance(r,c)*.36;else if(style==='staircase')w+=(Math.abs((r-sr)*(gc-sc)-(c-sc)*(gr-sr))/Math.max(1,Math.abs(gr-sr)+Math.abs(gc-sc)))*.10+((r+c)&1)*.06;
+      const nd=dist[x]+w;if(nd<dist[y]){dist[y]=nd;prev[y]=x}}
+  }
+  if(!Number.isFinite(dist[goal]))return null;const path=[];let x=goal;while(x>=0){path.push(x);if(x===start)break;x=prev[x]}return path.at(-1)===start?path.reverse():null;
+}
+function pairedSkeletonRegions(n,sol,pairingStyle='mixed',routeStyle='random',fillStyle='balanced',tries=34){
+  for(let attempt=0;attempt<tries;attempt++){
+    const pairs=pairSolutionMarkers(n,sol,pairingStyle),reg=Array(n*n).fill(-1),routeOrder=[...Array(n).keys()].sort((a,b)=>{const A=pairs[a],B=pairs[b],da=Math.abs(Math.floor(A[0]/n)-Math.floor(A[1]/n))+Math.abs(A[0]%n-A[1]%n),db=Math.abs(Math.floor(B[0]/n)-Math.floor(B[1]/n))+Math.abs(B[0]%n-B[1]%n);return db-da+(Math.random()-.5)*2});let failed=false;
+    for(const g of routeOrder){const [start,goal]=pairs[g],blocked=new Set();for(const m of sol)if(m!==start&&m!==goal)blocked.add(m);for(let i=0;i<reg.length;i++)if(reg[i]>=0&&i!==start&&i!==goal)blocked.add(i);const path=routePath(n,start,goal,blocked,routeStyle);if(!path){failed=true;break}for(const x of path)reg[x]=g}
+    if(failed)continue;const grown=growFromSeeds(n,reg,fillStyle);if(grown&&regionShapeOkay(n,grown,2.45))return grown;
+  }return null;
+}
+function choosePairingStyle(recent){const base=[['near',.13],['far',.14],['cross',.16],['row-mix',.08],['col-mix',.08],['edge-cross',.11],['mid-distance',.15],['mixed',.15]];return weightedChoice(base.map(([v,w])=>[v,w*Math.pow(.18,recentValueCount(recent,'pairingStyle',v,7))]))}
+function constructionRecipe(family,recent){
+  const pairing=choosePairingStyle(recent);switch(family){
+    case 'near-blobs':return{pairing:'near',route:'random',fill:'compact'};case 'far-snakes':return{pairing:'far',route:'wander',fill:'tendril'};case 'crossed-balanced':return{pairing:'cross',route:'random',fill:'balanced'};case 'edge-arcs':return{pairing:'edge-cross',route:'edge',fill:'edgeward'};case 'centre-spokes':return{pairing:'far',route:'centre',fill:'centreward'};case 'horizontal-ribbons':return{pairing,route:'horizontal',fill:'horizontal'};case 'vertical-ribbons':return{pairing,route:'vertical',fill:'vertical'};case 'diag-down':return{pairing,route:'diag-down',fill:'diag-down'};case 'diag-up':return{pairing,route:'diag-up',fill:'diag-up'};case 'hooks':return{pairing:'mid-distance',route:'hook',fill:'compact'};case 'staircases':return{pairing:'cross',route:'staircase',fill:'tendril'};case 'patchwork':return{pairing,route:'wander',fill:'patchwork'};case 'lobes':return{pairing:'near',route:'random',fill:'lobed'};case 'asymmetric':return{pairing:'far',route:'wander',fill:'asymmetric'};case 'row-crossings':return{pairing:'row-mix',route:'vertical',fill:'mixed'};case 'col-crossings':return{pairing:'col-mix',route:'horizontal',fill:'mixed'};default:return{pairing,route:'random',fill:'mixed'}}
+}
+function growIndividualMarkerRegions(n,sol,style='balanced'){
+  const m=sol.length,total=n*n,reg=Array(total).fill(-1),front=Array.from({length:m},()=>[]),counts=Array(m).fill(1);for(let g=0;g<m;g++)reg[sol[g]]=g;for(let g=0;g<m;g++)for(const nb of neighbors4(sol[g],n))if(reg[nb]<0)front[g].push(nb);const bias=Array.from({length:m},()=>style==='asymmetric'?.65+Math.random()*.8:.88+Math.random()*.24);let left=total-m,guard=0;
+  while(left&&guard++<50000){const ids=shuffle([...Array(m).keys()]).sort((a,b)=>counts[a]/bias[a]-counts[b]/bias[b]+(Math.random()-.5)*.45);let did=false;for(const g of ids){const choices=[...new Set(front[g])].filter(i=>reg[i]<0);if(!choices.length)continue;let best=[],bs=-Infinity;for(const cell of choices){const r=Math.floor(cell/n),c=cell%n,same=neighbors4(cell,n).filter(x=>reg[x]===g).length,h=(c>0&&reg[cell-1]===g?1:0)+(c<n-1&&reg[cell+1]===g?1:0),v=(r>0&&reg[cell-n]===g?1:0)+(r<n-1&&reg[cell+n]===g?1:0),edge=Math.min(r,c,n-1-r,n-1-c),centre=Math.abs(r-(n-1)/2)+Math.abs(c-(n-1)/2);let score=Math.random()*1.4;if(style==='compact')score+=same*2;else if(style==='tendril')score-=same*1.5;else if(style==='horizontal')score+=h*2-v*.3;else if(style==='vertical')score+=v*2-h*.3;else if(style==='patchwork')score-=same*.45;else if(style==='edgeward')score-=edge*.3;else if(style==='centreward')score-=centre*.14;else if(style==='asymmetric')score+=Math.sin((r+1)*(g+1)+(c+2)*.8)*.65;else score+=same*.12;if(score>bs){bs=score;best=[cell]}else if(Math.abs(score-bs)<.06)best.push(cell)}const x=best[rngInt(best.length)];reg[x]=g;counts[g]++;left--;did=true;front[g]=front[g].filter(v=>v!==x);for(const nb of neighbors4(x,n))if(reg[nb]<0)front[g].push(nb);if(Math.random()<.72)break}if(!did)return null}return left?null:reg;
+}
+function matchAdjacentSeedRegions(n,seedReg,sol,style='mixed'){
+  const m=sol.length,adj=Array.from({length:m},()=>new Map());for(let i=0;i<n*n;i++){const a=seedReg[i];for(const j of neighbors4(i,n)){const b=seedReg[j];if(a===b)continue;adj[a].set(b,(adj[a].get(b)||0)+1)}}const used=new Uint8Array(m),pairs=[];
+  function rec(){let a=-1,bestOpts=null;for(let x=0;x<m;x++)if(!used[x]){const opts=[...adj[x].keys()].filter(y=>!used[y]);if(!opts.length)return false;if(a<0||opts.length<bestOpts.length){a=x;bestOpts=opts;if(opts.length===1)break}}if(a<0)return true;const ar=Math.floor(sol[a]/n),ac=sol[a]%n;bestOpts=bestOpts.map(b=>{const br=Math.floor(sol[b]/n),bc=sol[b]%n,man=Math.abs(ar-br)+Math.abs(ac-bc),boundary=adj[a].get(b)||1;let score=Math.random()*1.2;if(style==='long-boundary')score-=boundary*1.2;else if(style==='short-boundary')score+=boundary*.8;else if(style==='far')score-=man*.6;else if(style==='cross')score+=(ar===br||ac===bc?5:0)-man*.2;else score-=boundary*.25;return[score,b]}).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);for(const b of bestOpts){used[a]=used[b]=1;pairs.push([a,b]);if(rec())return true;pairs.pop();used[a]=used[b]=0}return false}
+  return rec()?pairs:null;
+}
+function watershedRegions(n,sol,growStyle='balanced',matchStyle='mixed',tries=30){for(let attempt=0;attempt<tries;attempt++){const seed=growIndividualMarkerRegions(n,sol,growStyle);if(!seed)continue;const pairs=matchAdjacentSeedRegions(n,seed,sol,matchStyle);if(!pairs)continue;const map=new Int16Array(sol.length);for(let g=0;g<pairs.length;g++)for(const x of pairs[g])map[x]=g;const reg=seed.map(x=>map[x]);if(regionShapeOkay(n,reg,2.45))return reg}return null}
+
 function connectedAfterRemove(reg,n,src,rem){let start=-1,count=0;for(let i=0;i<reg.length;i++)if(reg[i]===src&&i!==rem){count++;if(start<0)start=i}if(start<0)return false;const seen=new Set([start]),q=[start];while(q.length){const x=q.pop();for(const nb of neighbors4(x,n))if(nb!==rem&&reg[nb]===src&&!seen.has(nb)){seen.add(nb);q.push(nb)}}return seen.size===count}
 function allMoves(n,sol,reg){const seeds=new Set(sol),out=[];for(let i=0;i<reg.length;i++){if(seeds.has(i))continue;const src=reg[i],dsts=[...new Set(neighbors4(i,n).map(j=>reg[j]).filter(x=>x!==src))];if(!dsts.length||!connectedAfterRemove(reg,n,src,i))continue;for(const dst of dsts)out.push([i,src,dst])}return out}
 function scrambleRegions(n,sol,reg,steps=40){for(let step=0;step<steps;step++){const moves=allMoves(n,sol,reg);if(!moves.length)break;shuffle(moves);const counts=regionCounts(n,reg);let chosen=null;for(const mv of moves.slice(0,100)){const [i,src,dst]=mv;if(counts[src]<=2||counts[dst]>=Math.ceil(n*2.0))continue;chosen=mv;break}if(!chosen)chosen=moves[0];reg[chosen[0]]=chosen[2]}return reg}
@@ -855,8 +1002,21 @@ function logicAnalyse(n,regions){
  function groupStep(s,minSize=2,maxSize=n){for(let wanted=minSize;wanted<=Math.min(n,maxSize);wanted++)for(let dir=0;dir<6;dir++){const lk=dir===0||dir===2?0:dir===1||dir===4?1:2,rk=dir===0||dir===1?1:dir===2||dir===3?2:1,leftNeed=Array(n),rightNeed=Array(n),neigh=Array(n).fill(0);for(let u=0;u<n;u++){leftNeed[u]=2-fixedCount(s,lk,u);rightNeed[u]=2-fixedCount(s,rk,u)}for(let i=0;i<total;i++)if(s.cand[i]&&!s.fixed[i]){const [a,b]=pairOfDir(i,dir);neigh[a]|=1<<b}const active=[];for(let a=0;a<n;a++)if(leftNeed[a]>0)active.push(a);if(wanted>active.length)continue;const lim=1<<active.length;for(let mask=1;mask<lim;mask++){let bits=0;for(let x=mask;x;x&=x-1)bits++;if(bits!==wanted)continue;let demand=0,rights=0,leftMask=0;for(let x=0;x<active.length;x++)if(mask&(1<<x)){const a=active[x];leftMask|=1<<a;demand+=leftNeed[a];rights|=neigh[a]}let cap=0;for(let b=0;b<n;b++)if(rights&(1<<b))cap+=Math.max(0,rightNeed[b]);if(cap<demand){s.bad=true;return 0}if(cap!==demand)continue;const targets=[];for(let i=0;i<total;i++)if(s.cand[i]&&!s.fixed[i]){const [a,b]=pairOfDir(i,dir);if(!(leftMask&(1<<a))&&(rights&(1<<b)))targets.push(i)}if(targets.length){for(const i of targets)remove(s,i);return wanted}}}return 0}
 
  function solved(s){if(s.bad)return false;for(let k=0;k<3;k++)for(let u=0;u<n;u++)if(fixedCount(s,k,u)!==2)return false;return true}
- const s=makeState(),stats={medium:0,hard:0,expert:0,group2:0,group3:0,adjacent:0,directBlock:0};let guard=0,tier=0;
- while(!s.bad&&guard++<5000){if(!check(s))break;if(basicStep(s)){stats.medium++;continue}if(localStep(s)){stats.medium++;continue}if(lockedStep(s)){stats.medium++;continue}const sb=simpleBlockStep(s);if(sb){stats.directBlock++;if(sb===1){stats.medium++}else{stats.hard++;tier=Math.max(tier,1)}continue}if(adjacentStep(s)){stats.hard++;stats.adjacent++;tier=Math.max(tier,1);continue}const g2=groupStep(s,2,2);if(s.bad)break;if(g2){stats.hard++;stats.group2++;tier=Math.max(tier,1);continue}if(compoundBlockStep(s)){stats.hard++;tier=Math.max(tier,1);continue}if(windowStep(s,3)){stats.expert++;tier=2;continue}if(s.bad)break;if(windowStep(s,4)){stats.expert++;tier=2;continue}if(s.bad)break;const gx=groupStep(s,3,n);if(s.bad)break;if(gx){stats.expert++;stats.group3++;tier=2;continue}break}
+ const s=makeState(),stats={medium:0,hard:0,expert:0,basic:0,localPair:0,locked:0,mediumBlock:0,hardBlock:0,compound:0,window:0,window3:0,window4:0,group2:0,group3:0,adjacent:0,directBlock:0,trace:[]};let guard=0,tier=0;
+ while(!s.bad&&guard++<5000){
+   if(!check(s))break;
+   if(basicStep(s)){stats.medium++;stats.basic++;stats.trace.push('basic');continue}
+   if(lockedStep(s)){stats.medium++;stats.locked++;stats.trace.push('locked');continue}
+   const sb=simpleBlockStep(s);if(sb){stats.directBlock++;stats.medium++;stats.mediumBlock++;stats.trace.push('directBlock');continue}
+   if(localStep(s)){stats.medium++;stats.localPair++;stats.trace.push('localPair');continue}
+   if(adjacentStep(s)){stats.hard++;stats.adjacent++;stats.trace.push('adjacent');tier=Math.max(tier,1);continue}
+   const g2=groupStep(s,2,2);if(s.bad)break;if(g2){stats.hard++;stats.group2++;stats.trace.push('group2');tier=Math.max(tier,1);continue}
+   if(compoundBlockStep(s)){stats.hard++;stats.compound++;stats.trace.push('compound');tier=Math.max(tier,1);continue}
+   if(windowStep(s,3)){stats.hard++;stats.window++;stats.window3++;stats.trace.push('window3');tier=Math.max(tier,1);continue}
+   if(s.bad)break;if(windowStep(s,4)){stats.expert++;stats.window++;stats.window4++;stats.trace.push('window4');tier=2;continue}
+   if(s.bad)break;const gx=groupStep(s,3,n);if(s.bad)break;if(gx){stats.expert++;stats.group3++;stats.trace.push('group3');tier=2;continue}
+   break
+ }
  const isSolved=solved(s),band=isSolved?(tier===0?'Medium':tier===1?'Hard':'Expert'):'Brutal',solution=isSolved?[...Array(total).keys()].filter(i=>s.fixed[i]):null;return {solved:isSolved,status:isSolved?'solved':s.bad?'bad':'stuck',band,solution,...stats};
 }
 
@@ -928,46 +1088,78 @@ function freezeCountFor(n,targetBand){
   let lo,hi;if(targetBand==='Medium'){lo=Math.max(3,n-4);hi=Math.max(lo,n-2)}else if(targetBand==='Hard'){lo=Math.max(2,n-6);hi=Math.max(lo,n-3)}else{lo=Math.max(1,n-7);hi=Math.max(lo,n-3)}
   return lo+rngInt(hi-lo+1);
 }
-function packageSolved(n,regions,a,sol){const shapeFactor=2.4;if(!a.solved||!a.solution||a.solution.length!==2*n||!sameSolution(a.solution,sol)||!regionShapeOkay(n,regions,shapeFactor))return null;return {n,solution:a.solution,regions,band:a.band,logicVersion:2,source:'generated',stats:{medium:a.medium,hard:a.hard,expert:a.expert,group2:a.group2,group3:a.group3,adjacent:a.adjacent,directBlock:a.directBlock}}}
+function solutionGaps(n,sol){const out=[];for(let r=0;r<n;r++){const cs=sol.filter(i=>Math.floor(i/n)===r).map(i=>i%n).sort((a,b)=>a-b);if(cs.length===2)out.push(cs[1]-cs[0])}return out}
+function chooseConstruction(targetBand,recent){
+  let base=[['watershed-balanced',.075],['watershed-compact',.065],['watershed-tendril',.065],['watershed-horizontal',.055],['watershed-vertical',.055],['watershed-patchwork',.075],['watershed-edge',.055],['watershed-centre',.055],['watershed-asymmetric',.065],['near-blobs',.04],['far-snakes',.04],['crossed-balanced',.05],['edge-arcs',.035],['centre-spokes',.035],['horizontal-ribbons',.03],['vertical-ribbons',.03],['diag-down',.03],['diag-up',.03],['hooks',.04],['staircases',.035],['patchwork',.045],['lobes',.035],['asymmetric',.04],['row-crossings',.025],['col-crossings',.025],['mixed-clue',.035],['clue-path',.015],['segment-row',.008],['segment-col',.008]];
+  if(targetBand==='Medium')base=base.map(([v,w])=>[v,w*(v.startsWith('watershed-')?1.18:(v==='mixed-clue'||v==='near-blobs'||v==='lobes'?1.2:1))]);if(targetBand==='Hard')base=base.map(([v,w])=>[v,w*((v.includes('tendril')||v==='hooks'||v==='staircases'||v==='patchwork'||v==='watershed-patchwork')?1.2:1)]);if(targetBand==='Expert'||targetBand==='Brutal')base=base.map(([v,w])=>[v,w*((v.includes('asymmetric')||v.includes('tendril')||v==='far-snakes'||v==='edge-arcs')?1.22:(v==='mixed-clue'?0.55:1))]);return weightedChoice(base.map(([v,w])=>[v,w*Math.pow(.15,recentValueCount(recent,'family',v,8))]));
+}
+function maxTechniqueRun(trace,name){let best=0,run=0;for(const x of trace||[]){if(x===name){run++;best=Math.max(best,run)}else run=0}return best}
+function straightTripleMotifs(n,regions,solution){const sol=new Set(solution||[]);let count=0;for(let g=0;g<n;g++){const cells=[];for(let i=0;i<n*n;i++)if(regions[i]===g)cells.push(i);if(cells.length!==3)continue;const rs=[...new Set(cells.map(i=>Math.floor(i/n)))],cs=[...new Set(cells.map(i=>i%n))];let ends=[];if(rs.length===1){const a=cells.slice().sort((x,y)=>(x%n)-(y%n));if(a[2]%n-a[0]%n===2)ends=[a[0],a[2]]}else if(cs.length===1){const a=cells.slice().sort((x,y)=>Math.floor(x/n)-Math.floor(y/n));if(Math.floor(a[2]/n)-Math.floor(a[0]/n)===2)ends=[a[0],a[2]]}if(ends.length===2&&ends.every(i=>sol.has(i)))count++}return count}
+function textureOfTwo(st,band){if(band==='Brutal')return'forcing';if(band==='Expert'){const a=[['window',st.window4||st.window||0],['capacity',st.group3||0],['mixed-expert',(st.window4||0)+(st.group3||0)]].sort((x,y)=>y[1]-x[1]);return a[0][1]?a[0][0]:'expert-mixed'}if(band==='Hard'){const a=[['adjacency',st.adjacent||0],['reserved-pair',st.group2||0],['compound-block',st.compound||0],['three-row',st.window3||0]].sort((x,y)=>y[1]-x[1]);return a[0][1]?a[0][0]:'hard-mixed'}const a=[['quota',st.basic||0],['locked',st.locked||0],['direct-block',st.directBlock||0],['local-pair',st.localPair||0]].sort((x,y)=>y[1]-x[1]);return a[0][1]?a[0][0]:'medium-mixed'}
+function solveTextureOkay(n,p,targetBand){if(!p||!p.stats)return false;const st=p.stats,counts=regionCounts(n,p.regions),three=counts.filter(x=>x===3).length,gaps=solutionGaps(n,p.solution),gap2=gaps.filter(x=>x===2).length,trace=st.trace||[],tripleMotifs=straightTripleMotifs(n,p.regions,p.solution);
+  if(targetBand==='Medium'||targetBand==='Hard'){if(tripleMotifs>2||three>Math.max(1,Math.floor(n*.20))||(n>=9&&gap2>Math.ceil(n*.45)))return false;const med=Math.max(1,st.medium||0),local=st.localPair||0;if(local>Math.max(3,Math.floor(med*.43))||maxTechniqueRun(trace,'localPair')>2)return false}
+  if(targetBand==='Medium'){const types=[st.basic,st.locked,st.directBlock,st.localPair].filter(x=>(x||0)>0).length;if(types<2||((st.medium||0)>14&&types<2))return false}
+  if(targetBand==='Hard'){const hardTypes=[st.adjacent,st.group2,st.compound,st.window3].filter(x=>(x||0)>0).length;if((st.hard||0)<1||((st.hard||0)>=3&&hardTypes<2))return false;if(maxTechniqueRun(trace,'adjacent')>3||maxTechniqueRun(trace,'group2')>3||maxTechniqueRun(trace,'compound')>3||maxTechniqueRun(trace,'window3')>2)return false}
+  return true;
+}
+function diversityOkay(p,recent,strict=true){if(!p)return false;const checks=[['family',p.family,2],['solutionStyle',p.solutionStyle,2],['pairingStyle',p.pairingStyle,2],['routeStyle',p.routeStyle,2],['fillStyle',p.fillStyle,2],['texture',p.texture,2]];let repeats=0;for(const [k,v,max] of checks){if(!v||v==='unknown'||v==='mixed')continue;const c=recentValueCount(recent,k,v,6);if(c>=max)repeats++}return strict?repeats<2:repeats<4}
+function tuneHardFromMedium(n,sol,startReg,recent,threshold,meta,steps=110){let reg=startReg.slice();for(let step=0;step<steps;step++){const moves=shuffle(allMoves(n,sol,reg));if(!moves.length)break;for(const mv of moves.slice(0,Math.min(42,moves.length))){const [i,src,dst]=mv;reg[i]=dst;if(!regionShapeOkay(n,reg,2.45)){reg[i]=src;continue}const a=logicAnalyse(n,reg),p=packageSolved(n,reg,a,sol,meta.family+'+tuned',meta.solutionStyle,meta.pairingStyle,meta.routeStyle,meta.fillStyle);if(p&&p.band==='Hard'&&solveTextureOkay(n,p,'Hard')&&!tooSimilar(n,reg,recent,threshold)&&diversityOkay(p,recent,false))return p;if(!(p&&p.band==='Medium'&&Math.random()<.30))reg[i]=src;else break}}return null}
+function tuneSolvedToBand(n,sol,startReg,targetBand,recent,threshold,meta,steps=850){let reg=startReg.slice(),a=logicAnalyse(n,reg),curDist=a.solved?Math.abs(bandRank(a.band)-bandRank(targetBand)):99;for(let step=0;step<steps;step++){const moves=allMoves(n,sol,reg);if(!moves.length)break;const mv=moves[rngInt(moves.length)],[i,src,dst]=mv;reg[i]=dst;if(!regionShapeOkay(n,reg,2.45)){reg[i]=src;continue}const aa=logicAnalyse(n,reg);if(!aa.solved){reg[i]=src;continue}const p=packageSolved(n,reg,aa,sol,meta.family+'+evolved',meta.solutionStyle,meta.pairingStyle,meta.routeStyle,meta.fillStyle),d=Math.abs(bandRank(aa.band)-bandRank(targetBand));if(p&&aa.band===targetBand&&(!['Medium','Hard'].includes(targetBand)||solveTextureOkay(n,p,targetBand))&&!tooSimilar(n,reg,recent,threshold)&&diversityOkay(p,recent,false))return p;if(d<curDist||d===curDist&&Math.random()<.28||Math.random()<.045){a=aa;curDist=d}else reg[i]=src}return null}
+
+function packageSolved(n,regions,a,sol,family='unknown',solutionStyle='row-varied',pairingStyle='mixed',routeStyle='random',fillStyle='balanced'){const shapeFactor=2.4;if(!a.solved||!a.solution||a.solution.length!==2*n||!sameSolution(a.solution,sol)||!regionShapeOkay(n,regions,shapeFactor))return null;const stats={medium:a.medium,hard:a.hard,expert:a.expert,basic:a.basic,localPair:a.localPair,locked:a.locked,mediumBlock:a.mediumBlock,hardBlock:a.hardBlock,compound:a.compound,window:a.window,window3:a.window3,window4:a.window4,group2:a.group2,group3:a.group3,adjacent:a.adjacent,directBlock:a.directBlock,trace:(a.trace||[]).slice()};return {n,solution:a.solution,regions,band:a.band,logicVersion:4,source:'generated',family,solutionStyle,pairingStyle,routeStyle,fillStyle,texture:textureOfTwo(stats,a.band),stats}}
 function generatePuzzle(targetBand,sizeMode,recent,threshold){
-  const targetRank=bandRank(targetBand),started=Date.now(),budget=sizeMode==='large'?18000:12000;let closest=null,closestDistance=99,attempt=0;
-  function consider(p){if(!p||tooSimilar(p.n,p.regions,recent,threshold))return null;const d=Math.abs(bandRank(p.band)-targetRank);if(d<closestDistance){closest=p;closestDistance=d}if(p.band===targetBand)return p;return null}
-  while(Date.now()-started<budget){attempt++;const n=chooseSize(targetBand,sizeMode),compact=targetBand!=='Brutal'||Math.random()<.55,sol=markerDouble(n,compact);if(!sol)continue;let reg=null;
-    if(targetBand!=='Brutal'&&Math.random()<.78){reg=clueRegions(n,sol,freezeCountFor(n,targetBand));if(reg)reg=scrambleRegions(n,sol,reg,targetBand==='Medium'?rngInt(n+1):targetBand==='Hard'?n+rngInt(n*2+1):n*2+rngInt(n*3+1))}
-    if(!reg){const method=Math.random();if(method<.18)reg=pairedPathRegions(n,sol,'mixed',12);else reg=segmentRegions(n,sol,Math.random()<.5?'row':'col',Math.random()<.34?'balanced':'mixed');if(reg)reg=scrambleRegions(n,sol,reg,targetBand==='Brutal'?n*3+rngInt(n*4):rngInt(n*3+1))}
-    if(!reg||!regionShapeOkay(n,reg,2.5))continue;
-    const a=logicAnalyse(n,reg);
-    if(a.solved){const p=packageSolved(n,reg,a,sol),hit=consider(p);if(hit)return {puzzle:hit,exact:true};continue}
-    if(targetBand!=='Brutal')continue;
-    // A Brutal board must be genuinely stuck under all supported deductions AND unique.
-    let q=findSolutionsTwo(n,reg,2,n>=12?1200000:n>=11?900000:700000);
-    if(!q.truncated&&q.solutions.length===1&&sameSolution(q.solutions[0],sol)&&!tooSimilar(n,reg,recent,threshold))return {puzzle:{n,solution:sol,regions:reg,band:'Brutal',logicVersion:2,source:'generated',stats:{}},exact:true};
-    if(attempt%2===0){const fixed=repairUniqueTwo(n,sol,reg.slice(),n>=11?130:220,n>=11?3600:4200);if(fixed.ok){const aa=logicAnalyse(n,fixed.reg);q=findSolutionsTwo(n,fixed.reg,2,n>=12?1200000:n>=11?900000:700000);if(!aa.solved&&!q.truncated&&q.solutions.length===1&&sameSolution(q.solutions[0],sol)&&!tooSimilar(n,fixed.reg,recent,threshold))return {puzzle:{n,solution:sol,regions:fixed.reg,band:'Brutal',logicVersion:2,source:'generated',stats:{}},exact:true}}}
+  const targetRank=bandRank(targetBand),started=Date.now(),budget=sizeMode==='large'?28000:22000;let closest=null,closestDistance=99,similarExact=null,attempt=0;
+  function consider(p){if(!p)return null;const sim=tooSimilar(p.n,p.regions,recent,threshold),strict=Date.now()-started<budget*.72;if(sim){if(p.band===targetBand&&!similarExact)similarExact=p;return null}if((targetBand==='Medium'||targetBand==='Hard')&&!solveTextureOkay(p.n,p,targetBand))return null;if(!diversityOkay(p,recent,strict))return null;const d=Math.abs(bandRank(p.band)-targetRank);if(d<closestDistance){closest=p;closestDistance=d}return p.band===targetBand?p:null}
+  while(Date.now()-started<budget){attempt++;const n=chooseSize(targetBand,sizeMode),solutionStyle=chooseSolutionStyle(recent),sol=makeDoubleSolution(n,solutionStyle);if(!sol)continue;const family=chooseConstruction(targetBand,recent);let reg=null,pairingStyle='mixed',routeStyle='random',fillStyle='balanced';
+    if(family.startsWith('watershed-')){const growStyle=family.replace('watershed-','').replace('edge','edgeward').replace('centre','centreward'),matchStyles=['mixed','long-boundary','short-boundary','far','cross'];pairingStyle='watershed-'+matchStyles[rngInt(matchStyles.length)];routeStyle='watershed';fillStyle=growStyle;reg=watershedRegions(n,sol,growStyle,pairingStyle.replace('watershed-',''),24);if(reg&&Math.random()<.35)reg=scrambleRegions(n,sol,reg,rngInt(Math.max(2,Math.floor(n/2))))}
+    else if(family==='mixed-clue'){const fc=targetBand==='Medium'?(1+rngInt(2)):1;fillStyle=['balanced','compact','tendril','patchwork'][rngInt(4)];reg=mixedCluePathRegions(n,sol,fc,fillStyle==='patchwork'?'mixed':fillStyle,30);if(reg)reg=scrambleRegions(n,sol,reg,rngInt(Math.max(2,Math.floor(n/2))))}
+    else if(family==='clue-path'){fillStyle=['balanced','compact','tendril'][rngInt(3)];reg=cluePathRegions(n,sol,1,fillStyle,24);if(reg)reg=scrambleRegions(n,sol,reg,rngInt(n+1))}
+    else if(family==='segment-row'||family==='segment-col'){routeStyle=family==='segment-row'?'horizontal':'vertical';fillStyle=Math.random()<.5?'balanced':routeStyle;pairingStyle=family==='segment-row'?'row-mix':'col-mix';reg=segmentRegions(n,sol,family==='segment-row'?'row':'col',fillStyle);if(reg)reg=scrambleRegions(n,sol,reg,n+rngInt(n+1))}
+    else{const recipe=constructionRecipe(family,recent);pairingStyle=recipe.pairing;routeStyle=recipe.route;fillStyle=recipe.fill;reg=pairedSkeletonRegions(n,sol,pairingStyle,routeStyle,fillStyle,26);if(reg&&Math.random()<.55)reg=scrambleRegions(n,sol,reg,rngInt(Math.max(2,n))) }
+    if(!reg||!regionShapeOkay(n,reg,2.45))continue;const a=logicAnalyse(n,reg);
+    if(a.solved){const meta={family,solutionStyle,pairingStyle,routeStyle,fillStyle},p=packageSolved(n,reg,a,sol,family,solutionStyle,pairingStyle,routeStyle,fillStyle),hit=consider(p);if(hit)return {puzzle:hit,exact:true};if(targetBand==='Hard'&&p&&p.band==='Medium'&&attempt%3===0){const tuned=tuneHardFromMedium(n,sol,reg,recent,threshold,meta,75);if(tuned)return {puzzle:tuned,exact:true}}if(targetBand==='Expert'&&p&&(p.band==='Hard'||p.band==='Medium')&&attempt%2===0){const evolved=tuneSolvedToBand(n,sol,reg,'Expert',recent,threshold,meta,420);if(evolved)return {puzzle:evolved,exact:true}}continue}
+    if(targetBand!=='Brutal')continue;let q=findSolutionsTwo(n,reg,2,n>=12?1250000:n>=11?950000:760000);if(!q.truncated&&q.solutions.length===1&&sameSolution(q.solutions[0],sol)&&!tooSimilar(n,reg,recent,threshold)){const p={n,solution:sol,regions:reg,band:'Brutal',logicVersion:4,source:'generated',family,solutionStyle,pairingStyle,routeStyle,fillStyle,texture:'forcing',stats:{}};if(diversityOkay(p,recent,false))return {puzzle:p,exact:true}}
+    if(attempt%3===0){const fixed=repairUniqueTwo(n,sol,reg.slice(),n>=11?130:210,n>=11?3600:4300);if(fixed.ok){q=findSolutionsTwo(n,fixed.reg,2,n>=12?1250000:n>=11?950000:760000);if(!q.truncated&&q.solutions.length===1&&sameSolution(q.solutions[0],sol)&&!tooSimilar(n,fixed.reg,recent,threshold)){const p={n,solution:sol,regions:fixed.reg,band:'Brutal',logicVersion:4,source:'generated',family:family+'+repair',solutionStyle,pairingStyle,routeStyle,fillStyle,texture:'forcing',stats:{}};if(diversityOkay(p,recent,false))return {puzzle:p,exact:true}}}}
   }
-  return {puzzle:closest,exact:false};
+  if(similarExact)return {puzzle:similarExact,exact:true,similar:true};return {puzzle:closest,exact:false};
 }
 
 
-let generatorWorker=null,generatorBusy=false,cachedPuzzle=null,pendingNew=false,generationToken=0;
-const RECENT_LIMIT=220,NEAR_DUPLICATE_SIMILARITY=.92;
+let generatorWorker=null,generatorBusy=false,pendingNew=false,generationToken=0,generationJob=null,bankFillTimer=null,pendingPreferredBand=null;
+const RECENT_LIMIT=320,NEAR_DUPLICATE_SIMILARITY=.89,BANK_BASE_TARGET=1,BANK_CURRENT_TARGET=2;
+const puzzleBank=new Map(),bankFailures=new Map(),bankRetryAfter=new Map();
 function puzzleTransforms(n,regions){const out=[];for(let t=0;t<8;t++)out.push(mapGrid(n,regions,t));return out}
 function boundaryBits(n,regions){return boundaryBitsW(n,regions)}
 function puzzleFingerprints(n,regions){return puzzleTransforms(n,regions).map(reg=>boundaryBits(n,reg))}
 function canonicalFingerprint(n,regions){return puzzleFingerprints(n,regions).sort()[0]}
 function recentPuzzleRecords(){const a=loadStore().recentPuzzles;return Array.isArray(a)?a.filter(x=>x&&Number.isInteger(x.n)&&typeof x.sig==='string').slice(-RECENT_LIMIT):[]}
-function rememberPuzzle(p){const store=loadStore(),a=Array.isArray(store.recentPuzzles)?store.recentPuzzles.filter(x=>x&&x.sig):[];a.push({n:p.n,sig:canonicalFingerprint(p.n,p.regions)});store.recentPuzzles=a.slice(-RECENT_LIMIT);saveStore(store)}
-function startPuzzle(p){rememberPuzzle(p);const turned=transformed({...p,regions:p.regions.slice(),solution:p.solution.slice()},rngInt(8));state={...turned,colors:paletteFor(turned.n,turned.regions),marks:Array(turned.n*turned.n).fill(0),elapsed:0,startedAt:Date.now(),complete:false,failed:false,transform:0,history:[],hintUsed:false,hintCount:0,activeHint:null};render();startTimer();setMessage('');newGameBtn.disabled=false;hintBtn.disabled=false;prefetchNext()}
-function resetPrefetch(){cachedPuzzle=null;pendingNew=false;generationToken++;if(generatorWorker){generatorWorker.terminate();generatorWorker=null}generatorBusy=false;if(state&&!state.complete)prefetchNext()}
+function puzzleRecord(p){return {n:p.n,sig:canonicalFingerprint(p.n,p.regions),family:p.family||'unknown',solutionStyle:p.solutionStyle||'row-varied',pairingStyle:p.pairingStyle||'mixed',routeStyle:p.routeStyle||'random',fillStyle:p.fillStyle||'balanced',texture:p.texture||'unknown'}}
+function rememberPuzzle(p){const store=loadStore(),a=Array.isArray(store.recentPuzzles)?store.recentPuzzles.filter(x=>x&&x.sig):[];a.push(puzzleRecord(p));store.recentPuzzles=a.slice(-RECENT_LIMIT);saveStore(store)}
+function startPuzzle(p){rememberPuzzle(p);const turned=transformed({...p,regions:p.regions.slice(),solution:p.solution.slice()},rngInt(8));state={...turned,colors:paletteFor(turned.n,turned.regions),marks:Array(turned.n*turned.n).fill(0),elapsed:0,startedAt:Date.now(),complete:false,failed:false,transform:0,history:[],hintUsed:false,hintCount:0,activeHint:null};render();startTimer();setMessage('');newGameBtn.disabled=false;hintBtn.disabled=false;scheduleBankFill(120)}
+function resetPrefetch(){if(pendingNew)pendingPreferredBand=choosePendingBand();else pendingPreferredBand=null;scheduleBankFill(0)}
 function makeWorker(){
   if(!('Worker' in window)||!('Blob' in window))return null;
-  const fns=[rngInt,shuffle,neighbors4,touching,markerDouble,regionCounts,visuallyBalanced,growFromSeeds,segmentRegions,pairedPathRegions,connectedAfterRemove,allMoves,scrambleRegions,logicAnalyse,sameSolution,regionShapeOkay,clueRegions,findSolutionsTwo,repairUniqueTwo,mapGrid,boundaryBitsW,fingerprints,similarity,tooSimilar,bandRank,chooseSize,freezeCountFor,packageSolved,generatePuzzle];
-  const workerSource="'use strict';\nconst BANDS="+JSON.stringify(BANDS)+";\n"+fns.map(fn=>fn.toString()).join('\n')+"\nonmessage=function(e){const d=e.data||{};if(d.type!=='generate')return;try{const result=generatePuzzle(d.targetBand,d.sizeMode,d.recent||[],d.threshold||.92);postMessage({ok:!!(result&&result.puzzle),result,token:d.token,settingsKey:d.settingsKey,purpose:d.purpose,targetBand:d.targetBand})}catch(err){postMessage({ok:false,error:String(err&&err.message||err),token:d.token,settingsKey:d.settingsKey,purpose:d.purpose,targetBand:d.targetBand})}};";
+  const fns=[rngInt,shuffle,neighbors4,touching,markerDouble,solutionCycleLengths,markerDoubleTopology,recentValueCount,weightedChoice,chooseSolutionStyle,makeDoubleSolution,regionCounts,visuallyBalanced,growFromSeeds,segmentRegions,pairedPathRegions,growFromSeedsFrozen,cluePathRegions,mixedCluePathRegions,pairSolutionMarkers,routePath,pairedSkeletonRegions,choosePairingStyle,constructionRecipe,growIndividualMarkerRegions,matchAdjacentSeedRegions,watershedRegions,connectedAfterRemove,allMoves,scrambleRegions,logicAnalyse,sameSolution,regionShapeOkay,clueRegions,findSolutionsTwo,repairUniqueTwo,mapGrid,boundaryBitsW,fingerprints,similarity,tooSimilar,bandRank,chooseSize,freezeCountFor,solutionGaps,chooseConstruction,maxTechniqueRun,straightTripleMotifs,textureOfTwo,solveTextureOkay,diversityOkay,tuneHardFromMedium,tuneSolvedToBand,packageSolved,generatePuzzle];
+  const workerSource="'use strict';\nconst BANDS="+JSON.stringify(BANDS)+";\n"+fns.map(fn=>fn.toString()).join('\n')+"\nonmessage=function(e){const d=e.data||{};if(d.type!=='generate')return;try{const result=generatePuzzle(d.targetBand,d.sizeMode,d.recent||[],d.threshold||.89);postMessage({ok:!!(result&&result.puzzle),result,token:d.token,purpose:d.purpose,targetBand:d.targetBand,jobKey:d.jobKey})}catch(err){postMessage({ok:false,error:String(err&&err.message||err),token:d.token,purpose:d.purpose,targetBand:d.targetBand,jobKey:d.jobKey})}};";
   const blob=new Blob([workerSource],{type:'application/javascript'}),url=URL.createObjectURL(blob),w=new Worker(url);URL.revokeObjectURL(url);return w;
 }
-function ensureWorker(){if(generatorWorker)return generatorWorker;generatorWorker=makeWorker();if(!generatorWorker)return null;generatorWorker.onmessage=e=>{generatorBusy=false;const d=e.data||{};if(d.token!==generationToken){prefetchNext();return}if(!d.ok||!d.result?.puzzle){if(d.purpose==='new'){newGameBtn.disabled=false;hintBtn.disabled=false;setMessage('Could not generate that combination. Try New game again.','error');pendingNew=false}return}const p=d.result.puzzle;if(!d.result.exact&&Math.abs(BANDS.indexOf(p.band)-BANDS.indexOf(d.targetBand))>1){if(d.purpose==='new'){newGameBtn.disabled=false;hintBtn.disabled=false;setMessage(`Couldn't make a suitable ${d.targetBand.toLowerCase()} board this time. Try New game again.`,'error');pendingNew=false}else setTimeout(prefetchNext,300);return}if(d.settingsKey!==currentSettingsKey()){prefetchNext();return}if(d.purpose==='new'||pendingNew){pendingNew=false;cachedPuzzle=null;startPuzzle(p)}else cachedPuzzle={puzzle:p,settingsKey:d.settingsKey};};generatorWorker.onerror=()=>{generatorBusy=false;generatorWorker?.terminate();generatorWorker=null;if(pendingNew){pendingNew=false;newGameBtn.disabled=false;hintBtn.disabled=false;setMessage('Puzzle generation failed. Try New game again.','error')}};return generatorWorker}
-function requestGenerated(purpose){if(generatorBusy)return false;const worker=ensureWorker();if(!worker)return false;generatorBusy=true;const targetBand=sampleBand(difficultyBias),settingsKey=currentSettingsKey(),token=generationToken,avoid=recentPuzzleRecords();if(cachedPuzzle?.puzzle)avoid.push({n:cachedPuzzle.puzzle.n,sig:canonicalFingerprint(cachedPuzzle.puzzle.n,cachedPuzzle.puzzle.regions)});worker.postMessage({type:'generate',purpose,targetBand,sizeMode,recent:avoid,threshold:NEAR_DUPLICATE_SIMILARITY,settingsKey,token});return true}
-function prefetchNext(){if(!state||state.complete||generatorBusy||cachedPuzzle)return;requestGenerated('prefetch')}
-
+function bankKey(band,mode){return `${band}|${mode}`}
+function bankQueue(band,mode){const key=bankKey(band,mode);if(!puzzleBank.has(key))puzzleBank.set(key,[]);return puzzleBank.get(key)}
+function bandAllowedWeight(band){return difficultyMix(difficultyBias)[BANDS.indexOf(band)]||0}
+function desiredDepth(band,mode){return mode===sizeMode&&bandAllowedWeight(band)>0?BANK_CURRENT_TARGET:BANK_BASE_TARGET}
+function bankAvoidRecords(){const out=recentPuzzleRecords().slice();for(const q of puzzleBank.values())for(const p of q)out.push(puzzleRecord(p));return out}
+function weightedBandFromAvailable(available){if(!available.length)return null;let total=0,weights=[];for(const b of available){const w=Math.max(.001,bandAllowedWeight(b));weights.push([b,w]);total+=w}let x=Math.random()*total;for(const [b,w] of weights){x-=w;if(x<=0)return b}return weights.at(-1)[0]}
+function takeBankPuzzle(){const available=BANDS.filter(b=>bandAllowedWeight(b)>0&&bankQueue(b,sizeMode).length);const band=weightedBandFromAvailable(available);if(!band)return null;const q=bankQueue(band,sizeMode),idx=rngInt(q.length),p=q.splice(idx,1)[0];scheduleBankFill(30);return p}
+function choosePendingBand(){const candidates=BANDS.filter(b=>bandAllowedWeight(b)>0);if(!candidates.length)return BANDS[difficultyBias]||'Hard';const minFail=Math.min(...candidates.map(b=>bankFailures.get(bankKey(b,sizeMode))||0)),fresh=candidates.filter(b=>(bankFailures.get(bankKey(b,sizeMode))||0)===minFail);return weightedBandFromAvailable(fresh)||candidates[0]}
+function nextBankJob(){if(pendingNew){if(!pendingPreferredBand||bandAllowedWeight(pendingPreferredBand)<=0)pendingPreferredBand=choosePendingBand();const key=bankKey(pendingPreferredBand,sizeMode);if(!bankQueue(pendingPreferredBand,sizeMode).length)return {band:pendingPreferredBand,mode:sizeMode,key,urgent:true}}
+  const current=BANDS.filter(b=>bandAllowedWeight(b)>0).sort((a,b)=>bankQueue(a,sizeMode).length-bankQueue(b,sizeMode).length);for(const band of current){const key=bankKey(band,sizeMode),q=bankQueue(band,sizeMode);if(q.length<desiredDepth(band,sizeMode)&&(bankRetryAfter.get(key)||0)<=Date.now())return{band,mode:sizeMode,key,urgent:true}}
+  const jobs=[];for(const mode of SIZE_MODES)for(const band of BANDS)jobs.push({band,mode,key:bankKey(band,mode)});const offset=Math.floor(Date.now()/1000)%jobs.length;for(let j=0;j<jobs.length;j++){const job=jobs[(j+offset)%jobs.length];if(bankQueue(job.band,job.mode).length<BANK_BASE_TARGET&&(bankRetryAfter.get(job.key)||0)<=Date.now())return job}return null}
+function scheduleBankFill(delay=0){clearTimeout(bankFillTimer);bankFillTimer=setTimeout(fillBank,delay)}
+function ensureWorker(){if(generatorWorker)return generatorWorker;generatorWorker=makeWorker();if(!generatorWorker)return null;generatorWorker.onmessage=e=>{generatorBusy=false;const d=e.data||{},job=generationJob;generationJob=null;if(!job){scheduleBankFill(100);return}let accepted=false;if(d.ok&&d.result?.puzzle&&d.result.exact){const failures=bankFailures.get(job.key)||0;if(!d.result.similar||failures>=2){const q=bankQueue(job.band,job.mode);if(q.length<desiredDepth(job.band,job.mode))q.push(d.result.puzzle);bankFailures.set(job.key,0);bankRetryAfter.delete(job.key);accepted=true}}
+    if(!accepted){const failures=(bankFailures.get(job.key)||0)+1;bankFailures.set(job.key,failures);if(failures>=3)bankRetryAfter.set(job.key,Date.now()+Math.min(30000,1300*failures));if(pendingNew&&job.mode===sizeMode&&job.band===pendingPreferredBand&&failures>=3){bankRetryAfter.delete(job.key);pendingPreferredBand=choosePendingBand()}}
+    if(pendingNew){const p=takeBankPuzzle();if(p){pendingNew=false;pendingPreferredBand=null;startPuzzle(p);return}}scheduleBankFill(accepted?70:190)};generatorWorker.onerror=()=>{generatorBusy=false;generationJob=null;generatorWorker?.terminate();generatorWorker=null;if(pendingNew)setMessage('Preparing a puzzle…','');scheduleBankFill(400)};return generatorWorker}
+function fillBank(){if(generatorBusy)return;const worker=ensureWorker();if(!worker)return;const job=nextBankJob();if(!job)return;generatorBusy=true;generationJob=job;const token=++generationToken,avoid=bankAvoidRecords();worker.postMessage({type:'generate',targetBand:job.band,sizeMode:job.mode,recent:avoid,threshold:NEAR_DUPLICATE_SIMILARITY,token,purpose:job.urgent?'urgent':'background',jobKey:job.key})}
+function prefetchNext(){scheduleBankFill(80)}
 function transformed(p,t){const n=p.n;function map(r,c){switch(t){case 0:return[r,c];case 1:return[c,n-1-r];case 2:return[n-1-r,n-1-c];case 3:return[n-1-c,r];case 4:return[r,n-1-c];case 5:return[n-1-r,c];case 6:return[c,r];default:return[n-1-c,n-1-r]}}const reg=Array(n*n);for(let r=0;r<n;r++)for(let c=0;c<n;c++){const [rr,cc]=map(r,c);reg[rr*n+cc]=p.regions[r*n+c]}const sol=p.solution.map(i=>{const r=Math.floor(i/n),c=i%n,[rr,cc]=map(r,c);return rr*n+cc}).sort((a,b)=>a-b);return {...p,regions:reg,solution:sol}}
 function hexRgb(hex){const x=parseInt(hex.slice(1),16);return[(x>>16)&255,(x>>8)&255,x&255]}
 function shadeHex(hex,m){const x=parseInt(hex.slice(1),16),r=(x>>16)&255,g=(x>>8)&255,b=x&255;const adj=v=>Math.max(0,Math.min(255,Math.round(v*m)));return '#'+[adj(r),adj(g),adj(b)].map(v=>v.toString(16).padStart(2,'0')).join('')}
@@ -1189,7 +1381,7 @@ let saveTimer=null;
 function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(saveProgress,120)}
 function saveProgress(){if(!state||state.complete)return;const store=loadStore();const clean={...state,elapsed:elapsed(),startedAt:Date.now()};delete clean.history;store.progress=clean;saveStore(store)}
 function loadProgress(){
- const saved=loadStore().progress;if(!saved||saved.logicVersion!==2)return false;
+ const saved=loadStore().progress;if(!saved||![2,3,4].includes(saved.logicVersion))return false;
  state={...saved,history:[],hintUsed:!!saved.hintUsed,hintCount:saved.hintCount||0,activeHint:null};
  try{const a=logicAnalyse(state.n,state.regions);state.band=a.band}catch{}
  state.startedAt=Date.now();state.complete=false;render();
@@ -1308,16 +1500,8 @@ function restartCurrent(){
 }
 
 function makeNew(){
-  pauseTimer();clearHint();resetHintFlow();
-  if(cachedPuzzle&&cachedPuzzle.settingsKey===currentSettingsKey()){
-    const p=cachedPuzzle.puzzle;cachedPuzzle=null;startPuzzle(p);return;
-  }
-  pendingNew=true;newGameBtn.disabled=true;hintBtn.disabled=true;
-  setMessage(`Generating ${BANDS[difficultyBias].toLowerCase()} mix · ${sizeMode} size…`);
-  if(generatorBusy)return;
-  if(!requestGenerated('new')){
-    pendingNew=false;newGameBtn.disabled=false;hintBtn.disabled=false;setMessage('Puzzle generation is not available in this browser.','error');
-  }
+  pauseTimer();clearHint();resetHintFlow();const ready=takeBankPuzzle();if(ready){startPuzzle(ready);return}
+  pendingNew=true;pendingPreferredBand=choosePendingBand();newGameBtn.disabled=true;hintBtn.disabled=true;setMessage('Preparing a puzzle…');scheduleBankFill(0);
 }
 
 function cellsInRow(r,n){const out=[];for(let c=0;c<n;c++)out.push(r*n+c);return out}
@@ -1366,15 +1550,11 @@ function logicHintClue(){
  function label(k,u){return unitName(k,u)}
  const s=makeState();for(let i=0;i<total;i++)if(state.marks[i]===1)s.cand[i]=0;for(let i=0;i<total;i++)if(state.marks[i]===2)place(s,i);
  const sf=simpleFailure(s),pf=!sf?pairFailure(s):null;if(s.bad||sf||pf)return {key:'current-contradiction',type:'contradiction',targetCells:[],scopeCells:(sf||pf)?.k!=null?units[(sf||pf).k][(sf||pf).u]:[],intro:'Your current marks have made the puzzle impossible.',detail:`Specifically, ${(sf||pf)?.reason||s.reason||'the remaining markers cannot all fit'}.`,reveal:'Undo or reconsider one of your recent marks.'};
- // MEDIUM — quota, local pair and locked-overlap deductions.
+ // MEDIUM — quota, locked-overlap, direct blocking, then local two-marker fit.
  for(const k of [2,0,1])for(let u=0;u<n;u++){
    const f=fixedCount(s,k,u),a=candCells(s,k,u),open=a.filter(i=>!s.fixed[i]);
    if(f===2&&open.length)return {key:`full-${k}-${u}`,type:'quota',targetCells:open,scopeCells:units[k][u],intro:`${label(k,u)[0].toUpperCase()+label(k,u).slice(1)} already has its two 😎.`,detail:'Every other square in it can be crossed out.',reveal:`Cross ${cellRefs(open)}.`};
    if(a.length===2&&open.length)return {key:`need-${k}-${u}`,type:'quota',targetCells:open,scopeCells:units[k][u],intro:`${capFirst(label(k,u))} has only enough spaces left for its two 😎.`,detail:`There are exactly two possible cells left in total, counting any 😎 already placed.`,reveal:`Place 😎 in ${cellRefs(open)}.`};
- }
- for(const k of [2,0,1])for(let u=0;u<n;u++){
-   const co=completions(s,k,u);if(!co.length)continue;const open=units[k][u].filter(i=>s.cand[i]&&!s.fixed[i]);
-   for(const i of open){const used=co.filter(x=>x.includes(i)).length;if(used===0)return {key:`local-out-${k}-${u}-${i}`,type:'pair',targetCells:[i],scopeCells:units[k][u],intro:`There is a cell in ${label(k,u)} that cannot belong to any legal pair.`,detail:`It is ${cellRef(i)}. Every pair using that cell would make the two 😎 touch.`,reveal:`Cross ${cellRef(i)}.`};if(used===co.length)return {key:`local-in-${k}-${u}-${i}`,type:'pair',targetCells:[i],scopeCells:units[k][u],intro:`There is a cell in ${label(k,u)} that has to be used — it appears in every legal pair.`,detail:`That cell is ${cellRef(i)}. Every way to place the two 😎 in ${label(k,u)} uses it.`,reveal:`Place 😎 in ${cellRef(i)}.`}}
  }
  for(let ka=0;ka<3;ka++)for(let ua=0;ua<n;ua++){
    const needA=2-fixedCount(s,ka,ua),remA=candCells(s,ka,ua).filter(i=>!s.fixed[i]);if(needA<=0||remA.length<=needA)continue;
@@ -1382,6 +1562,11 @@ function logicHintClue(){
  }
  // MEDIUM — direct blocking: an immediate quota contradiction.
  for(let i=0;i<total;i++)if(s.cand[i]&&!s.fixed[i]){const t=clone(s);place(t,i);const fail=t.bad?{reason:t.reason||'it would touch an existing 😎'}:simpleFailure(t);if(fail){const blocked=fail.k!=null?label(fail.k,fail.u):null,r=Math.floor(i/n)+1;return {key:`block-${i}`,type:'blocking',targetCells:[i],scopeCells:uniqueCells([i,...(t.reasonCells||[])]),intro:blocked?`There is a cell in row ${r} that would leave ${blocked} without enough available spaces.`:`There is a cell in row ${r} that cannot contain 😎.`,detail:`It is ${cellRef(i)}. If it contained 😎, ${fail.reason}.`,reveal:`Cross ${cellRef(i)}.`}}}
+ // MEDIUM — local two-marker fit, after simpler quota/overlap/blocking clues.
+ for(const k of [2,0,1])for(let u=0;u<n;u++){
+   const co=completions(s,k,u);if(!co.length)continue;const open=units[k][u].filter(i=>s.cand[i]&&!s.fixed[i]);
+   for(const i of open){const used=co.filter(x=>x.includes(i)).length;if(used===0)return {key:`local-out-${k}-${u}-${i}`,type:'pair',targetCells:[i],scopeCells:units[k][u],intro:`There is a cell in ${label(k,u)} that cannot be one of its two 😎.`,detail:`It is ${cellRef(i)}. There is no way to use that cell and still fit the second 😎 without the two touching.`,reveal:`Cross ${cellRef(i)}.`};if(used===co.length)return {key:`local-in-${k}-${u}-${i}`,type:'pair',targetCells:[i],scopeCells:units[k][u],intro:`Every way to fit two non-touching 😎 in ${label(k,u)} uses the same cell.`,detail:`That cell is ${cellRef(i)}. The second 😎 can vary, but this one cannot.`,reveal:`Place 😎 in ${cellRef(i)}.`}}
+ }
  // HARD — adjacent-unit compatibility, pair-level blocking, and two-unit capacity groups.
  function compatibleSets(a,b){for(const i of a)for(const j of b)if(touching(i,j,n))return false;return true}
  for(const k of [0,1])for(let u=0;u<n-1;u++){
