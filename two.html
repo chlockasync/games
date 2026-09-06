@@ -624,7 +624,7 @@ header{
       <button id="clearRecordsBtn" class="dangerBtn" type="button">Clear records</button>
       <button id="doneRecordsBtn" type="button">Done</button>
     </div>
-    <div class="buildVersion" aria-label="Build version">3.3.3</div>
+    <div class="buildVersion" aria-label="Build version">4.3.4</div>
   </div>
 </div>
 
@@ -1015,9 +1015,12 @@ function logicAnalyse(n,regions){
    if(lockedStep(s)){stats.medium++;stats.locked++;stats.trace.push('locked');continue}
    const sb=simpleBlockStep(s);if(sb){stats.directBlock++;stats.medium++;stats.mediumBlock++;stats.trace.push('directBlock');continue}
    if(localStep(s)){stats.medium++;stats.localPair++;stats.trace.push('localPair');continue}
-   if(adjacentStep(s)){stats.hard++;stats.adjacent++;stats.trace.push('adjacent');tier=Math.max(tier,1);continue}
    const g2=groupStep(s,2,2);if(s.bad)break;if(g2){stats.hard++;stats.group2++;stats.trace.push('group2');tier=Math.max(tier,1);continue}
    if(compoundBlockStep(s)){stats.hard++;stats.compound++;stats.trace.push('compound');tier=Math.max(tier,1);continue}
+   // Comparing every legal pair in one row/column against every legal pair in
+   // its neighbour is substantially harder for a human than a local compound
+   // contradiction. Treat this as Expert rather than Hard.
+   if(adjacentStep(s)){stats.expert++;stats.adjacent++;stats.trace.push('adjacent');tier=2;continue}
    if(windowStep(s,3)){stats.expert++;stats.window++;stats.window3++;stats.trace.push('window3');tier=2;continue}
    if(s.bad)break;if(windowStep(s,4)){stats.expert++;stats.window++;stats.window4++;stats.trace.push('window4');tier=2;continue}
    if(s.bad)break;const gx=groupStep(s,3,n);if(s.bad)break;if(gx){stats.expert++;stats.group3++;stats.trace.push('group3');tier=2;continue}
@@ -1246,11 +1249,11 @@ function generateChainTarget(targetBand,sizeMode,recent,threshold,deadline){
   return null;
 }
 
-function textureOfTwo(st,band){if(band==='Brutal')return'forcing';if(band==='Expert'){const a=[['three-row',st.window3||0],['four-row',st.window4||0],['capacity',st.group3||0],['mixed-expert',(st.window3||0)+(st.window4||0)+(st.group3||0)]].sort((x,y)=>y[1]-x[1]);return a[0][1]?a[0][0]:'expert-mixed'}if(band==='Hard'){const a=[['adjacency',st.adjacent||0],['reserved-pair',st.group2||0],['compound-block',st.compound||0]].sort((x,y)=>y[1]-x[1]);return a[0][1]?a[0][0]:'hard-mixed'}const a=[['quota',st.basic||0],['locked',st.locked||0],['direct-block',st.directBlock||0],['local-pair',st.localPair||0]].sort((x,y)=>y[1]-x[1]);return a[0][1]?a[0][0]:'medium-mixed'}
+function textureOfTwo(st,band){if(band==='Brutal')return'forcing';if(band==='Expert'){const a=[['adjacency',st.adjacent||0],['three-row',st.window3||0],['four-row',st.window4||0],['capacity',st.group3||0],['mixed-expert',(st.adjacent||0)+(st.window3||0)+(st.window4||0)+(st.group3||0)]].sort((x,y)=>y[1]-x[1]);return a[0][1]?a[0][0]:'expert-mixed'}if(band==='Hard'){const a=[['reserved-pair',st.group2||0],['compound-block',st.compound||0]].sort((x,y)=>y[1]-x[1]);return a[0][1]?a[0][0]:'hard-mixed'}const a=[['quota',st.basic||0],['locked',st.locked||0],['direct-block',st.directBlock||0],['local-pair',st.localPair||0]].sort((x,y)=>y[1]-x[1]);return a[0][1]?a[0][0]:'medium-mixed'}
 function solveTextureOkay(n,p,targetBand){if(!p||!p.stats)return false;const st=p.stats,counts=regionCounts(n,p.regions),three=counts.filter(x=>x===3).length,gaps=solutionGaps(n,p.solution),gap2=gaps.filter(x=>x===2).length,trace=st.trace||[],tripleMotifs=straightTripleMotifs(n,p.regions,p.solution);
   if(targetBand==='Medium'||targetBand==='Hard'){if(tripleMotifs>2||three>Math.max(1,Math.floor(n*.20))||(n>=9&&gap2>Math.ceil(n*.45)))return false;const med=Math.max(1,st.medium||0),local=st.localPair||0;if(local>Math.max(3,Math.floor(med*.43))||maxTechniqueRun(trace,'localPair')>2)return false}
   if(targetBand==='Medium'){const types=[st.basic,st.locked,st.directBlock,st.localPair].filter(x=>(x||0)>0).length;if(types<2||((st.medium||0)>14&&types<2))return false}
-  if(targetBand==='Hard'){const hardTypes=[st.adjacent,st.group2,st.compound].filter(x=>(x||0)>0).length;if((st.hard||0)<1||((st.hard||0)>=3&&hardTypes<2))return false;if(maxTechniqueRun(trace,'adjacent')>3||maxTechniqueRun(trace,'group2')>3||maxTechniqueRun(trace,'compound')>3)return false}
+  if(targetBand==='Hard'){const hardTypes=[st.group2,st.compound].filter(x=>(x||0)>0).length;if((st.hard||0)<1)return false;if((st.hard||0)>=4&&hardTypes<2)return false;if(maxTechniqueRun(trace,'group2')>3||maxTechniqueRun(trace,'compound')>3)return false}
   return true;
 }
 function diversityOkay(p,recent,strict=true){if(!p)return false;const checks=[['family',p.family,2],['solutionStyle',p.solutionStyle,2],['pairingStyle',p.pairingStyle,2],['routeStyle',p.routeStyle,2],['fillStyle',p.fillStyle,2],['texture',p.texture,2],['pairGeometry',p.pairGeometry,2]];let repeats=0;for(const [k,v,max] of checks){if(!v||v==='unknown'||v==='mixed')continue;const c=recentValueCount(recent,k,v,6);if(c>=max)repeats++}return strict?repeats<2:repeats<4}
@@ -1513,7 +1516,7 @@ function pauseTimer(){if(!state||state.complete)return;if(timerTick){state.elaps
 function resumeTimer(){if(!state||state.complete||state.failed||document.hidden)return;state.startedAt=Date.now();startTimer()}
 document.addEventListener('visibilitychange',()=>{if(document.hidden){pauseTimer();saveProgress()}else resumeTimer()});
 window.addEventListener('pagehide',()=>{pauseTimer();saveProgress()});
-window.addEventListener('pageshow',()=>{if(!document.hidden)resumeTimer()});
+window.addEventListener('pageshow',()=>{if(state?.complete){winModal.classList.add('show');nextBtn.disabled=false;return}if(!document.hidden)resumeTimer()});
 function improvementDuration(sec){
  sec=Math.max(0,Math.round(sec));
  if(sec<60)return `${sec} second${sec===1?'':'s'}`;
@@ -1524,14 +1527,25 @@ function checkComplete(){
  const rows=Array(n).fill(0),cols=Array(n).fill(0),regs=Array(n).fill(0);for(const i of markers){rows[Math.floor(i/n)]++;cols[i%n]++;regs[state.regions[i]]++}
  if(rows.some(x=>x!==2)||cols.some(x=>x!==2)||regs.some(x=>x!==2))return;
  for(let x=0;x<markers.length;x++)for(let y=x+1;y<markers.length;y++)if(touching(markers[x],markers[y],n))return;
- state.complete=true;state.elapsed=elapsed();clearInterval(timerTick);timerEl.textContent=fmt(state.elapsed);
+ state.complete=true;state.elapsed=elapsed();clearInterval(timerTick);timerTick=null;timerEl.textContent=fmt(state.elapsed);
+ // Completion is terminal. Never let an old/background New-game request survive into it.
+ pendingNew=false;pendingPreferredBand=null;newGameBtn.disabled=false;hintBtn.disabled=true;
  const store=loadStore(),k=keyBest(n,state.band),previousBest=Number(store[k])||0;let isBest=false,improvement=0;
  if(!state.hintUsed&&(!previousBest||state.elapsed<previousBest)){improvement=previousBest?previousBest-state.elapsed:0;store[k]=state.elapsed;isBest=true}
- delete store.progress;saveStore(store);updateBest();let resultNote='';
+ updateBest();let resultNote='';
  if(state.hintUsed)resultNote=' Hints were used, so this one won’t count as a record.';
  else if(isBest&&previousBest)resultNote=` New best — ${improvementDuration(improvement)} faster than your previous best! 🏆`;
  else if(isBest)resultNote=' First recorded time — new best! 🏆';
- winText.textContent=`You solved this ${n}×${n} ${state.band} puzzle in ${fmt(state.elapsed)}.${resultNote}`;winModal.classList.add('show');setMessage(isBest?(previousBest?`${improvementDuration(improvement)} faster — new best! 🏆`:'New best time! 🏆'):'Nice work — puzzle solved! 🎉','good')
+ winText.textContent=`You solved this ${n}×${n} ${state.band} puzzle in ${fmt(state.elapsed)}.${resultNote}`;
+ // Persist the completed board too. If Android evicts/reloads the iframe after
+ // the app has been backgrounded, we can restore the win instead of silently
+ // falling into a new-generation request.
+ {const clean={...state,startedAt:Date.now(),completionText:winText.textContent};delete clean.history;store.progress=clean;saveStore(store)}
+ winModal.classList.add('show');
+ // Do not allow the same touch/click that places the final 😎 to activate the
+ // newly-created Next puzzle button underneath it.
+ clearTimeout(winArmTimer);winArmedAt=performance.now()+750;nextBtn.disabled=true;winArmTimer=setTimeout(()=>{if(state?.complete&&winModal.classList.contains('show'))nextBtn.disabled=false},780);
+ setMessage(isBest?(previousBest?`${improvementDuration(improvement)} faster — new best! 🏆`:'New best time! 🏆'):'Nice work — puzzle solved! 🎉','good')
 }
 function updateBest(){const store=loadStore(),v=store[keyBest(state.n,state.band)];bestTop.textContent=v?fmt(v):'—'}
 
@@ -1553,16 +1567,18 @@ function clearAllRecords(){
  for(const k of Object.keys(store))if(/^best_v\d+_\d+_(Medium|Hard|Expert|Brutal)$/.test(k))delete store[k];
  saveStore(store);renderRecords();if(state)updateBest();hideModal(clearConfirmModal);
 }
+let winArmedAt=0,winArmTimer=null;
 let saveTimer=null;
 function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(saveProgress,120)}
 function saveProgress(){if(!state||state.complete)return;const store=loadStore();const clean={...state,elapsed:elapsed(),startedAt:Date.now()};delete clean.history;store.progress=clean;saveStore(store)}
 function loadProgress(){
- const saved=loadStore().progress;if(!saved||![2,3,4].includes(saved.logicVersion))return false;
+ const saved=loadStore().progress;if(!saved||!Number.isInteger(saved.n)||!Array.isArray(saved.regions)||!Array.isArray(saved.marks))return false;
  state={...saved,history:[],hintUsed:!!saved.hintUsed,hintCount:saved.hintCount||0,activeHint:null};
  try{const a=logicAnalyse(state.n,state.regions);state.band=a.band}catch{}
- state.startedAt=Date.now();state.complete=false;render();
- if(state.failed){pauseTimer();hintBtn.disabled=true;setMessage('This puzzle is paused after a failed move. Review the board, then Restart when you’re ready.','error')}
- else{hintBtn.disabled=false;startTimer()}
+ state.startedAt=Date.now();render();
+ if(saved.complete){state.complete=true;pauseTimer();hintBtn.disabled=true;newGameBtn.disabled=false;winText.textContent=saved.completionText||`You solved this ${state.n}×${state.n} ${state.band} puzzle in ${fmt(state.elapsed)}.`;winModal.classList.add('show');clearTimeout(winArmTimer);winArmedAt=performance.now();nextBtn.disabled=false;setMessage('Nice work — puzzle solved! 🎉','good')}
+ else if(state.failed){state.complete=false;pauseTimer();hintBtn.disabled=true;setMessage('This puzzle is paused after a failed move. Review the board, then Restart when you’re ready.','error')}
+ else{state.complete=false;hintBtn.disabled=false;startTimer()}
  return true
 }
 
@@ -1676,7 +1692,7 @@ function restartCurrent(){
 }
 
 function makeNew(){
-  pauseTimer();clearHint();resetHintFlow();const ready=takeBankPuzzle();if(ready){startPuzzle(ready);return}
+  pauseTimer();clearHint();resetHintFlow();clearTimeout(winArmTimer);winModal.classList.remove('show');{const store=loadStore();delete store.progress;saveStore(store)}const ready=takeBankPuzzle();if(ready){startPuzzle(ready);return}
   pendingNew=true;pendingPreferredBand=choosePendingBand();newGameBtn.disabled=true;hintBtn.disabled=true;setMessage('Preparing a puzzle…');preemptBackgroundForNew();scheduleBankFill(0);
 }
 
@@ -1743,12 +1759,8 @@ function logicHintClue(){
    const co=completions(s,k,u);if(!co.length)continue;const open=units[k][u].filter(i=>s.cand[i]&&!s.fixed[i]);
    for(const i of open){const used=co.filter(x=>x.includes(i)).length;if(used===0)return {key:`local-out-${k}-${u}-${i}`,type:'pair',targetCells:[i],scopeCells:units[k][u],intro:`There is a cell in ${label(k,u)} that cannot be one of its two 😎.`,detail:`It is ${cellRef(i)}. There is no way to use that cell and still fit the second 😎 without the two touching.`,reveal:`Cross ${cellRef(i)}.`};if(used===co.length)return {key:`local-in-${k}-${u}-${i}`,type:'pair',targetCells:[i],scopeCells:units[k][u],intro:`Every way to fit two non-touching 😎 in ${label(k,u)} uses the same cell.`,detail:`That cell is ${cellRef(i)}. The second 😎 can vary, but this one cannot.`,reveal:`Place 😎 in ${cellRef(i)}.`}}
  }
- // HARD — adjacent-unit compatibility, pair-level blocking, and two-unit capacity groups.
+ // Pair compatibility helper. The actual adjacent-unit deduction is Expert.
  function compatibleSets(a,b){for(const i of a)for(const j of b)if(touching(i,j,n))return false;return true}
- for(const k of [0,1])for(let u=0;u<n-1;u++){
-   const A=completions(s,k,u),B=completions(s,k,u+1);if(!A.length||!B.length)continue;
-   for(const [which,own,other] of [[u,A,B],[u+1,B,A]])for(const i of units[k][which].filter(i=>s.cand[i]&&!s.fixed[i])){let ok=false;for(const x of own)if(x.includes(i)){for(const y of other)if(compatibleSets(x,y)){ok=true;break}if(ok)break}if(!ok){const neighbour=which===u?u+1:u,axis=k===0?'row':'column',where=cellAxisRef(i,k);return {key:`adj-${k}-${u}-${i}`,type:'adjacent',targetCells:[i],scopeCells:uniqueCells([...units[k][u],...units[k][u+1]]),intro:`There is a cell in ${axis} ${which+1} that would block every available pair in ${axis} ${neighbour+1}.`,detail:`It is ${where}. Every pair using that cell conflicts with every possible pair in ${axis} ${neighbour+1}, because the 😎 would be next to each other.`,reveal:`Cross ${cellRef(i)}.`}};}
- }
  function groupClue(minSize,maxSize){
    function pairOfDir(i,dir){const r=Math.floor(i/n),c=i%n,g=regions[i];switch(dir){case 0:return[r,c];case 1:return[c,r];case 2:return[r,g];case 3:return[g,r];case 4:return[c,g];default:return[g,c]}}
    function kindForLeft(dir){return dir===0||dir===2?0:dir===1||dir===4?1:2}function kindForRight(dir){return dir===0||dir===1?1:dir===2||dir===3?2:1}
@@ -1757,6 +1769,11 @@ function logicHintClue(){
  }
  for(let i=0;i<total;i++)if(s.cand[i]&&!s.fixed[i]){const t=clone(s);place(t,i);if(t.bad||simpleFailure(t))continue;const fail=pairFailure(t);if(fail){const r=Math.floor(i/n)+1;return {key:`compound-${i}`,type:'compound',targetCells:[i],scopeCells:uniqueCells([i,...units[fail.k][fail.u]]),intro:`There is a cell in row ${r} that would leave ${label(fail.k,fail.u)} with no legal pair.`,detail:`It is ${cellRef(i)}. If it contained 😎, ${fail.reason}.`,reveal:`Cross ${cellRef(i)}.`}}}
  let gc=groupClue(2,2);if(gc)return gc;
+ // EXPERT — comparing complete pair possibilities across adjacent rows/columns.
+ for(const k of [0,1])for(let u=0;u<n-1;u++){
+   const A=completions(s,k,u),B=completions(s,k,u+1);if(!A.length||!B.length)continue;
+   for(const [which,own,other] of [[u,A,B],[u+1,B,A]])for(const i of units[k][which].filter(i=>s.cand[i]&&!s.fixed[i])){let ok=false;for(const x of own)if(x.includes(i)){for(const y of other)if(compatibleSets(x,y)){ok=true;break}if(ok)break}if(!ok){const neighbour=which===u?u+1:u,axis=k===0?'row':'column',where=cellAxisRef(i,k);return {key:`adj-${k}-${u}-${i}`,type:'adjacent',targetCells:[i],scopeCells:uniqueCells([...units[k][u],...units[k][u+1]]),intro:`There is a cell in ${axis} ${which+1} that would block every available pair in ${axis} ${neighbour+1}.`,detail:`It is ${where}. Every pair using that cell conflicts with every possible pair in ${axis} ${neighbour+1}, because the 😎 would be next to each other.`,reveal:`Cross ${cellRef(i)}.`}};}
+ }
  // EXPERT — three/four adjacent rows together or larger capacity groups.
  function windowClue(len){
    for(let start=0;start<=n-len;start++){
@@ -1792,7 +1809,7 @@ undoBtn.addEventListener('click',undo);
 hintBtn.addEventListener('click',hint);
 restartBtn.addEventListener('click',restartCurrent);
 newGameBtn.addEventListener('click',()=>{winModal.classList.remove('show');makeNew()});
-nextBtn.addEventListener('click',()=>{winModal.classList.remove('show');makeNew()});
+nextBtn.addEventListener('click',e=>{if(performance.now()<winArmedAt){e.preventDefault();e.stopPropagation();return}winModal.classList.remove('show');makeNew()});
 recordsBtn.addEventListener('click',openRecords);
 closeRecordsBtn.addEventListener('click',()=>hideModal(recordsModal));
 doneRecordsBtn.addEventListener('click',()=>hideModal(recordsModal));
